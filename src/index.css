@@ -352,7 +352,7 @@
   }
   
   html, body {
-    width: 210mm;
+    width: auto;
     height: auto;
     margin: 0;
     padding: 0;
@@ -371,10 +371,10 @@
     width: 210mm !important;
   }
   
-  /* Physical dimensions and spacing for pixel-perfect fidelity */
+  /* Physical dimensions and spacing for pixel-perfect fidelity.
+   * Paper-specific width/height is driven by data-paper-size below and by
+   * react-to-print pageStyle inside the isolated print document. */
   .resume-content {
-    width: 210mm !important;
-    min-height: 297mm !important;
     margin: 0 auto !important;
     box-shadow: none !important;
     border: none !important;

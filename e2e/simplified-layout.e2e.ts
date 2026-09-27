@@ -60,6 +60,26 @@ test.describe('simplified workspace actions', () => {
     ).toHaveAttribute('aria-pressed', 'true');
   });
 
+  test('switches the live preview between A4 and US Letter dimensions', async ({ page }) => {
+    await page.goto('/');
+
+    const toolbar = page.locator('#resume-main-toolbar');
+    await toolbar.getByRole('button', { name: /Open layout settings|打开排版设置/ }).click();
+
+    const layoutDialog = page.getByRole('dialog', { name: 'Layout' });
+    const preview = page.locator('#resume-print-content');
+
+    await layoutDialog.getByRole('button', { name: /US Letter/ }).click();
+    await expect(preview).toHaveAttribute('data-paper-size', 'letter');
+    await expect.poll(() => preview.evaluate((element) => (element as HTMLElement).style.width))
+      .toBe('215.9mm');
+
+    await layoutDialog.getByRole('button', { name: /^A4 / }).click();
+    await expect(preview).toHaveAttribute('data-paper-size', 'a4');
+    await expect.poll(() => preview.evaluate((element) => (element as HTMLElement).style.width))
+      .toBe('210mm');
+  });
+
   test('keeps page break guide with view controls', async ({ page }) => {
     await page.goto('/');
 

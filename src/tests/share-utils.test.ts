@@ -1,3 +1,4 @@
+import { zlibSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
 import {
   decryptSharePayload,
@@ -5,8 +6,10 @@ import {
   encryptShareState,
   getSharePayloadFromLocation,
   parseSharePayload,
+  serializeCompressedShareState,
   serializeShareState,
   SHARE_PASSWORD_MIN_LENGTH,
+  SHARE_PBKDF2_ITERATIONS,
 } from '../lib/share-utils';
 import type { ResumeSettings } from '../types';
 
@@ -39,6 +42,80 @@ function decodeOuterEnvelope(encoded: string) {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
+function bytesToBase64Url(bytes: Uint8Array) {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+}
+
+function encodeOuterEnvelope(value: unknown) {
+  return bytesToBase64Url(new TextEncoder().encode(JSON.stringify(value)));
+}
+
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  return copy.buffer;
+}
+
+async function encryptLegacyV2(markdown: string, password: string) {
+  const encoder = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    toArrayBuffer(encoder.encode(password)),
+    'PBKDF2',
+    false,
+    ['deriveKey'],
+  );
+  const key = await crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      hash: 'SHA-256',
+      salt: toArrayBuffer(salt),
+      iterations: SHARE_PBKDF2_ITERATIONS,
+    },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt'],
+  );
+  const ciphertext = await crypto.subtle.encrypt(
+    {
+      name: 'AES-GCM',
+      iv: toArrayBuffer(iv),
+      additionalData: toArrayBuffer(encoder.encode('resume-craft-share-v2')),
+      tagLength: 128,
+    },
+    key,
+    toArrayBuffer(
+      encoder.encode(
+        JSON.stringify({
+          m: markdown,
+          s: settings,
+        }),
+      ),
+    ),
+  );
+
+  return encodeOuterEnvelope({
+    v: 2,
+    a: 'A256GCM',
+    k: 'PBKDF2-SHA256',
+    i: SHARE_PBKDF2_ITERATIONS,
+    s: bytesToBase64Url(salt),
+    n: bytesToBase64Url(iv),
+    c: bytesToBase64Url(new Uint8Array(ciphertext)),
+    l: settings.lang,
+  });
+}
+
 describe('privacy-preserving share links', () => {
   it('prefers fragment payloads and keeps legacy query links compatible', () => {
     expect(
@@ -66,6 +143,56 @@ describe('privacy-preserving share links', () => {
     const parsed = parseSharePayload(encoded);
     expect(parsed?.kind).toBe('plain');
   });
+
+  it('round-trips compressed v3 public shares and makes long resumes materially shorter', () => {
+    const markdown = [
+      '# Candidate',
+      '',
+      ...Array.from(
+        { length: 180 },
+        (_, index) =>
+          `- Built a distributed resume workflow with measurable impact ${index % 8} and reusable platform components.`,
+      ),
+    ].join('\n');
+
+    const legacy = serializeShareState({ markdown, settings });
+    const compressed = serializeCompressedShareState({ markdown, settings });
+    const envelope = decodeOuterEnvelope(compressed);
+
+    expect(envelope.v).toBe(3);
+    expect(envelope.a).toBe('PLAIN');
+    expect(envelope.z).toBe('ZLIB');
+    expect(compressed.length).toBeLessThan(legacy.length * 0.55);
+
+    const parsed = parseSharePayload(compressed);
+    expect(parsed?.kind).toBe('plain');
+    if (!parsed || parsed.kind !== 'plain') {
+      throw new Error('Expected compressed plain share payload');
+    }
+    expect(parsed.state.markdown).toBe(markdown);
+    expect(parsed.state.settings.themeColor).toBe('indigo');
+  });
+
+  it('rejects compressed v3 payloads that inflate beyond the safety limit', () => {
+    const oversizedJson = JSON.stringify({
+      m: 'A'.repeat(8_100_000),
+      s: settings,
+    });
+    const compressed = zlibSync(new TextEncoder().encode(oversizedJson), {
+      level: 9,
+    });
+    const encoded = encodeOuterEnvelope({
+      v: 3,
+      a: 'PLAIN',
+      z: 'ZLIB',
+      d: bytesToBase64Url(compressed),
+      l: 'zh',
+    });
+
+    expect(encoded.length).toBeLessThan(3_000_000);
+    expect(parseSharePayload(encoded)).toBeNull();
+  });
+
 
   it('sanitizes malformed legacy settings instead of trusting URL payload types', () => {
     const malformedSettings = {
@@ -112,9 +239,10 @@ describe('privacy-preserving share links', () => {
     const envelope = decodeOuterEnvelope(encoded);
     const serializedEnvelope = JSON.stringify(envelope);
 
-    expect(envelope.v).toBe(2);
+    expect(envelope.v).toBe(3);
     expect(envelope.a).toBe('A256GCM');
     expect(envelope.k).toBe('PBKDF2-SHA256');
+    expect(envelope.z).toBe('ZLIB');
     expect(serializedEnvelope).not.toContain(password);
     expect(serializedEnvelope).not.toContain('Secret resume content');
 
@@ -130,6 +258,26 @@ describe('privacy-preserving share links', () => {
     expect(decrypted?.settings.themeColor).toBe('indigo');
     expect(decrypted?.passwordHash).toBeUndefined();
   });
+
+  it('continues to decrypt legacy v2 encrypted share links', async () => {
+    const password = 'legacy compatible password';
+    const markdown = '# Candidate\n\nLegacy encrypted content';
+    const encoded = await encryptLegacyV2(markdown, password);
+
+    const parsed = parseSharePayload(encoded);
+    expect(parsed?.kind).toBe('encrypted');
+    if (!parsed || parsed.kind !== 'encrypted') {
+      throw new Error('Expected legacy v2 encrypted share payload');
+    }
+
+    expect(parsed.payload.version).toBe(2);
+    expect(parsed.payload.compression).toBeUndefined();
+
+    const decrypted = await decryptSharePayload(parsed.payload, password);
+    expect(decrypted?.markdown).toBe(markdown);
+    expect(decrypted?.settings.themeColor).toBe('indigo');
+  });
+
 
   it('normalizes settings before encrypting protected shares', async () => {
     const malformedSettings = {

@@ -1,3 +1,4 @@
+import { Unzlib, zlibSync } from 'fflate';
 import type { Language, ResumeSettings } from '../types';
 import { normalizeImportedSettings } from './import-validation';
 
@@ -12,9 +13,10 @@ export interface ShareState {
 }
 
 export interface EncryptedSharePayload {
-  version: 2;
+  version: 2 | 3;
   algorithm: 'AES-256-GCM';
   kdf: 'PBKDF2-SHA-256';
+  compression?: 'zlib';
   iterations: number;
   salt: string;
   iv: string;
@@ -30,13 +32,18 @@ export const SHARE_PASSWORD_MIN_LENGTH = 8;
 export const SHARE_PASSWORD_MAX_LENGTH = 64;
 export const SHARE_PBKDF2_ITERATIONS = 310_000;
 
-const SHARE_ENCRYPTION_VERSION = 2;
-const SHARE_ENCRYPTION_AAD = 'resume-craft-share-v2';
+const SHARE_CURRENT_VERSION = 3;
+const SHARE_LEGACY_ENCRYPTION_VERSION = 2;
+const SHARE_V2_ENCRYPTION_AAD = 'resume-craft-share-v2';
+const SHARE_V3_ENCRYPTION_AAD = 'resume-craft-share-v3';
+const SHARE_COMPRESSION = 'ZLIB';
 const SHARE_SALT_BYTES = 16;
 const SHARE_IV_BYTES = 12;
 const SHARE_MAX_MARKDOWN_LENGTH = 2_000_000;
 const SHARE_MAX_ENCODED_LENGTH = 3_000_000;
 const SHARE_MAX_CIPHERTEXT_LENGTH = 2_800_000;
+const SHARE_MAX_COMPRESSED_BYTES = 2_100_000;
+const SHARE_MAX_DECOMPRESSED_BYTES = 8_000_000;
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -84,6 +91,51 @@ function encodeJsonBase64Url(value: unknown): string {
 
 function decodeJsonBase64Url(value: string): unknown {
   return JSON.parse(textDecoder.decode(base64UrlToBytes(value)));
+}
+
+function compressJson(value: unknown): Uint8Array {
+  const source = textEncoder.encode(JSON.stringify(value));
+  if (source.byteLength > SHARE_MAX_DECOMPRESSED_BYTES) {
+    throw new Error('Share payload is too large before compression');
+  }
+
+  const compressed = zlibSync(source, { level: 6 });
+  if (compressed.byteLength > SHARE_MAX_COMPRESSED_BYTES) {
+    throw new Error('Share payload is too large after compression');
+  }
+
+  return compressed;
+}
+
+function unzlibWithLimit(data: Uint8Array): Uint8Array {
+  if (data.byteLength === 0 || data.byteLength > SHARE_MAX_COMPRESSED_BYTES) {
+    throw new Error('Compressed share payload is invalid');
+  }
+
+  const chunks: Uint8Array[] = [];
+  let totalLength = 0;
+  const inflater = new Unzlib((chunk) => {
+    totalLength += chunk.byteLength;
+    if (totalLength > SHARE_MAX_DECOMPRESSED_BYTES) {
+      throw new Error('Decompressed share payload exceeds the allowed size');
+    }
+    chunks.push(chunk);
+  });
+
+  inflater.push(data, true);
+
+  const output = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    output.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return output;
+}
+
+function decodeCompressedJson(encoded: string): unknown {
+  const compressed = base64UrlToBytes(encoded);
+  return JSON.parse(textDecoder.decode(unzlibWithLimit(compressed)));
 }
 
 function getWebCrypto(): Crypto {
@@ -190,11 +242,14 @@ function parseEncryptedEnvelope(encoded: string): EncryptedSharePayload | null {
     }
 
     const envelope = parsed as Record<string, unknown>;
+    const isV2 = envelope.v === SHARE_LEGACY_ENCRYPTION_VERSION;
+    const isV3 = envelope.v === SHARE_CURRENT_VERSION;
 
     if (
-      envelope.v !== SHARE_ENCRYPTION_VERSION ||
+      (!isV2 && !isV3) ||
       envelope.a !== 'A256GCM' ||
       envelope.k !== 'PBKDF2-SHA256' ||
+      (isV3 && envelope.z !== SHARE_COMPRESSION) ||
       typeof envelope.i !== 'number' ||
       !Number.isInteger(envelope.i) ||
       envelope.i < 100_000 ||
@@ -216,7 +271,7 @@ function parseEncryptedEnvelope(encoded: string): EncryptedSharePayload | null {
     }
 
     const payload: EncryptedSharePayload = {
-      version: 2,
+      version: isV3 ? 3 : 2,
       algorithm: 'AES-256-GCM',
       kdf: 'PBKDF2-SHA-256',
       iterations: envelope.i,
@@ -225,12 +280,14 @@ function parseEncryptedEnvelope(encoded: string): EncryptedSharePayload | null {
       ciphertext: envelope.c,
     };
 
+    if (isV3) payload.compression = 'zlib';
     if (isLanguage(envelope.l)) payload.lang = envelope.l;
     return payload;
   } catch {
     return null;
   }
 }
+
 
 /**
  * Encodes the legacy/public share state into a URI-safe Base64 payload.
@@ -280,6 +337,67 @@ export function deserializeShareState(encoded: string): ShareState | null {
 }
 
 /**
+ * Encodes a public v3 share using Zlib before Base64URL wrapping.
+ * Legacy plain links remain readable through deserializeShareState().
+ */
+export function serializeCompressedShareState(state: ShareState): string {
+  const normalized = normalizeShareState(
+    state.markdown,
+    state.settings,
+    state.settings.lang,
+  );
+  if (!normalized) return '';
+
+  try {
+    const compressed = compressJson({
+      m: normalized.markdown,
+      s: normalized.settings,
+    });
+
+    return encodeJsonBase64Url({
+      v: SHARE_CURRENT_VERSION,
+      a: 'PLAIN',
+      z: SHARE_COMPRESSION,
+      d: bytesToBase64Url(compressed),
+      l: normalized.settings.lang,
+    });
+  } catch (error) {
+    console.error('Failed to compress share state', error);
+    return '';
+  }
+}
+
+function parseCompressedPlainEnvelope(encoded: string): ShareState | null {
+  if (!encoded || encoded.length > SHARE_MAX_ENCODED_LENGTH) return null;
+
+  try {
+    const parsed = decodeJsonBase64Url(encoded);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return null;
+    }
+
+    const envelope = parsed as Record<string, unknown>;
+    if (
+      envelope.v !== SHARE_CURRENT_VERSION ||
+      envelope.a !== 'PLAIN' ||
+      envelope.z !== SHARE_COMPRESSION ||
+      typeof envelope.d !== 'string' ||
+      envelope.d.length === 0
+    ) {
+      return null;
+    }
+
+    const state = decodeCompressedJson(envelope.d) as {
+      m?: unknown;
+      s?: unknown;
+    };
+    return normalizeShareState(state?.m, state?.s, isLanguage(envelope.l) ? envelope.l : undefined);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Encrypts a share state using a password-derived AES-256-GCM key.
  *
  * The password is never stored in the payload. The URL contains only KDF
@@ -320,18 +438,16 @@ export async function encryptShareState(
     throw new Error('Invalid share state');
   }
 
-  const plaintext = textEncoder.encode(
-    JSON.stringify({
-      m: normalizedState.markdown,
-      s: normalizedState.settings,
-    }),
-  );
+  const plaintext = compressJson({
+    m: normalizedState.markdown,
+    s: normalizedState.settings,
+  });
 
   const ciphertext = await webCrypto.subtle.encrypt(
     {
       name: 'AES-GCM',
       iv: toArrayBuffer(iv),
-      additionalData: toArrayBuffer(textEncoder.encode(SHARE_ENCRYPTION_AAD)),
+      additionalData: toArrayBuffer(textEncoder.encode(SHARE_V3_ENCRYPTION_AAD)),
       tagLength: 128,
     },
     key,
@@ -339,9 +455,10 @@ export async function encryptShareState(
   );
 
   return encodeJsonBase64Url({
-    v: SHARE_ENCRYPTION_VERSION,
+    v: SHARE_CURRENT_VERSION,
     a: 'A256GCM',
     k: 'PBKDF2-SHA256',
+    z: SHARE_COMPRESSION,
     i: SHARE_PBKDF2_ITERATIONS,
     s: bytesToBase64Url(salt),
     n: bytesToBase64Url(iv),
@@ -354,15 +471,20 @@ export async function encryptShareState(
  * Parses either the new encrypted format or a legacy/public plain payload.
  */
 export function parseSharePayload(encoded: string): ParsedSharePayload | null {
-  if (!encoded) return null;
+  if (!encoded || encoded.length > SHARE_MAX_ENCODED_LENGTH) return null;
+
+  const compressedPlain = parseCompressedPlainEnvelope(encoded);
+  if (compressedPlain) {
+    return { kind: 'plain', state: compressedPlain };
+  }
 
   const encrypted = parseEncryptedEnvelope(encoded);
   if (encrypted) {
     return { kind: 'encrypted', payload: encrypted };
   }
 
-  const plain = deserializeShareState(encoded);
-  return plain ? { kind: 'plain', state: plain } : null;
+  const legacyPlain = deserializeShareState(encoded);
+  return legacyPlain ? { kind: 'plain', state: legacyPlain } : null;
 }
 
 /**
@@ -396,14 +518,24 @@ export async function decryptSharePayload(
       {
         name: 'AES-GCM',
         iv: toArrayBuffer(iv),
-        additionalData: toArrayBuffer(textEncoder.encode(SHARE_ENCRYPTION_AAD)),
+        additionalData: toArrayBuffer(
+          textEncoder.encode(
+            payload.version === 3
+              ? SHARE_V3_ENCRYPTION_AAD
+              : SHARE_V2_ENCRYPTION_AAD,
+          ),
+        ),
         tagLength: 128,
       },
       key,
       toArrayBuffer(ciphertext),
     );
 
-    const parsed = JSON.parse(textDecoder.decode(plaintext)) as {
+    const decodedBytes =
+      payload.version === 3
+        ? unzlibWithLimit(new Uint8Array(plaintext))
+        : new Uint8Array(plaintext);
+    const parsed = JSON.parse(textDecoder.decode(decodedBytes)) as {
       m?: unknown;
       s?: unknown;
     };
@@ -441,8 +573,8 @@ export function getSharePayloadFromLocation(
 /**
  * Generates a share link using the URL fragment.
  *
- * - Public links use the existing plain fragment payload.
- * - Password-protected links use PBKDF2 + AES-256-GCM and never place the
+ * - New public links use a compressed v3 fragment payload.
+ * - New password-protected links compress before PBKDF2 + AES-256-GCM and never place the
  *   password or plaintext resume content in the URL.
  *
  * Fragments are not sent in the HTTP request to the hosting server.
@@ -460,7 +592,7 @@ export async function generateShareUrl(
         },
         normalizedPassword,
       )
-    : serializeShareState({
+    : serializeCompressedShareState({
         markdown: state.markdown,
         settings: state.settings,
       });

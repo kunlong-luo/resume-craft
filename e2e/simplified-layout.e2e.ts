@@ -60,6 +60,43 @@ test.describe('simplified workspace actions', () => {
     ).toHaveAttribute('aria-pressed', 'true');
   });
 
+  test('migrates legacy market-only settings to market paper/date defaults', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'resume-settings',
+        JSON.stringify({ lang: 'en', marketRegion: 'us' }),
+      );
+      window.localStorage.removeItem('resume-profiles-v1');
+      window.localStorage.removeItem('resume-active-profile-id');
+    });
+
+    await page.goto('/');
+
+    await expect(page.locator('#resume-print-content')).toHaveAttribute(
+      'data-paper-size',
+      'letter',
+    );
+
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const raw = window.localStorage.getItem('resume-settings');
+          if (!raw) return null;
+          const settings = JSON.parse(raw);
+          return {
+            marketRegion: settings.marketRegion,
+            paperSize: settings.paperSize,
+            dateStyle: settings.dateStyle,
+          };
+        }),
+      )
+      .toEqual({
+        marketRegion: 'us',
+        paperSize: 'letter',
+        dateStyle: 'month-short',
+      });
+  });
+
   test('switches target market and persists recommended paper/date defaults', async ({ page }) => {
     await page.goto('/');
 

@@ -177,7 +177,7 @@ export function analyzeResume(
       category: 'market',
       title: isEn 
         ? `Market Date Format: ${dateCheckResult.convertedCount} date range(s) can be normalized` 
-        : `日期格式：发现 ${dateCheckResult.convertedCount} 处可统一为${marketProfile.labelZh}标准`,
+        : `日期格式：发现 ${dateCheckResult.convertedCount} 处可统一为${marketProfile.labelZh}推荐格式`,
       desc: isEn 
         ? `Target market (${marketProfile.labelEn}) recommended date format is "${targetDateStyle}". Click Auto Fix to normalize the detected date ranges.`
         : `当前目标市场（${marketProfile.labelZh}）推荐采用「${targetDateStyle}」日期风格。点击智能修正可一键将简历内经历与教育时间全部统一。`,
@@ -190,10 +190,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'market',
-      title: isEn ? `Market Date Format: Standardized (${targetDateStyle})` : `日期格式：完全符合${marketProfile.labelZh}标准`,
+      title: isEn ? `Market Date Format: Standardized (${targetDateStyle})` : `日期格式：已使用${marketProfile.labelZh}推荐格式`,
       desc: isEn 
         ? `All detected date ranges already use the selected ${targetDateStyle} style for ${marketProfile.labelEn}.`
-        : `简历中的所有时间区间均已完全符合 ${marketProfile.labelZh} 推荐规范。`
+        : `检测到的日期区间已使用 ${marketProfile.labelZh} 推荐的日期格式。`
     });
   }
 
@@ -369,7 +369,7 @@ export function analyzeResume(
 
   // 9. First-person pronoun audit
   const pronounRegex = isEn
-    ? /\b(?:I|[Ww]e|[Mm]e|[Mm]yself|[Oo]urselves)\b/g
+    ? /\b(?:I|[Ww]e|[Mm]y|[Oo]ur|[Mm]yself|[Oo]urselves)\b/g
     : /我(?:们)?|自己/g;
   const pronounMatches = markdown.match(pronounRegex) || [];
   const pronounCount = pronounMatches.length;
@@ -463,8 +463,8 @@ export function analyzeResume(
     }
     if (hasTables) {
       descParts.push(isEn 
-        ? 'Markdown tables detected. ATS systems often mangle tables, making them unreadable or causing lines to get ignored. Rebuilding them as standard items is suggested.'
-        : '检测到含有 Markdown 复杂表格排版。ATS 在解析表格内的文字时，经常会出现多行文字横向串行、错乱或文字被自动忽略的问题，建议将表格重构为标准的项目经历条目描述。');
+        ? 'Markdown tables detected. Some ATS parsers may flatten or reorder table content. Consider rebuilding them as standard resume items.'
+        : '检测到 Markdown 表格。部分 ATS 在解析表格时可能出现内容顺序变化或字段合并，建议改为标准经历条目。');
     }
     issues.push({
       type: 'warning',

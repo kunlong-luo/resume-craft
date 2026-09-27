@@ -162,6 +162,31 @@ alex@example.com | +1 206 555 0123 | Seattle, US
     });
   });
 
+  describe('Date normalization preserves custom Markdown', () => {
+    it('patches only date ranges and leaves unrelated Markdown byte-for-byte unchanged', () => {
+      const custom = `# Alex Taylor
+> Custom note with **bold** text and [link](https://example.com)
+
+## Experience
+### Tech Corp | Engineer | 2022.03 - 2024.06
+- Led migration
+  - nested item A
+  - nested item B
+
+## Custom Section
+> Keep this blockquote exactly.
+1. First custom step
+   1. Nested numbered step
+`;
+
+      const normalized = normalizeAllDatesInMarkdown(custom, 'month-short', true);
+      const expected = custom.replace('2022.03 - 2024.06', 'Mar 2022 – Jun 2024');
+
+      expect(normalized.convertedCount).toBe(1);
+      expect(normalized.markdown).toBe(expected);
+    });
+  });
+
   describe('Comprehensive Auto-Fixer (autoFormatAndCleanResume)', () => {
     it('fixes spacing, bullets, empty lines, and market dates in a single pass', () => {
       const messyResume = `# Alex Taylor

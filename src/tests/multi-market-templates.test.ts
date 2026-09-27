@@ -75,6 +75,19 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
     });
   });
 
+  describe('Senior template content hygiene', () => {
+    it('keeps senior global education concise', () => {
+      const globalTemplate = TEMPLATES.find(t => t.id === 'english')!;
+      expect(globalTemplate.content).not.toContain('GPA 3.82');
+      expect(globalTemplate.content).not.toContain('Academic Honors');
+    });
+
+    it('does not emphasize coursework in the experienced UK template', () => {
+      const ukTemplate = TEMPLATES.find(t => t.id === 'uk_cv')!;
+      expect(ukTemplate.content).not.toContain('Key Modules');
+    });
+  });
+
   describe('Template Presentation & Badges Localization', () => {
     it('groups US New Grad with graduate templates while retaining US market metadata', () => {
       const template = TEMPLATES.find(t => t.id === 'us_new_grad')!;

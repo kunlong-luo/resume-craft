@@ -430,6 +430,20 @@ export function HelpLegalModal({ isOpen, onClose }: HelpLegalModalProps) {
                 </div>
 
                 <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
+                  <Lock className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-slate-200">
+                      {isEn ? 'Share-Link Security Model' : '分享链接的安全模型'}
+                    </h4>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">
+                      {isEn
+                        ? 'Public share links are readable by anyone who receives the full link. Password-protected shares are encrypted locally in the browser before the link is created, and the password is not stored in the link. Encryption does not replace a strong password or safe delivery; send the password separately when possible.'
+                        : '公开分享链接应视为“拿到完整链接即可读取”。密码保护分享会在浏览器本地加密后再生成链接，密码本身不会写入链接。加密不能替代强密码与安全传递；条件允许时请将密码与链接分开发送。'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
                   <Scale className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
                   <div>
                     <h4 className="font-bold text-slate-800 dark:text-slate-200">

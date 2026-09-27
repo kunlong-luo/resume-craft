@@ -1,10 +1,11 @@
 import React from 'react';
 import { BookOpen, Columns, FileText, SlidersHorizontal } from 'lucide-react';
-import { FontFamily, FontSize, PaperMargin, TemplateLayout } from '../../types';
+import { DateStyle, FontFamily, FontSize, MarketRegion, PaperMargin, TemplateLayout } from '../../types';
 import { useResumeStore } from '../../store/useResumeStore';
 import { CustomSlider } from '../ui/CustomSlider';
 import { SettingsPopover } from './SettingsPopover';
 import { TOOLBAR_TRANSLATIONS } from './toolbar-presets';
+import { getMarketProfile, MARKET_REGIONS } from '../../lib/market-profile';
 
 interface LayoutDrawerProps {
   isOpen: boolean;
@@ -17,9 +18,36 @@ export function LayoutDrawer({
   onClose,
   triggerRef,
 }: LayoutDrawerProps) {
-  const { settings, updateSetting } = useResumeStore();
+  const { settings, updateSetting, updateSettings } = useResumeStore();
   const isEn = settings.lang === 'en';
   const t = isEn ? TOOLBAR_TRANSLATIONS.en : TOOLBAR_TRANSLATIONS.zh;
+  const currentMarket: MarketRegion = settings.marketRegion || (isEn ? 'international' : 'cn');
+
+  const marketLabels: Record<MarketRegion, string> = {
+    us: isEn ? 'US' : '美国',
+    ca: isEn ? 'Canada' : '加拿大',
+    uk: isEn ? 'UK' : '英国',
+    ie: isEn ? 'Ireland' : '爱尔兰',
+    cn: isEn ? 'China' : '中国',
+    international: isEn ? 'International' : '国际',
+  };
+
+  const handleMarketChange = (nextMarket: MarketRegion) => {
+    if (nextMarket === currentMarket) return;
+
+    const currentProfile = getMarketProfile(currentMarket);
+    const nextProfile = getMarketProfile(nextMarket);
+    const followsCurrentPaperDefault =
+      !settings.paperSize || settings.paperSize === currentProfile.defaultPaperSize;
+    const followsCurrentDateDefault =
+      !settings.dateStyle || settings.dateStyle === currentProfile.dateStyle;
+
+    updateSettings({
+      marketRegion: nextMarket,
+      ...(followsCurrentPaperDefault ? { paperSize: nextProfile.defaultPaperSize } : {}),
+      ...(followsCurrentDateDefault ? { dateStyle: nextProfile.dateStyle } : {}),
+    });
+  };
 
   const layoutOptions: Array<{
     value: TemplateLayout;
@@ -115,6 +143,39 @@ export function LayoutDrawer({
         </section>
 
         <section className="space-y-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+          <div>
+            <div className="mb-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
+              {isEn ? 'Target market' : '目标市场'}
+            </div>
+            <p className="text-[9px] leading-relaxed text-slate-400 dark:text-slate-500">
+              {isEn
+                ? 'Sets market guidance and recommended defaults. Paper size and date style remain independently editable.'
+                : '用于市场化建议与推荐默认值；纸张和日期风格仍可独立调整。'}
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-1">
+            {MARKET_REGIONS.map((region) => {
+              const active = currentMarket === region;
+              return (
+                <button
+                  key={region}
+                  type="button"
+                  onClick={() => handleMarketChange(region)}
+                  aria-pressed={active}
+                  className={`rounded-lg border px-2 py-2 text-[9px] font-bold transition ${
+                    active
+                      ? 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-indigo-800 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  {marketLabels[region]}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="space-y-3 border-t border-slate-100 pt-4 dark:border-slate-800">
           <div className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
             {isEn ? 'Typography' : '文字排版'}
           </div>
@@ -168,12 +229,13 @@ export function LayoutDrawer({
             <div className="mb-1.5 flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
               <span>{isEn ? 'Paper size' : '纸张规格'}</span>
               <span className="text-[9px] font-normal text-slate-400">
-                {settings.paperSize === 'letter' ? '215.9 × 279.4 mm (US / CA)' : '210 × 297 mm (Global / UK)'}
+                {settings.paperSize === 'letter' ? '215.9 × 279.4 mm (US / CA)' : '210 × 297 mm (A4 markets)'}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
               <button
                 type="button"
+                aria-pressed={(settings.paperSize || 'a4') === 'a4'}
                 onClick={() => updateSetting('paperSize', 'a4')}
                 className={`rounded-lg px-2 py-1.5 text-[10px] font-bold transition ${
                   (settings.paperSize || 'a4') === 'a4'
@@ -185,6 +247,7 @@ export function LayoutDrawer({
               </button>
               <button
                 type="button"
+                aria-pressed={settings.paperSize === 'letter'}
                 onClick={() => updateSetting('paperSize', 'letter')}
                 className={`rounded-lg px-2 py-1.5 text-[10px] font-bold transition ${
                   settings.paperSize === 'letter'
@@ -196,6 +259,17 @@ export function LayoutDrawer({
               </button>
             </div>
           </div>
+
+          <SegmentedSetting
+            label={isEn ? 'Date style' : '日期风格'}
+            value={(settings.dateStyle || getMarketProfile(currentMarket).dateStyle) as DateStyle}
+            options={[
+              ['cn-dot', '2024.03'],
+              ['month-short', 'Mar 2024'],
+              ['month-long', 'March 2024'],
+            ] as Array<[DateStyle, string]>}
+            onChange={(value) => updateSetting('dateStyle', value)}
+          />
         </section>
 
         <section className="space-y-3 border-t border-slate-100 pt-4 dark:border-slate-800">
@@ -325,6 +399,7 @@ function SegmentedSetting<T extends string>({
             key={optionValue}
             type="button"
             onClick={() => onChange(optionValue)}
+            aria-pressed={value === optionValue}
             className={`rounded-lg px-1 py-1.5 text-[9px] font-bold transition ${
               value === optionValue
                 ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'

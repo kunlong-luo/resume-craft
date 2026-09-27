@@ -91,6 +91,34 @@ jane@example.com | +44 7911 123456
     });
   });
 
+  describe('Measured page-count guidance', () => {
+    const resume = `# Alex Taylor
+alex@example.com | +1 206 555 0123
+
+## Experience
+### Example Corp | Engineer | Jan 2024 – Present
+- Led a platform migration that reduced latency by 30%.
+`;
+
+    it('uses the measured page count instead of character-count guesses', () => {
+      const analysis = analyzeResume(resume, mockUpdateMarkdown, 'en', 'us', 2);
+      const issue = analysis.issues.find(i => i.title.startsWith('Page Count:'));
+
+      expect(issue?.type).toBe('success');
+      expect(issue?.title).toContain('2 measured pages');
+      expect(issue?.desc).toContain('recommended 1–2 page range');
+    });
+
+    it('warns when the measured page count exceeds the market recommendation', () => {
+      const analysis = analyzeResume(resume, mockUpdateMarkdown, 'en', 'us', 3);
+      const issue = analysis.issues.find(i => i.title.startsWith('Page Count:'));
+
+      expect(issue?.type).toBe('warning');
+      expect(issue?.title).toContain('3 measured pages');
+      expect(issue?.desc).toContain('recommends about 1–2 pages');
+    });
+  });
+
   describe('Language-aware pronoun audit', () => {
     it('detects English first-person wording and safely fixes bullet-leading I/We', () => {
       mockUpdateMarkdown.mockClear();
@@ -131,6 +159,60 @@ alex@example.com | +1 206 555 0123 | Seattle, US
       const issue = analysis.issues.find(i => i.title.includes('Subjective Pronouns'));
 
       expect(issue?.type).toBe('success');
+    });
+  });
+
+  describe('Date normalization preserves custom Markdown', () => {
+    it('patches only date ranges and leaves unrelated Markdown byte-for-byte unchanged', () => {
+      const custom = `# Alex Taylor
+> Custom note with **bold** text and [link](https://example.com)
+
+## Experience
+### Tech Corp | Engineer | 2022.03 - 2024.06
+- Led migration
+  - nested item A
+  - nested item B
+
+## Custom Section
+> Keep this blockquote exactly.
+1. First custom step
+   1. Nested numbered step
+`;
+
+      const normalized = normalizeAllDatesInMarkdown(custom, 'month-short', true);
+      const expected = custom.replace('2022.03 - 2024.06', 'Mar 2022 – Jun 2024');
+
+      expect(normalized.convertedCount).toBe(1);
+      expect(normalized.markdown).toBe(expected);
+    });
+  });
+
+  describe('Sensitive-field sanitation preserves custom Markdown', () => {
+    it('removes header metadata without reserializing unrelated structure', () => {
+      const custom = `# Alex Taylor
+26 years old | Male | alex@example.com
+> Keep this custom blockquote **exactly**.
+
+## Experience
+### Tech Corp | Engineer | Mar 2022 – Jun 2024
+- Led migration
+  - nested item A
+  - nested item B
+
+## Custom Section
+1. First custom step
+   1. Nested numbered step
+`;
+
+      const sanitized = sanitizeSensitiveFieldsForMarket(custom);
+
+      expect(sanitized.sanitizedFieldsCount).toBeGreaterThan(0);
+      expect(sanitized.markdown).not.toContain('26 years old');
+      expect(sanitized.markdown).not.toContain('Male');
+      expect(sanitized.markdown).toContain('alex@example.com');
+      expect(sanitized.markdown).toContain('> Keep this custom blockquote **exactly**.');
+      expect(sanitized.markdown).toContain('  - nested item A\n  - nested item B');
+      expect(sanitized.markdown).toContain('1. First custom step\n   1. Nested numbered step');
     });
   });
 

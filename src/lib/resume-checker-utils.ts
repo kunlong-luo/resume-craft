@@ -28,7 +28,8 @@ export function analyzeResume(
   markdown: string,
   onUpdateMarkdown: (newMarkdown: string, immediate?: boolean) => void,
   lang?: string,
-  marketRegion?: MarketRegion
+  marketRegion?: MarketRegion,
+  measuredPageCount?: number | null
 ): AnalysisResult {
   const issues: IssueItem[] = [];
   let score = 100;
@@ -146,8 +147,8 @@ export function analyzeResume(
           ? `Equal Opportunity: Sensitive personal info detected (${detectedItems.join(', ')})` 
           : `合规风控：检测到敏感个人信息 (${detectedItems.join('、')})`,
         desc: isEn 
-          ? `In ${marketProfile.labelEn} hiring processes, employers strictly avoid personal details (photos, age, marital status, nationality) to adhere to Equal Employment Opportunity laws. Resumes containing photos or age may be automatically disqualified to avoid bias liability.`
-          : `在 ${marketProfile.labelZh} 招聘流程中，企业严格遵循反就业歧视法（EEO）。简历中若包含照片、年龄、婚姻或国籍，招聘方为规避用工歧视法律风险，常会直接过滤。建议一键脱敏。`,
+          ? `For ${marketProfile.labelEn} applications, photos, age/DOB, marital status, and similar personal details are commonly omitted so the resume stays focused on professional qualifications and avoids unnecessary bias signals.`
+          : `面向 ${marketProfile.labelZh} 市场时，通常建议省略照片、年龄、婚姻或国籍等与岗位能力无关的个人信息，让简历更聚焦专业资历，并减少不必要的偏见因素。`,
         fixable: true,
         onFix: () => {
           const sanitized = sanitizeSensitiveFieldsForMarket(markdown);
@@ -158,10 +159,10 @@ export function analyzeResume(
       issues.push({
         type: 'success',
         category: 'market',
-        title: isEn ? 'Equal Opportunity: Free of biased personal details' : '合规风控：完全符合欧美反就业歧视规范',
+        title: isEn ? 'Market Guidance: No sensitive personal details detected' : '市场建议：未检测到敏感个人信息',
         desc: isEn 
-          ? `No photo, age, or marital status was found, matching the ${marketProfile.labelEn} standard.`
-          : `未包含照片、年龄、婚育等敏感字段，完全契合 ${marketProfile.labelZh} 招聘市场的反歧视合规要求。`
+          ? `No photo, age/DOB, or marital status was found. This aligns with common resume guidance for ${marketProfile.labelEn} applications.`
+          : `未检测到照片、年龄、婚育等敏感字段，符合 ${marketProfile.labelZh} 市场常见的简历信息取舍建议。`
       });
     }
   }
@@ -188,10 +189,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'market',
-      title: isEn ? `Market Date Format: Standardized (${marketProfile.dateStyle})` : `日期格式：完全符合${marketProfile.labelZh}标准`,
+      title: isEn ? `Market Date Format: Consistent (${marketProfile.dateStyle})` : `日期格式：与${marketProfile.labelZh}推荐风格一致`,
       desc: isEn 
-        ? `All dates conform to the ${marketProfile.labelEn} date format standard.`
-        : `简历中的所有时间区间均已完全符合 ${marketProfile.labelZh} 推荐规范。`
+        ? `All detected date ranges are consistent with the recommended ${marketProfile.labelEn} style.`
+        : `检测到的时间区间均与 ${marketProfile.labelZh} 市场推荐日期风格一致。`
     });
   }
 
@@ -206,10 +207,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'content',
-      title: isEn ? 'Content Compliance: No template placeholders found' : '内容合规：未发现模版残留文本',
+      title: isEn ? 'Content Check: No known template placeholders detected' : '内容检查：未发现已知模板占位符',
       desc: isEn 
-        ? 'All template tags and brackets have been replaced successfully.'
-        : '简历中的占位文本和模版标签已全部替换完毕。'
+        ? 'No placeholder patterns from the local checklist were detected.'
+        : '本地占位符规则暂未检测到常见模板残留。'
     });
   } else {
     score -= (foundPlaceholders.length * 8);
@@ -241,10 +242,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'content',
-      title: isEn ? `Quantified Results: Excellent (${metricCount} data metrics)` : `量化成果：丰富 (${metricCount} 处数据指标)`,
+      title: isEn ? `Quantified Results: Strong coverage (${metricCount} data metrics)` : `量化成果：覆盖较充分 (${metricCount} 处数据指标)`,
       desc: isEn 
-        ? 'Your resume integrates rich metrics and quantified achievements, making it highly persuasive and professional!'
-        : '您的简历在职责和项目中融入了丰富的数据指标和成果描述，非常专业且具说服力！'
+        ? 'The local check found several measurable outcomes across the resume, giving readers concrete evidence of scope or impact.'
+        : '本地规则识别到多处可量化结果，为经历的规模或影响提供了较具体的证据。'
     });
   } else if (metricCount >= 1) {
     score -= 5;
@@ -261,10 +262,10 @@ export function analyzeResume(
     issues.push({
       type: 'error',
       category: 'content',
-      title: isEn ? 'Quantified Results: Extremely scarce (no metric data)' : '量化成果：极度匮乏 (无数据支持)',
+      title: isEn ? 'Quantified Results: Few measurable outcomes detected' : '量化成果：暂未识别到明显可量化结果',
       desc: isEn 
-        ? 'No metrics or business achievements detected. Professional resumes should follow the STAR methodology, including quantified metrics to prove your impact.'
-        : '未检测到具体的业务指标或量化结果。优秀的简历遵循 STAR 法则，必须包含具体的数值（如百分比、资金、效率提升等）来证明成效。'
+        ? 'No obvious metrics or measurable outcomes were detected. Where the result is genuinely measurable, consider adding scope, time, volume, quality, or business-impact evidence.'
+        : '暂未识别到明显的量化结果。如果成果本身适合量化，可补充规模、周期、效率、质量或业务影响等证据；并非每条经历都需要数字。'
     });
   }
 
@@ -307,62 +308,78 @@ export function analyzeResume(
     });
   }
 
-  // 8. Page split control
-  const pureContent = markdown
-    .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(/[#*`_~>[\]()-]/g, '')
-    .replace(/\s+/g, '')
-    .trim();
-  const pureCharCount = pureContent.length;
+  // 8. Page count and pagination guidance
+  const [recommendedMinPages, recommendedMaxPages] = marketProfile.recommendedPageRange;
+  const hasMeasuredPageCount =
+    typeof measuredPageCount === 'number' &&
+    Number.isFinite(measuredPageCount) &&
+    measuredPageCount > 0;
   const hasPageBreak = /<!--\s*pagebreak\s*-->/gi.test(markdown);
-  
-  if (pureCharCount > 2400) {
-    if (hasPageBreak) {
-      issues.push({
-        type: 'success',
-        category: 'formatting',
-        title: isEn ? 'Layout Control: Manual pagebreak used' : '排版控制：已使用分页符',
-        desc: isEn 
-          ? 'Your resume is long, but you have wisely used the <!-- pagebreak --> tag to control pagination, avoiding automatic cutoffs.'
-          : '简历字数较多，但您已经明智地使用了 <!-- pagebreak --> 标签来控制打印分页，避免了打印时产生跨页截断。'
-      });
-    } else {
+
+  if (hasMeasuredPageCount) {
+    if (measuredPageCount > recommendedMaxPages) {
       score -= 10;
       issues.push({
         type: 'warning',
         category: 'formatting',
-        title: isEn ? 'Layout Warning: Pagebreak recommended' : '排版警告：建议插入分页符',
-        desc: isEn 
-          ? 'Your resume has a high word count, which may cause unintended page clipping when printing to PDF. It is highly recommended to click the scissor icon in the toolbar to insert "<!-- pagebreak -->" after an appropriate section.'
-          : '当前简历总字数较多，如果直接打印为 PDF 可能会产生无章法的自动截断。建议在一页纸写不下的合适段落之后，点击编辑工具栏的剪刀按钮插入「<!-- pagebreak -->」进行优雅的手动分页。',
-        fixable: true,
-        onFix: () => {
-          const linesArr = markdown.split('\n');
-          let insertIdx = -1;
-          for (let i = Math.floor(linesArr.length * 0.45); i < linesArr.length; i++) {
-            if (linesArr[i].trim().startsWith('## ')) {
-              insertIdx = i;
-              break;
-            }
-          }
-          if (insertIdx !== -1) {
-            linesArr.splice(insertIdx, 0, '<!-- pagebreak -->');
-            onUpdateMarkdown(linesArr.join('\n'), true);
-          } else {
-            onUpdateMarkdown(markdown + '\n\n<!-- pagebreak -->\n', true);
-          }
-        }
+        title: isEn
+          ? `Page Count: ${measuredPageCount} measured pages`
+          : `页数建议：实测 ${measuredPageCount} 页`,
+        desc: isEn
+          ? `Preview currently measures ${measuredPageCount} pages. The ${marketProfile.labelEn} profile recommends about ${recommendedMinPages}–${recommendedMaxPages} pages; consider tightening content or layout where appropriate.`
+          : `当前预览实测为 ${measuredPageCount} 页；${marketProfile.labelZh}市场配置建议约 ${recommendedMinPages}–${recommendedMaxPages} 页，可按经历深度酌情精简内容或排版。`,
+      });
+    } else {
+      issues.push({
+        type: 'success',
+        category: 'formatting',
+        title: isEn
+          ? `Page Count: ${measuredPageCount} measured page${measuredPageCount === 1 ? '' : 's'}`
+          : `页数建议：实测 ${measuredPageCount} 页`,
+        desc: isEn
+          ? `Preview measures ${measuredPageCount} page${measuredPageCount === 1 ? '' : 's'}, within the ${marketProfile.labelEn} profile's recommended ${recommendedMinPages}–${recommendedMaxPages} page range.`
+          : `当前预览实测为 ${measuredPageCount} 页，处于${marketProfile.labelZh}市场配置建议的 ${recommendedMinPages}–${recommendedMaxPages} 页范围内。`,
+      });
+    }
+
+    if (measuredPageCount > 1 && hasPageBreak) {
+      issues.push({
+        type: 'success',
+        category: 'formatting',
+        title: isEn ? 'Pagination: Manual page break detected' : '分页控制：已使用手动分页',
+        desc: isEn
+          ? 'A manual page break is present. Verify its position in preview to keep sections grouped cleanly.'
+          : '检测到手动分页符；建议结合预览确认分页位置，避免章节被不自然拆分。',
       });
     }
   } else {
-    issues.push({
-      type: 'success',
-      category: 'formatting',
-      title: isEn ? 'Layout Control: Optimal length (One page version)' : '排版控制：字数适中 (一页精简版)',
-      desc: isEn 
-        ? 'The length is moderate and fits perfectly onto a single page, which recruiters highly favor.'
-        : '简历长度适宜，通常可以完美放入一页 A4/Letter 纸内，符合绝大多数招聘官的阅读习惯。'
-    });
+    const pureContent = markdown
+      .replace(/<!--[\s\S]*?-->/g, ' ')
+      .replace(/[#*`_~>[\]()-]/g, '')
+      .replace(/\s+/g, '')
+      .trim();
+    const pureCharCount = pureContent.length;
+
+    if (pureCharCount > 2400) {
+      score -= 5;
+      issues.push({
+        type: 'warning',
+        category: 'formatting',
+        title: isEn ? 'Page Count: Preview measurement pending' : '页数建议：等待预览实测',
+        desc: isEn
+          ? 'The content is relatively long, but character count cannot reliably predict pagination. Open or refresh preview and use the measured page count before deciding whether to shorten the resume.'
+          : '当前内容较长，但字符数无法可靠推断实际页数。请以预览实测页数为准，再决定是否需要精简。',
+      });
+    } else {
+      issues.push({
+        type: 'success',
+        category: 'formatting',
+        title: isEn ? 'Page Count: Awaiting preview measurement' : '页数建议：等待预览实测',
+        desc: isEn
+          ? 'No measured page count is available yet. Actual pagination depends on paper size, typography, spacing, and rendered content.'
+          : '当前还没有可用的预览实测页数；实际分页取决于纸张、字号、间距和渲染内容。',
+      });
+    }
   }
 
   // 9. Subjective Pronoun Audit
@@ -443,10 +460,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'formatting',
-      title: isEn ? 'Typography: Perfect spacing formatting' : '排版美化：中英混排格式完美',
+      title: isEn ? 'Typography: No obvious spacing issues detected' : '排版美化：未发现明显中英空格问题',
       desc: isEn 
-        ? 'All Chinese characters, English words, and numbers are separated by standard half-width spaces. Clean and professional!'
-        : '简历中的中文、英文以及数字之间均有标准的半角空格分隔，视觉排版极其舒适和专业。'
+        ? 'This local spacing check found no obvious missing half-width spaces between Chinese text, English words, and numbers.'
+        : '本地规则暂未发现明显的中英文或数字混排空格问题。'
     });
   }
 
@@ -477,10 +494,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'ats',
-      title: isEn ? 'ATS Friendliness: Perfect machine parsing compatibility' : 'ATS 友好度：完美通过机器预审',
+      title: isEn ? 'ATS Friendliness: No obvious readability risks detected' : 'ATS 友好度：未发现明显可读性风险',
       desc: isEn 
-        ? 'Your resume contains no emojis or complex multi-column tables, ensuring that ATS screening systems can parse your content cleanly without any errors.'
-        : '简历中没有生僻彩色图标或多栏复杂表格，这能确保大厂 ATS 简历初筛系统百分百正常解析您的工作经历和关键词。'
+        ? 'No emojis or complex Markdown tables were detected, so this local check found no obvious ATS readability risks. Actual parsing can still vary by system.'
+        : '未检测到生僻彩色图标或复杂 Markdown 表格，因此本地规则暂未发现明显 ATS 可读性风险；不同系统的实际解析结果仍可能存在差异。'
     });
   }
 
@@ -527,10 +544,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'content',
-      title: isEn ? 'Tense Agreement: Perfect verbs tense consistency' : '时态规范：英文经历动作时态高度一致',
+      title: isEn ? 'Tense Agreement: No obvious inconsistency detected' : '时态规范：未发现明显时态不一致',
       desc: isEn 
-        ? 'All past roles use past tense action verbs perfectly, demonstrating excellent professional rigor.'
-        : '所有已结束经历的英文动作条目均正确采用过去式行动词，时态规范完美，彰显出极佳的求职专业度。'
+        ? 'This local rule found no obvious present-tense action verbs in the past-role bullets it could identify.'
+        : '本地规则在可识别的已结束经历中暂未发现明显的现在时动作词问题。'
     });
   }
   

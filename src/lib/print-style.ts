@@ -23,6 +23,7 @@ export function getPrintPageStyle(paperSize?: PaperSize): string {
         margin: 0 !important;
         padding: 0 !important;
         background: #ffffff !important;
+        overflow: visible !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
@@ -35,6 +36,10 @@ export function getPrintPageStyle(paperSize?: PaperSize): string {
         min-height: ${paper.heightMm}mm !important;
         margin: 0 auto !important;
         box-sizing: border-box !important;
+        position: static !important;
+        inset: auto !important;
+        transform: none !important;
+        overflow: visible !important;
       }
     }
   `;

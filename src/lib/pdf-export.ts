@@ -114,24 +114,32 @@ function isCanvasSliceBlank(
   const sampleStep = Math.max(1, Math.floor((endX - startX) / 60));
 
   try {
-    const imgData = mainCtx.getImageData(startX, startY, endX - startX, height);
-    const data = imgData.data;
+    // Sample horizontal rows instead of reading the entire remaining bitmap.
+    // Large multi-page canvases can otherwise allocate tens of MB per check.
+    const rowStep = Math.max(2, Math.floor(height / 80));
+    const probeRows = new Set<number>([
+      startY,
+      Math.max(startY, endY - 2),
+    ]);
+    for (let y = startY; y < endY; y += rowStep) probeRows.add(y);
 
-    for (let i = 0; i < data.length; i += 4 * sampleStep) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const a = data[i + 3];
-
-      // Check if there is any dark text pixel or non-white element
-      if (a > 15 && (r < 240 || g < 240 || b < 240)) {
-        return false; // Found actual visible content!
+    for (const y of probeRows) {
+      const imgData = mainCtx.getImageData(startX, y, endX - startX, 1);
+      const data = imgData.data;
+      for (let i = 0; i < data.length; i += 4 * sampleStep) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+        if (a > 15 && (r < 240 || g < 240 || b < 240)) {
+          return false;
+        }
       }
     }
-  } catch (e) {
+  } catch {
     return false;
   }
-  return true; // Completely blank/white background
+  return true;
 }
 
 /**
@@ -185,11 +193,11 @@ export async function exportDirectPDF(
   exportWrapper.id = 'resume-temp-pdf-export-wrapper';
   exportWrapper.className = 'light';
   exportWrapper.style.position = 'fixed';
-  exportWrapper.style.left = '-9999px';
+  exportWrapper.style.left = '0px';
   exportWrapper.style.top = '0px';
   exportWrapper.style.width = `${pageWidth}mm`;
   exportWrapper.style.minHeight = `${pageHeight}mm`;
-  exportWrapper.style.zIndex = '-9999';
+  exportWrapper.style.zIndex = '-2147483647';
   exportWrapper.style.opacity = '1';
   exportWrapper.style.visibility = 'visible';
   exportWrapper.style.pointerEvents = 'none';
@@ -197,6 +205,7 @@ export async function exportDirectPDF(
   exportWrapper.style.backgroundColor = '#ffffff';
   exportWrapper.style.color = '#0f172a';
   exportWrapper.style.boxSizing = 'border-box';
+  exportWrapper.style.contain = 'layout style';
 
   const clone = targetElement.cloneNode(true) as HTMLElement;
   clone.id = 'resume-temp-pdf-export-clone';
@@ -231,6 +240,8 @@ export async function exportDirectPDF(
   clone.style.opacity = '1';
   clone.style.visibility = 'visible';
   clone.style.display = 'block';
+  clone.style.height = 'auto';
+  clone.style.overflow = 'visible';
 
   const stabilizer = document.createElement('style');
   stabilizer.textContent = `
@@ -269,7 +280,7 @@ export async function exportDirectPDF(
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
     const canvas = await html2canvas(clone, {
-      scale: 2.2, // 2.2x scale provides razor-sharp text
+      scale: Math.min(2, Math.max(1.5, window.devicePixelRatio || 1.5)),
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',

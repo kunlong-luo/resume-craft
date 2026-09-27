@@ -1,6 +1,5 @@
 import { formatChineseEnglishSpacing } from './format-utils';
-import { parseMarkdownToForm, parseFormToMarkdown } from './markdown-parser';
-import { formatDateRange } from './date-parser';
+import { DATE_RANGE_REGEX, formatDateRange } from './date-parser';
 import { getMarketProfile } from './market-profile';
 import { MarketRegion, DateStyle } from '../types';
 
@@ -26,116 +25,89 @@ export function normalizeAllDatesInMarkdown(
   dateStyle: DateStyle = 'month-short',
   isEn: boolean = false
 ): { markdown: string; convertedCount: number } {
-  const model = parseMarkdownToForm(markdown);
   let convertedCount = 0;
+  const dateRangeRegex = new RegExp(DATE_RANGE_REGEX.source, 'gi');
 
-  model.sections.forEach(sec => {
-    if (sec.type === 'items') {
-      sec.items.forEach(item => {
-        if (item.time && item.time.trim()) {
-          const formatted = formatDateRange(item.time, dateStyle, isEn);
-          if (formatted && formatted !== item.time) {
-            item.time = formatted;
-            convertedCount++;
-          }
-        }
+  const normalized = markdown
+    .split('\n')
+    .map((line) => {
+      // Structured resume item dates live in item headings. Patching only the
+      // matched date range keeps all unrelated custom Markdown byte-for-byte.
+      if (!/^#{3,4}\s+/.test(line)) return line;
+
+      return line.replace(dateRangeRegex, (rawRange) => {
+        const formatted = formatDateRange(rawRange, dateStyle, isEn);
+        if (!formatted || formatted === rawRange) return rawRange;
+        convertedCount++;
+        return formatted;
       });
-    }
-  });
+    })
+    .join('\n');
 
-  if (convertedCount === 0) {
-    return { markdown, convertedCount: 0 };
-  }
-
-  const newMarkdown = parseFormToMarkdown(model);
-  return { markdown: newMarkdown, convertedCount };
+  return {
+    markdown: convertedCount > 0 ? normalized : markdown,
+    convertedCount,
+  };
 }
 
 /**
  * Sanitizes discouraged personal details (photo, age, gender, marital status, nationality)
- * for US/UK/CA/IE/International compliance with anti-discrimination employment practices.
+ * for markets where resumes commonly omit non-job-related personal details.
  */
 export function sanitizeSensitiveFieldsForMarket(
   markdown: string
 ): { markdown: string; sanitizedFieldsCount: number } {
-  let text = markdown;
   let count = 0;
 
-  // 1. Remove markdown images / photo tags: ![...](...) or <img ... />
-  const imgRegex = /!\[.*?\]\(.*?\)|<img[^>]*>/gi;
-  if (imgRegex.test(text)) {
-    count++;
-    text = text.replace(imgRegex, '');
-  }
-
-  // 2. Direct regex sweep on header contact tags for age/gender/marital
   const sensitivePatterns = [
-    /(?:[|｜·•\s]*\b\d{1,2}\s*岁\b[|｜·•\s]*)/g,
+    /(?:[|｜·•\s]*\d{1,2}\s*岁[|｜·•\s]*)/g,
     /(?:[|｜·•\s]*\b\d{1,2}\s*years?\s*old\b[|｜·•\s]*)/gi,
-    /(?:[|｜·•\s]*\b(?:未婚|已婚|男|女|政治面貌[:：\s]*\S+|群众|党员|团员)\b[|｜·•\s]*)/g,
-    /(?:[|｜·•\s]*\b(?:Single|Married|Male|Female|Nationality[:\s]*\S+)\b[|｜·•\s]*)/gi,
+    /(?:[|｜·•\s]*中国国籍[|｜·•\s]*)/g,
+    /(?:[|｜·•\s]*(?:未婚|已婚|男|女|群众|党员|团员)[|｜·•\s]*)/g,
+    /(?:[|｜·•\s]*(?:政治面貌|国籍|籍贯|民族)[:：\s]*[^|｜·•,，;；\n]+[|｜·•\s]*)/g,
+    /(?:[|｜·•\s]*\b(?:Single|Married|Male|Female)\b[|｜·•\s]*)/gi,
+    /(?:[|｜·•\s]*\b(?:Nationality|Citizenship|Marital\s*Status|Gender|Sex)[:：\s]*[^|｜·•,，;；\n]+[|｜·•\s]*)/gi,
   ];
 
-  for (const pat of sensitivePatterns) {
-    if (pat.test(text)) {
-      count++;
-      text = text.replace(pat, ' | ');
+  const lines = markdown.split('\n');
+  const sanitizedLines = lines.map((originalLine) => {
+    // Keep resume body structure byte-for-byte; sensitive personal metadata is
+    // expected in the header/contact area rather than bullets or sections.
+    if (/^\s*(?:#{1,6}\s|[-*+]\s|>|\d+\.\s)/.test(originalLine)) {
+      return originalLine.replace(/!\[.*?\]\(.*?\)|<img[^>]*>/gi, () => {
+        count++;
+        return '';
+      });
     }
-  }
 
-  // Clean up dangling or doubled pipes and middots
-  text = text
-    .split('\n')
-    .map((line) => {
-      if (line.startsWith('#') || line.startsWith('##') || line.startsWith('-') || line.startsWith('>')) {
-        return line;
+    let line = originalLine.replace(/!\[.*?\]\(.*?\)|<img[^>]*>/gi, () => {
+      count++;
+      return '';
+    });
+
+    for (const pattern of sensitivePatterns) {
+      pattern.lastIndex = 0;
+      const matches = line.match(pattern);
+      if (matches?.length) {
+        count += matches.length;
+        line = line.replace(pattern, ' | ');
       }
-      return line
-        .replace(/[|｜·•]\s*[|｜·•]+/g, ' | ')
-        .replace(/^[|｜·•\s]+|[|｜·•\s]+$/g, '')
-        .trim();
-    })
-    .join('\n');
+    }
 
-  // 3. Parse form model to sanitize personal fields from structured model
-  const model = parseMarkdownToForm(text);
-  if (model.age) {
-    model.age = '';
-    count++;
-  }
+    if (line === originalLine) return originalLine;
 
-  const sensitiveTagRegex = /^(?:\d{1,2}\s*岁|\d{1,2}\s*years?\s*old|男|女|未婚|已婚|政治面貌[:：\s]*\S+|群众|党员|团员|国籍|籍贯|汉族|Single|Married|Nationality|Chinese|Male|Female)$/i;
+    return line
+      .replace(/[|｜·•]\s*[|｜·•]+/g, ' | ')
+      .replace(/^\s*[|｜·•]+\s*|\s*[|｜·•]+\s*$/g, '')
+      .replace(/[ \t]{2,}/g, ' ')
+      .trim();
+  });
 
-  // Sanitize subtitle tags if containing age, gender, marital, nationality, etc.
-  if (model.subtitle) {
-    const parts = model.subtitle.split(/[｜|]/).map(s => s.trim()).filter(Boolean);
-    const cleanedParts = parts.filter(p => {
-      const isSensitive = sensitiveTagRegex.test(p) || /\d{1,2}\s*岁/.test(p) || /\d{1,2}\s*years?\s*old/i.test(p);
-      if (isSensitive) count++;
-      return !isSensitive;
-    });
-    model.subtitle = cleanedParts.join(' ｜ ');
-  }
-
-  // Sanitize social tags if containing age, gender, marital, nationality, etc.
-  if (model.social) {
-    const parts = model.social.split(/\s*[·|｜••,，;；\t]\s*/).map(s => s.trim()).filter(Boolean);
-    const cleanedParts = parts.filter(p => {
-      const isSensitive = sensitiveTagRegex.test(p) || /\d{1,2}\s*岁/.test(p) || /\d{1,2}\s*years?\s*old/i.test(p);
-      if (isSensitive) count++;
-      return !isSensitive;
-    });
-    model.social = cleanedParts.join(' · ');
-  }
-
-  // Re-serialize if changes occurred
-  if (count > 0) {
-    text = parseFormToMarkdown(model);
-  }
-
-  return { markdown: text, sanitizedFieldsCount: count };
+  return {
+    markdown: sanitizedLines.join('\n'),
+    sanitizedFieldsCount: count,
+  };
 }
-
 /**
  * Automatically inspects and formats markdown resume content:
  * 1. Chinese-English and Number half-width spacing (e.g. "React开发" -> "React 开发")

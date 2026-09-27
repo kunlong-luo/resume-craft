@@ -6,6 +6,7 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
   it('contains comprehensive authentic templates for US, UK, Canada, China and Global markets', () => {
     const ids = TEMPLATES.map(t => t.id);
     expect(ids).toContain('us_swe');
+    expect(ids).toContain('us_new_grad');
     expect(ids).toContain('uk_cv');
     expect(ids).toContain('ca_tech');
     expect(ids).toContain('english');
@@ -29,6 +30,25 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
       expect(usTemplate.content).toContain('Mar 2024 – Present');
       expect(usTemplate.content).not.toContain('岁');
       expect(usTemplate.content).not.toContain('![photo]');
+      expect(usTemplate.content).not.toContain('Honors & GPA');
+      expect(usTemplate.content).not.toContain('Relevant Coursework');
+    });
+
+    it('configures US New Grad with education-first Letter metadata', () => {
+      const template = TEMPLATES.find(t => t.id === 'us_new_grad')!;
+      expect(template).toBeDefined();
+      expect(template.targetMarket).toBe('us');
+      expect(template.defaultPaperSize).toBe('letter');
+      expect(template.dateStyle).toBe('month-short');
+      expect(template.suggestedLang).toBe('en');
+
+      const educationIndex = template.content.indexOf('## Education');
+      const experienceIndex = template.content.indexOf('## Experience');
+      expect(educationIndex).toBeGreaterThan(-1);
+      expect(educationIndex).toBeLessThan(experienceIndex);
+      expect(template.content).toContain('**GPA:**');
+      expect(template.content).toContain('**Relevant Coursework:**');
+      expect(template.content).toContain('**Honors:**');
     });
 
     it('configures UK Tech Lead CV with A4 paper and month-long date style', () => {
@@ -57,7 +77,30 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
     });
   });
 
+  describe('Senior template content hygiene', () => {
+    it('keeps senior global education concise', () => {
+      const globalTemplate = TEMPLATES.find(t => t.id === 'english')!;
+      expect(globalTemplate.content).not.toContain('GPA 3.82');
+      expect(globalTemplate.content).not.toContain('Academic Honors');
+    });
+
+    it('does not emphasize coursework in the experienced UK template', () => {
+      const ukTemplate = TEMPLATES.find(t => t.id === 'uk_cv')!;
+      expect(ukTemplate.content).not.toContain('Key Modules');
+    });
+  });
+
   describe('Template Presentation & Badges Localization', () => {
+    it('groups US New Grad with graduate templates while retaining US market metadata', () => {
+      const template = TEMPLATES.find(t => t.id === 'us_new_grad')!;
+      const presentation = getTemplatePresentation(template, 'en');
+
+      expect(presentation.group).toBe('graduate');
+      expect(presentation.targetMarket).toBe('us');
+      expect(presentation.defaultPaperSize).toBe('letter');
+      expect(presentation.name).toContain('US New Grad');
+    });
+
     it('returns localized presentation and market badges in Chinese', () => {
       const usTemplate = TEMPLATES.find(t => t.id === 'us_swe')!;
       const presentationZh = getTemplatePresentation(usTemplate, 'zh');

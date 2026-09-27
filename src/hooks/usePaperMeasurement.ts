@@ -3,14 +3,14 @@ import { storage, STORAGE_KEYS } from '../lib/storage';
 import { PaperSize } from '../types';
 import { getPaperSpec } from '../lib/paper';
 
-interface A4Metrics {
+interface PaperMetrics {
   isOver: boolean;
   overflowPercent: number;
   overflowPixels: number;
   actualPages: number;
 }
 
-export function useA4Measurement(
+export function usePaperMeasurement(
   elementRef: RefObject<HTMLDivElement | null>,
   targetPageLimit: 1 | 2 | 3,
   onPageCountChange?: (count: number) => void,
@@ -21,7 +21,7 @@ export function useA4Measurement(
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [wrapperWidth, setWrapperWidth] = useState<number>(850);
   const [unscaledHeight, setUnscaledHeight] = useState<number>(0);
-  const [metrics, setMetrics] = useState<A4Metrics>({
+  const [metrics, setMetrics] = useState<PaperMetrics>({
     isOver: false,
     overflowPercent: 0,
     overflowPixels: 0,

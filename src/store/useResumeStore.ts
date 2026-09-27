@@ -217,8 +217,10 @@ const getInitialProfiles = (
       };
     });
 
-    // Persist deterministic migrations so old profiles are not re-migrated on every reload.
-    storage.set(STORAGE_KEYS.PROFILES, migratedProfiles);
+    // Persist deterministic migrations once; avoid rewriting unchanged profile archives on every reload.
+    if (JSON.stringify(migratedProfiles) !== JSON.stringify(savedProfiles)) {
+      storage.set(STORAGE_KEYS.PROFILES, migratedProfiles);
+    }
 
     const activeId = migratedProfiles.some(p => p.id === savedActiveId) ? savedActiveId : migratedProfiles[0].id;
     return { profiles: migratedProfiles, activeId };

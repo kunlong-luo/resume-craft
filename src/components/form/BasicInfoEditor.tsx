@@ -47,6 +47,16 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
   const popularCities = getPopularCities(activeLang);
   const marketProfile = getMarketProfile(marketRegion);
   const isAgeDiscouraged = marketProfile.discouragedPersonalFields.includes('age');
+  const isChinaMarket = marketProfile.region === 'cn';
+  const showWechatField = isChinaMarket || Boolean(model.wechat?.trim());
+  const showDomesticMeta =
+    isChinaMarket ||
+    Boolean(
+      model.workYears?.trim() ||
+      model.degree?.trim() ||
+      model.age?.trim() ||
+      model.jobStatus?.trim(),
+    );
 
   const [customDegree, setCustomDegree] = useState(() => {
     return !!model.degree && !degreeOptions.some(o => o.value === model.degree);
@@ -344,7 +354,8 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
               <div className="md:col-span-2 space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800 mt-2">
                 {/* 1. 微信号 & 社交主页/作品集（2列并排） */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-5">
-                  {/* 微信号 */}
+                  {/* 微信号：海外市场默认隐藏空字段，但保留并展示已有数据 */}
+                  {showWechatField && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-1">
@@ -384,11 +395,14 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
                       )}
                     </div>
                   </div>
+                  )}
 
                   {/* 社交链接 */}
-                  <div className="space-y-2">
+                  <div className={showWechatField ? 'space-y-2' : 'space-y-2 md:col-span-2'}>
                     <div className="flex items-center justify-between">
-                      <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">{t.socialLabel}</label>
+                      <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">
+                        {isChinaMarket ? t.socialLabel : (activeLang === 'en' ? 'LinkedIn / GitHub / Portfolio' : 'LinkedIn / GitHub / 作品集')}
+                      </label>
                     </div>
                     <div className="relative group/field">
                       <span className="absolute left-3 top-2.5 text-slate-400 pointer-events-none">
@@ -424,7 +438,8 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
                   </div>
                 </div>
 
-                {/* 2. 基本属性网格（4列：工作经验、最高学历、年龄、求职状态） */}
+                {/* 2. 国内求职元信息：海外市场默认隐藏空字段，已有数据仍可编辑 */}
+                {showDomesticMeta && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
                   {/* 工作经验年限 */}
                   <div className="space-y-1.5">
@@ -590,11 +605,14 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
                     </div>
                   </div>
                 </div>
+                )}
 
-                {/* 3. 意向城市（单独一行） */}
+                {/* 3. 意向城市 / Location（单独一行） */}
                 <div className="space-y-1.5 pt-1">
                   <div className="h-6 flex items-center justify-between">
-                    <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none select-none">{t.cityLabel}</label>
+                    <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none select-none">
+                      {isChinaMarket ? t.cityLabel : (activeLang === 'en' ? 'Location' : '所在地')}
+                    </label>
                     {cityList.length > 0 && (
                       <button
                         type="button"

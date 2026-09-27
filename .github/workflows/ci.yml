@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '17 3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -15,9 +17,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  quality:
+    name: quality
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -54,8 +57,86 @@ jobs:
       - name: Build project
         run: pnpm run build
 
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium firefox webkit
+  e2e-chromium:
+    name: e2e-chromium
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
 
-      - name: Run critical E2E tests
-        run: pnpm run e2e
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .node-version
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 12.6.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run full Chromium E2E suite
+        run: pnpm exec playwright test --project=chromium
+
+  e2e-cross-browser:
+    name: e2e-cross-browser
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .node-version
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 12.6.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Firefox and WebKit
+        run: pnpm exec playwright install --with-deps firefox webkit
+
+      - name: Run critical Firefox/WebKit E2E on pull requests
+        if: github.event_name == 'pull_request'
+        run: >-
+          pnpm exec playwright test
+          e2e/critical-flows.e2e.ts
+          e2e/accessibility.e2e.ts
+          e2e/simplified-layout.e2e.ts
+          e2e/onboarding.e2e.ts
+          --project=firefox
+          --project=webkit
+
+      - name: Run full Firefox/WebKit E2E on main and nightly
+        if: github.event_name != 'pull_request'
+        run: pnpm exec playwright test --project=firefox --project=webkit
+
+
+  build-and-test:
+    name: build-and-test
+    needs:
+      - quality
+      - e2e-chromium
+      - e2e-cross-browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Confirm required CI gates
+        run: echo "quality, Chromium E2E, and cross-browser E2E all passed"

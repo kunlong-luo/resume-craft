@@ -12,6 +12,8 @@ import { getTranslation } from '../../i18n';
 import { getDegreeOptions } from '../../lib/form-constants';
 import { getSectionTheme } from '../../lib/section-themes';
 
+import { MarketRegion } from '../../types';
+
 interface EduSectionEditorProps {
   section: FormSection;
   expanded: boolean;
@@ -30,6 +32,7 @@ interface EduSectionEditorProps {
   onMoveItem?: (itemIndex: number, direction: 'up' | 'down') => void;
   onReorderItem?: (fromIndex: number, toIndex: number) => void;
   lang?: string;
+  marketRegion?: MarketRegion;
 }
 
 export function EduSectionEditor({ 
@@ -49,7 +52,8 @@ export function EduSectionEditor({
   onTypeChange,
   onMoveItem,
   onReorderItem,
-  lang = 'zh'
+  lang = 'zh',
+  marketRegion,
 }: EduSectionEditorProps) {
   const [customDegrees, setCustomDegrees] = React.useState<Record<string, boolean>>({});
   const activeLang = lang === 'en' ? 'en' : 'zh';
@@ -237,6 +241,7 @@ export function EduSectionEditor({
                             className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input font-mono"
                             placeholder={t.timePlaceholder}
                             lang={lang}
+                            marketRegion={marketRegion}
                           />
                         </div>
                       </div>

@@ -11,6 +11,7 @@ import { ItemEditor } from './ItemEditor';
 import { SmartMarkdownTextarea } from './SmartMarkdownTextarea';
 import { getSectionTheme } from '../../lib/section-themes';
 import { getTranslation } from '../../i18n';
+import { MarketRegion } from '../../types';
 
 export function getSectionIcon(title: string, className?: string, lang = 'zh') {
   const theme = getSectionTheme(title, lang);
@@ -38,6 +39,7 @@ interface FormSectionEditorProps {
   onInsertStarTemplate: (itemId: string, currentContent: string) => void;
   onTypeChange?: (newType: 'text' | 'items') => void;
   lang?: string;
+  marketRegion?: MarketRegion;
 }
 
 // Helper to determine if a section is inherently text-only (e.g., Personal Advantages, Self-Evaluation, Skills)
@@ -53,7 +55,8 @@ const isTextOnlySection = (title: string): boolean => {
 export function FormSectionEditor({
   sec, secIndex, totalSectionsCount, isExpanded, onToggle, onTitleChange, onTextChange, onMove, onDelete, onApplySpacing, onAddItem, onMoveItem, onReorderItem, onDeleteItem, onItemFieldChange, onItemContentChange, onInsertStarTemplate,
   onTypeChange,
-  lang = 'zh'
+  lang = 'zh',
+  marketRegion
 }: FormSectionEditorProps) {
   const activeLang = lang === 'en' ? 'en' : 'zh';
   const translations = getTranslation(activeLang);
@@ -118,6 +121,7 @@ export function FormSectionEditor({
                         onDelete={() => onDeleteItem(item.id, item.org)}
                         onInsertStarTemplate={() => onInsertStarTemplate(item.id, item.content)}
                         lang={lang}
+                        marketRegion={marketRegion}
                       />
                     ))}
                   </div>

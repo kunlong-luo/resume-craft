@@ -9,6 +9,9 @@ import { getTranslation } from '../../i18n';
 import { getDegreeOptions, getJobStatusOptions, getPopularCities } from '../../lib/form-constants';
 import { InternationalPhoneField } from './InternationalPhoneField';
 
+import { MarketRegion } from '../../types';
+import { getMarketProfile } from '../../lib/market-profile';
+
 interface BasicInfoEditorProps {
   model: ResumeFormModel;
   onChange: (model: ResumeFormModel) => void;
@@ -17,6 +20,7 @@ interface BasicInfoEditorProps {
   showOptional: boolean;
   onToggleOptional: () => void;
   lang?: 'zh' | 'en';
+  marketRegion?: MarketRegion;
 }
 
 const GitHubIcon = ({ className }: { className?: string }) => (
@@ -31,7 +35,7 @@ const WeChatIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, showOptional, onToggleOptional, lang = 'zh' }: BasicInfoEditorProps) {
+export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, showOptional, onToggleOptional, lang = 'zh', marketRegion }: BasicInfoEditorProps) {
   const [tagInput, setTagInput] = useState('');
   
   const activeLang = lang === 'en' ? 'en' : 'zh';
@@ -41,6 +45,8 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
   const degreeOptions = getDegreeOptions(activeLang);
   const jobStatusOptions = getJobStatusOptions(activeLang);
   const popularCities = getPopularCities(activeLang);
+  const marketProfile = getMarketProfile(marketRegion);
+  const isAgeDiscouraged = marketProfile.discouragedPersonalFields.includes('age');
 
   const [customDegree, setCustomDegree] = useState(() => {
     return !!model.degree && !degreeOptions.some(o => o.value === model.degree);
@@ -268,6 +274,7 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
               lang={activeLang}
               label={t.phoneLabel}
               placeholder={t.phonePlaceholder}
+              marketRegion={marketRegion}
             />
 
             {/* 电子邮箱 */}
@@ -514,7 +521,14 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
                   {/* 年龄 / 出生年份 */}
                   <div className="space-y-1.5">
                     <div className="h-6 flex items-center justify-between">
-                      <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none select-none">{t.ageLabel}</label>
+                      <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none select-none">
+                        {t.ageLabel}
+                        {isAgeDiscouraged && (
+                          <span className="ml-1.5 text-[9px] font-normal lowercase tracking-normal text-slate-400/80">
+                            {activeLang === 'en' ? '(optional / usually omitted in US/UK)' : '(美加英等通常不填)'}
+                          </span>
+                        )}
+                      </label>
                     </div>
                     <AgeInputWithPicker 
                       value={model.age || ''}

@@ -56,6 +56,7 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
           showOptional={showOptionalBasic}
           onToggleOptional={() => setShowOptionalBasic(!showOptionalBasic)}
           lang={settings?.lang}
+          marketRegion={settings?.marketRegion}
         />
         
         {localModel.sections.map((sec, secIndex) => {
@@ -82,6 +83,7 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
                 onMoveItem={(itemIndex, direction) => moveItem(sec.id, itemIndex, direction)}
                 onReorderItem={(fromIdx, toIdx) => reorderItems(sec.id, fromIdx, toIdx)}
                 lang={settings?.lang}
+                marketRegion={settings?.marketRegion}
               />
             );
           }
@@ -108,6 +110,7 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
               onInsertStarTemplate={(itemId, currentContent) => insertStarTemplateToItem(sec.id, itemId, currentContent, sec.title)}
               onTypeChange={(newType) => handleSectionTypeChange(sec.id, newType)}
               lang={settings?.lang}
+              marketRegion={settings?.marketRegion}
             />
           );
         })}

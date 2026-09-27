@@ -209,6 +209,8 @@ export function MonthRangePicker({
           <Tooltip content={isEn ? "Open Date Picker" : "打开日期选择器"} side="top">
             <button
               type="button"
+              aria-label={isEn ? 'Open date picker' : '打开日期选择器'}
+              aria-expanded={isOpen}
               onClick={() => setIsOpen(!isOpen)}
               className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
@@ -219,7 +221,10 @@ export function MonthRangePicker({
       </div>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 sm:w-[410px] max-w-[calc(100vw-1.5rem)] max-h-[85vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-[0_20px_48px_rgba(30,41,59,0.14)] dark:shadow-[0_20px_48px_rgba(0,0,0,0.5)] rounded-2xl p-3.5 sm:p-4.5 z-50 flex flex-col gap-3.5 sm:gap-4 animate-in fade-in slide-in-from-top-2 duration-200 scrollbar-thin">
+        <div
+          role="dialog"
+          aria-label={isEn ? 'Select period' : '选择起止时间'}
+          className="absolute right-0 top-full mt-2 w-80 sm:w-[410px] max-w-[calc(100vw-1.5rem)] max-h-[85vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-[0_20px_48px_rgba(30,41,59,0.14)] dark:shadow-[0_20px_48px_rgba(0,0,0,0.5)] rounded-2xl p-3.5 sm:p-4.5 z-50 flex flex-col gap-3.5 sm:gap-4 animate-in fade-in slide-in-from-top-2 duration-200 scrollbar-thin">
           
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">

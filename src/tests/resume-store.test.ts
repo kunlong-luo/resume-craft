@@ -32,7 +32,23 @@ describe('resume store state consistency', () => {
       historyIndex: 1,
       isSaving: false,
       saveStatus: 'saved',
+      measuredPageCount: null,
     });
+  });
+
+  it('invalidates measured page count when content or layout changes', () => {
+    useResumeStore.setState({ measuredPageCount: 2 });
+
+    useResumeStore.getState().handleMarkdownChange('changed content', true);
+    expect(useResumeStore.getState().measuredPageCount).toBeNull();
+
+    useResumeStore.setState({ measuredPageCount: 2 });
+    useResumeStore.getState().updateSetting('paperSize', 'letter');
+    expect(useResumeStore.getState().measuredPageCount).toBeNull();
+
+    useResumeStore.setState({ measuredPageCount: 2 });
+    useResumeStore.getState().setMarkdown('direct content');
+    expect(useResumeStore.getState().measuredPageCount).toBeNull();
   });
 
   it('persists undo into the active profile and keeps the next edit in history', () => {

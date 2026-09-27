@@ -189,7 +189,16 @@ const getInitialSettings = (): ResumeSettings => {
   };
   
   const savedSettings = storage.get<Partial<ResumeSettings> | null>(STORAGE_KEYS.SETTINGS, null);
-  return sanitizeSettings(savedSettings, defaultSettings);
+  const sanitizedSettings = sanitizeSettings(savedSettings, defaultSettings);
+
+  if (
+    savedSettings &&
+    JSON.stringify(sanitizedSettings) !== JSON.stringify(savedSettings)
+  ) {
+    storage.set(STORAGE_KEYS.SETTINGS, sanitizedSettings);
+  }
+
+  return sanitizedSettings;
 };
 
 // Helper to initialize Multi-Profile Archive with migration

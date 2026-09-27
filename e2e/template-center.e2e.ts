@@ -156,6 +156,9 @@ test.describe('template center', () => {
   });
 
   test('applies content without changing layout or style', async ({ page }) => {
+    // This flow crosses several dialogs and state re-checks; WebKit is
+    // consistently slower than the default 20-second per-test budget.
+    test.slow();
     await page.goto('/');
 
     const toolbar = page.locator('#resume-main-toolbar');

@@ -454,7 +454,6 @@ Accomplished Senior Full-Stack Engineer and Technical Lead with 8 years of comme
 
 ### University of Edinburgh | B.Sc. (Hons) in Software Engineering | September 2013 – June 2017
 - **Classification**: First Class Honours (1st Class Hons)
-- **Key Modules**: Software Architecture, Distributed Computing, Database Systems, Computer Security
 `
   },
   {
@@ -525,7 +524,6 @@ Senior Full-Stack & Distributed Systems Architect with 7+ years of experience le
 ## Education
 
 ### University of California, Berkeley | B.S. in Computer Science | Sep 2014 – Jun 2018
-- **Honors**: GPA 3.82 / 4.0, First-Class Academic Honors
 `
   }
 ];

@@ -16,7 +16,7 @@ export interface MarketProfile {
 export const MARKET_PROFILES: Record<MarketRegion, MarketProfile> = {
   us: {
     region: 'us',
-    labelZh: '美国 (US)',
+    labelZh: '美国',
     labelEn: 'United States',
     documentName: 'resume',
     defaultPaperSize: 'letter',
@@ -28,7 +28,7 @@ export const MARKET_PROFILES: Record<MarketRegion, MarketProfile> = {
   },
   ca: {
     region: 'ca',
-    labelZh: '加拿大 (Canada)',
+    labelZh: '加拿大',
     labelEn: 'Canada',
     documentName: 'resume',
     defaultPaperSize: 'letter',
@@ -40,7 +40,7 @@ export const MARKET_PROFILES: Record<MarketRegion, MarketProfile> = {
   },
   uk: {
     region: 'uk',
-    labelZh: '英国 (UK)',
+    labelZh: '英国',
     labelEn: 'United Kingdom',
     documentName: 'cv',
     defaultPaperSize: 'a4',
@@ -52,7 +52,7 @@ export const MARKET_PROFILES: Record<MarketRegion, MarketProfile> = {
   },
   ie: {
     region: 'ie',
-    labelZh: '爱尔兰 (Ireland)',
+    labelZh: '爱尔兰',
     labelEn: 'Ireland',
     documentName: 'cv',
     defaultPaperSize: 'a4',
@@ -64,7 +64,7 @@ export const MARKET_PROFILES: Record<MarketRegion, MarketProfile> = {
   },
   cn: {
     region: 'cn',
-    labelZh: '中国大陆 (China)',
+    labelZh: '中国大陆',
     labelEn: 'China',
     documentName: 'resume',
     defaultPaperSize: 'a4',
@@ -76,8 +76,8 @@ export const MARKET_PROFILES: Record<MarketRegion, MarketProfile> = {
   },
   international: {
     region: 'international',
-    labelZh: '国际通用 (Global / Remote)',
-    labelEn: 'International / Remote',
+    labelZh: '国际通用',
+    labelEn: 'Global / Remote',
     documentName: 'resume',
     defaultPaperSize: 'a4',
     dateStyle: 'month-short',

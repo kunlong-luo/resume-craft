@@ -16,6 +16,58 @@ export function migrateStoredMarkdown(markdown: string): string {
   // Rename the legacy education heading to the current convention.
   md = md.replace(/## 教育经历/g, '## 教育背景');
 
+  // Normalize legacy project items that stored the project role as the first
+  // description bullet instead of in the structured item heading.
+  const migrateProjectSection = (section: string): string => {
+    const lines = section.split('\n');
+    const title = lines[0]?.trim() || '';
+    const normalizedTitle = title.toLowerCase();
+    const isProjectSection =
+      title.includes('项目') ||
+      title.includes('产品') ||
+      title.includes('开源') ||
+      normalizedTitle.includes('project') ||
+      normalizedTitle.includes('portfolio');
+
+    if (!isProjectSection) return section;
+
+    const migratedLines: string[] = [];
+    for (let i = 0; i < lines.length; i++) {
+      const current = lines[i];
+      const next = lines[i + 1];
+      const headerMatch = current.match(/^(###\s+)(.+?)\s+(\*[^*\n]+\*)\s*$/);
+      const roleMatch = next?.match(
+        /^[-*+]\s+\*\*(?:项目角色|Project Role)\s*[:：]?\*\*\s*[:：]?\s*(.+)$/i,
+      );
+
+      if (headerMatch && roleMatch) {
+        const [, prefix, rawTitle, time] = headerMatch;
+        const role = roleMatch[1].trim();
+        const titleWithoutTime = rawTitle.trim();
+
+        if (/[｜|]/.test(titleWithoutTime)) {
+          migratedLines.push(current);
+        } else {
+          migratedLines.push(`${prefix}${titleWithoutTime} ｜ ${role} ｜ ${time}`);
+        }
+        i += 1;
+        continue;
+      }
+
+      migratedLines.push(current);
+    }
+
+    return migratedLines.join('\n');
+  };
+
+  const projectSections = md.split('\n## ');
+  md = projectSections
+    .map((section, index) => {
+      if (index === 0) return section;
+      return `## ${migrateProjectSection(section)}`;
+    })
+    .join('\n');
+
   // De-duplicate repeated education sections without touching unrelated content.
   const sections = md.split('\n## ');
   const seenEducationTitles = new Set<string>();

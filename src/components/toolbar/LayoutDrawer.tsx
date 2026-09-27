@@ -112,6 +112,7 @@ export function LayoutDrawer({
             className="w-full"
             triggerClassName="w-full h-9"
             size="md"
+            ariaLabel={isEn ? 'Target market' : '目标市场'}
           />
           <p className="mt-1.5 text-[9px] leading-relaxed text-slate-400 dark:text-slate-500">
             {isEn

@@ -207,10 +207,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'content',
-      title: isEn ? 'Content Compliance: No template placeholders found' : '内容合规：未发现模版残留文本',
+      title: isEn ? 'Content Check: No known template placeholders detected' : '内容检查：未发现已知模板占位符',
       desc: isEn 
-        ? 'All template tags and brackets have been replaced successfully.'
-        : '简历中的占位文本和模版标签已全部替换完毕。'
+        ? 'No placeholder patterns from the local checklist were detected.'
+        : '本地占位符规则暂未检测到常见模板残留。'
     });
   } else {
     score -= (foundPlaceholders.length * 8);
@@ -460,10 +460,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'formatting',
-      title: isEn ? 'Typography: Perfect spacing formatting' : '排版美化：中英混排格式完美',
+      title: isEn ? 'Typography: No obvious spacing issues detected' : '排版美化：未发现明显中英空格问题',
       desc: isEn 
-        ? 'All Chinese characters, English words, and numbers are separated by standard half-width spaces. Clean and professional!'
-        : '简历中的中文、英文以及数字之间均有标准的半角空格分隔，视觉排版极其舒适和专业。'
+        ? 'This local spacing check found no obvious missing half-width spaces between Chinese text, English words, and numbers.'
+        : '本地规则暂未发现明显的中英文或数字混排空格问题。'
     });
   }
 
@@ -544,10 +544,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'content',
-      title: isEn ? 'Tense Agreement: Perfect verbs tense consistency' : '时态规范：英文经历动作时态高度一致',
+      title: isEn ? 'Tense Agreement: No obvious inconsistency detected' : '时态规范：未发现明显时态不一致',
       desc: isEn 
-        ? 'All past roles use past tense action verbs perfectly, demonstrating excellent professional rigor.'
-        : '所有已结束经历的英文动作条目均正确采用过去式行动词，时态规范完美，彰显出极佳的求职专业度。'
+        ? 'This local rule found no obvious present-tense action verbs in the past-role bullets it could identify.'
+        : '本地规则在可识别的已结束经历中暂未发现明显的现在时动作词问题。'
     });
   }
   

@@ -8,6 +8,12 @@ import {
 
 export type PhoneRegionCode = CountryCode | '';
 
+export function getDefaultPhoneRegionForLocale(
+  locale: 'zh' | 'en',
+): PhoneRegionCode {
+  return locale === 'zh' ? 'CN' : '';
+}
+
 export interface PhoneRegionOption {
   code: CountryCode;
   callingCode: string;

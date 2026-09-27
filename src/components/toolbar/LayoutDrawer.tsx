@@ -1,10 +1,12 @@
 import React from 'react';
 import { BookOpen, Columns, FileText, SlidersHorizontal } from 'lucide-react';
-import { FontFamily, FontSize, PaperMargin, TemplateLayout } from '../../types';
+import { FontFamily, FontSize, MarketRegion, PaperMargin, TemplateLayout } from '../../types';
 import { useResumeStore } from '../../store/useResumeStore';
 import { CustomSlider } from '../ui/CustomSlider';
+import { CustomSelect } from '../ui/CustomSelect';
 import { SettingsPopover } from './SettingsPopover';
 import { TOOLBAR_TRANSLATIONS } from './toolbar-presets';
+import { getMarketProfile, isMarketRegion, MARKET_REGIONS } from '../../lib/market-profile';
 
 interface LayoutDrawerProps {
   isOpen: boolean;
@@ -17,7 +19,7 @@ export function LayoutDrawer({
   onClose,
   triggerRef,
 }: LayoutDrawerProps) {
-  const { settings, updateSetting } = useResumeStore();
+  const { settings, updateSetting, updateSettings } = useResumeStore();
   const isEn = settings.lang === 'en';
   const t = isEn ? TOOLBAR_TRANSLATIONS.en : TOOLBAR_TRANSLATIONS.zh;
 
@@ -59,6 +61,34 @@ export function LayoutDrawer({
     { value: 'mono', label: isEn ? 'Mono' : '等宽' },
   ];
 
+  const marketOrder: MarketRegion[] = isEn
+    ? MARKET_REGIONS
+    : ['cn', ...MARKET_REGIONS.filter((region) => region !== 'cn')];
+
+  const marketOptions = marketOrder.map((region) => {
+    const profile = getMarketProfile(region);
+    return {
+      value: region,
+      label: isEn ? profile.labelEn : profile.labelZh,
+    };
+  });
+
+  const activeMarket: MarketRegion =
+    settings.marketRegion || (isEn ? 'international' : 'cn');
+  const activeMarketProfile = getMarketProfile(activeMarket);
+
+  const handleMarketChange = (value: string) => {
+    if (!isMarketRegion(value)) return;
+
+    const profile = getMarketProfile(value);
+    updateSettings({
+      marketRegion: value,
+      paperSize: profile.defaultPaperSize,
+      dateStyle: profile.dateStyle,
+    });
+  };
+
+
   const spacingMode =
     settings.lineHeight <= 1.45 && settings.blockGap <= 0.7
       ? 'compact'
@@ -84,6 +114,33 @@ export function LayoutDrawer({
           <div className="mb-2 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
             {isEn ? 'Page layout' : '版面结构'}
           </div>
+
+          <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-900/70">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                  {isEn ? 'Target market' : '目标市场'}
+                </div>
+                <p className="mt-0.5 text-[9px] leading-relaxed text-slate-400 dark:text-slate-500">
+                  {isEn
+                    ? 'Sets recommended paper and date guidance. Language and resume content stay unchanged.'
+                    : '设置推荐纸张与日期规范；语言和现有简历内容保持不变。'}
+                </p>
+              </div>
+              <CustomSelect
+                value={activeMarket}
+                onChange={handleMarketChange}
+                options={marketOptions}
+                ariaLabel={`${isEn ? 'Target market' : '目标市场'}: ${isEn ? activeMarketProfile.labelEn : activeMarketProfile.labelZh}`}
+                size="xs"
+                align="right"
+                className="shrink-0"
+                triggerClassName="min-w-[112px] max-w-[145px]"
+                menuClassName="min-w-[180px]"
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
             {layoutOptions.map((option) => {
               const active = settings.templateLayout === option.value;
@@ -168,7 +225,7 @@ export function LayoutDrawer({
             <div className="mb-1.5 flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
               <span>{isEn ? 'Paper size' : '纸张规格'}</span>
               <span className="text-[9px] font-normal text-slate-400">
-                {settings.paperSize === 'letter' ? '215.9 × 279.4 mm (US / CA)' : '210 × 297 mm (Global / UK)'}
+                {settings.paperSize === 'letter' ? '215.9 × 279.4 mm · US / CA' : '210 × 297 mm · A4'}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">

@@ -50,13 +50,13 @@ export function MonthRangePicker({
   const [endMonth, setEndMonth] = useState('06');
   const [isOngoing, setIsOngoing] = useState(false);
 
-  // Generate Year Options: from currentYear + 4 down to 25 years ago
+  // Generate Year Options: from currentYear + 4 down to 50 years ago
   const years = useMemoYears();
 
   function useMemoYears() {
     const cy = new Date().getFullYear();
     const result = [];
-    for (let i = cy + 4; i >= cy - 25; i--) {
+    for (let i = cy + 4; i >= cy - 50; i--) {
       result.push(String(i));
     }
     return result;

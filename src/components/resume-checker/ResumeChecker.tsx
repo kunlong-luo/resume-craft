@@ -26,6 +26,7 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
   const onClose = props.onClose ?? (() => store.setIsCheckerOpen(false));
   const lang = props.lang ?? store.settings.lang;
   const marketRegion = store.settings.marketRegion;
+  const dateStyle = store.settings.dateStyle;
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocus({ isOpen, dialogRef, onClose });
 
@@ -36,14 +37,14 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
   }, [markdown]);
 
   const analysis = useMemo(() => {
-    return analyzeResume(markdown, onUpdateMarkdown, lang, marketRegion);
-  }, [markdown, onUpdateMarkdown, lang, marketRegion]);
+    return analyzeResume(markdown, onUpdateMarkdown, lang, marketRegion, dateStyle);
+  }, [markdown, onUpdateMarkdown, lang, marketRegion, dateStyle]);
 
   const handleFixAll = () => {
     const result = autoFormatAndCleanResume(markdown, {
       marketRegion,
       lang,
-      dateStyle: store.settings.dateStyle,
+      dateStyle,
       sanitizeMarketFields: true,
     });
     if (result.hasChanges) {

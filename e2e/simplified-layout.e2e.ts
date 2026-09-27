@@ -60,6 +60,60 @@ test.describe('simplified workspace actions', () => {
     ).toHaveAttribute('aria-pressed', 'true');
   });
 
+  test('switches target market and persists recommended paper/date defaults', async ({ page }) => {
+    await page.goto('/');
+
+    const toolbar = page.locator('#resume-main-toolbar');
+    await toolbar
+      .getByRole('button', { name: /Open layout settings|打开排版设置/ })
+      .click();
+
+    const layoutDialog = page.getByRole('dialog', { name: 'Layout' });
+    await layoutDialog.getByRole('button', { name: 'Target market' }).click();
+    await page.getByRole('option', { name: 'United States' }).click();
+
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const raw = window.localStorage.getItem('resume-settings');
+          if (!raw) return null;
+          const settings = JSON.parse(raw);
+          return {
+            marketRegion: settings.marketRegion,
+            paperSize: settings.paperSize,
+            dateStyle: settings.dateStyle,
+          };
+        }),
+      )
+      .toEqual({
+        marketRegion: 'us',
+        paperSize: 'letter',
+        dateStyle: 'month-short',
+      });
+
+    await expect(page.locator('#resume-print-content')).toHaveAttribute(
+      'data-paper-size',
+      'letter',
+    );
+
+    await layoutDialog.getByRole('button', { name: 'Close Layout' }).click();
+    await page.reload();
+
+    await expect(page.locator('#resume-print-content')).toHaveAttribute(
+      'data-paper-size',
+      'letter',
+    );
+
+    await toolbar
+      .getByRole('button', { name: /Open layout settings|打开排版设置/ })
+      .click();
+
+    const reopenedLayout = page.getByRole('dialog', { name: 'Layout' });
+    await expect(
+      reopenedLayout.getByRole('button', { name: 'Target market' }),
+    ).toHaveAttribute('title', 'United States');
+  });
+
   test('keeps page break guide with view controls', async ({ page }) => {
     await page.goto('/');
 

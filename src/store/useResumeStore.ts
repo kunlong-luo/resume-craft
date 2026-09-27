@@ -4,7 +4,7 @@ import { ResumeSettings, ResumeProfile, MarketRegion } from '../types';
 import { storage, STORAGE_KEYS } from '../lib/storage';
 import { translateMarkdownContent } from '../lib/section-translator';
 import { migrateStoredMarkdown } from '../lib/markdown-migrations';
-import { isMarketRegion, resolveDefaultPaperSize } from '../lib/market-profile';
+import { getMarketProfile, isMarketRegion, resolveDefaultPaperSize } from '../lib/market-profile';
 import { isPaperSize } from '../lib/paper';
 
 interface ResumeState {
@@ -147,6 +147,11 @@ const sanitizeSettings = (raw: Partial<ResumeSettings> | null, defaultSettings: 
     merged.paperSize = resolveDefaultPaperSize(merged.marketRegion);
   }
 
+  // Sanitize dateStyle and derive a market-appropriate default for legacy data.
+  if (!merged.dateStyle || !['cn-dot', 'month-short', 'month-long'].includes(merged.dateStyle)) {
+    merged.dateStyle = getMarketProfile(merged.marketRegion).dateStyle;
+  }
+
   return merged;
 };
 
@@ -179,6 +184,7 @@ const getInitialSettings = (): ResumeSettings => {
     lang: initialLang,
     marketRegion: initialMarket,
     paperSize: resolveDefaultPaperSize(initialMarket),
+    dateStyle: getMarketProfile(initialMarket).dateStyle,
     themeMode: (storage.getString(STORAGE_KEYS.THEME_MODE, 'light') || 'light') as 'light' | 'dark' | 'system',
   };
   
@@ -196,20 +202,39 @@ const getInitialProfiles = (
 
   if (savedProfiles && Array.isArray(savedProfiles) && savedProfiles.length > 0) {
     // Apply only deterministic, content-preserving migrations.
+    let shouldPersistMigration = false;
     const migratedProfiles = savedProfiles.map(p => {
       const markdown = typeof p.markdown === 'string'
         ? migrateStoredMarkdown(p.markdown)
         : defaultMd;
+      const settings = sanitizeSettings(p.settings, defaultSettings);
+      const name = p.name || '未命名简历草稿';
+      const updatedAt = p.updatedAt || new Date().toISOString();
+      const createdAt = p.createdAt || new Date().toISOString();
+
+      if (
+        markdown !== p.markdown ||
+        JSON.stringify(settings) !== JSON.stringify(p.settings) ||
+        name !== p.name ||
+        updatedAt !== p.updatedAt ||
+        createdAt !== p.createdAt
+      ) {
+        shouldPersistMigration = true;
+      }
 
       return {
         ...p,
         markdown,
-        settings: sanitizeSettings(p.settings, defaultSettings),
-        name: p.name || '未命名简历草稿',
-        updatedAt: p.updatedAt || new Date().toISOString(),
-        createdAt: p.createdAt || new Date().toISOString()
+        settings,
+        name,
+        updatedAt,
+        createdAt
       };
     });
+
+    if (shouldPersistMigration) {
+      storage.set(STORAGE_KEYS.PROFILES, migratedProfiles);
+    }
 
     const activeId = migratedProfiles.some(p => p.id === savedActiveId) ? savedActiveId : migratedProfiles[0].id;
     return { profiles: migratedProfiles, activeId };
@@ -249,13 +274,22 @@ const getInitialProfiles = (
     isDefault: false
   };
 
-  const englishTemplate = TEMPLATES.find(t => t.id === 'english')?.content || defaultMd;
+  const englishTemplateRecord = TEMPLATES.find(t => t.id === 'english');
+  const englishTemplate = englishTemplateRecord?.content || defaultMd;
+  const englishMarket: MarketRegion = englishTemplateRecord?.targetMarket || 'international';
   const englishProfile: ResumeProfile = {
     id: 'profile_english',
     name: 'English CV (Global)',
     targetRole: 'Overseas',
     markdown: englishTemplate,
-    settings: { ...defaultSettings, lang: 'en', themeColor: 'teal' },
+    settings: {
+      ...defaultSettings,
+      lang: 'en',
+      themeColor: 'teal',
+      marketRegion: englishMarket,
+      paperSize: englishTemplateRecord?.defaultPaperSize || resolveDefaultPaperSize(englishMarket),
+      dateStyle: englishTemplateRecord?.dateStyle || getMarketProfile(englishMarket).dateStyle,
+    },
     customFileName: '',
     updatedAt: now,
     createdAt: now,

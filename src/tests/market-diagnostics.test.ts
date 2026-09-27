@@ -91,6 +91,49 @@ jane@example.com | +44 7911 123456
     });
   });
 
+  describe('Language-aware pronoun audit', () => {
+    it('detects English first-person wording and safely fixes bullet-leading I/We', () => {
+      mockUpdateMarkdown.mockClear();
+      const resume = `# Alex Taylor
+alex@example.com | +1 206 555 0123 | Seattle, US
+
+## Experience
+### Example Corp | Engineer | Jan 2024 – Present
+- I led a platform migration that reduced latency by 30%.
+- We built automated release tooling.
+`;
+
+      const analysis = analyzeResume(resume, mockUpdateMarkdown, 'en', 'us');
+      const issue = analysis.issues.find(i => i.title.includes('Subjective Pronouns'));
+
+      expect(issue?.type).toBe('warning');
+      expect(issue?.fixable).toBe(true);
+
+      issue?.onFix?.();
+
+      expect(mockUpdateMarkdown).toHaveBeenCalledTimes(1);
+      const [fixedMarkdown, immediate] = mockUpdateMarkdown.mock.calls[0];
+      expect(fixedMarkdown).toContain('- Led a platform migration');
+      expect(fixedMarkdown).toContain('- Built automated release tooling.');
+      expect(immediate).toBe(true);
+    });
+
+    it('does not mistake uppercase US for the pronoun us', () => {
+      const resume = `# Alex Taylor
+alex@example.com | +1 206 555 0123 | Seattle, US
+
+## Experience
+### Example Corp | Engineer | Jan 2024 – Present
+- Led a US platform migration and improved reliability by 30%.
+`;
+
+      const analysis = analyzeResume(resume, mockUpdateMarkdown, 'en', 'us');
+      const issue = analysis.issues.find(i => i.title.includes('Subjective Pronouns'));
+
+      expect(issue?.type).toBe('success');
+    });
+  });
+
   describe('Comprehensive Auto-Fixer (autoFormatAndCleanResume)', () => {
     it('fixes spacing, bullets, empty lines, and market dates in a single pass', () => {
       const messyResume = `# Alex Taylor

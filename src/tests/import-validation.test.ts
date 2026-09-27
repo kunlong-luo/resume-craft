@@ -22,6 +22,9 @@ const fallbackSettings: ResumeSettings = {
   showPageBreakLine: true,
   templateLayout: 'single',
   lang: 'zh',
+  paperSize: 'a4',
+  marketRegion: 'international',
+  dateStyle: 'month-long',
   isPrivacyMasked: false,
 };
 
@@ -44,6 +47,9 @@ describe('import validation', () => {
         topAccentLine: false,
         showPageBreakLine: false,
         customColor: 'javascript:red',
+        paperSize: 'letter',
+        marketRegion: 'us',
+        dateStyle: 'month-short',
       },
       fallbackSettings,
     );
@@ -58,6 +64,20 @@ describe('import validation', () => {
     expect(normalized?.blockGap).toBe(0);
     expect(normalized?.letterSpacing).toBe(2);
     expect(normalized?.customColor).toBe('#4F46E5');
+    expect(normalized?.paperSize).toBe('letter');
+    expect(normalized?.marketRegion).toBe('us');
+    expect(normalized?.dateStyle).toBe('month-short');
+  });
+
+  it('falls back safely when an imported date style is invalid', () => {
+    const normalized = normalizeImportedSettings(
+      {
+        dateStyle: 'day-month-year',
+      },
+      fallbackSettings,
+    );
+
+    expect(normalized?.dateStyle).toBe('month-long');
   });
 
   it('accepts an older partial settings object using safe fallbacks', () => {

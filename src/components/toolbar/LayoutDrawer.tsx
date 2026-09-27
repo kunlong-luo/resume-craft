@@ -399,6 +399,7 @@ function SegmentedSetting<T extends string>({
             key={optionValue}
             type="button"
             onClick={() => onChange(optionValue)}
+            aria-pressed={value === optionValue}
             className={`rounded-lg px-1 py-1.5 text-[9px] font-bold transition ${
               value === optionValue
                 ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'

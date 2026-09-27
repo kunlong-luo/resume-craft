@@ -25,6 +25,7 @@ interface CustomSelectProps {
   maxMenuHeight?: string;
   id?: string;
   compact?: boolean;
+  ariaLabel?: string;
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -42,6 +43,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   maxMenuHeight = 'max-h-64',
   id,
   compact = false,
+  ariaLabel,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -175,6 +177,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         onClick={handleToggle}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        aria-label={ariaLabel}
         title={selectedOption?.label || placeholder}
         className={`
           ${sizeClasses[size]}

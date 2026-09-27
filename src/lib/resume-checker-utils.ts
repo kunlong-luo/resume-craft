@@ -29,7 +29,7 @@ export function analyzeResume(
   onUpdateMarkdown: (newMarkdown: string, immediate?: boolean) => void,
   lang?: string,
   marketRegion?: MarketRegion,
-  measuredPageCount?: number
+  measuredPageCount?: number | null
 ): AnalysisResult {
   const issues: IssueItem[] = [];
   let score = 100;

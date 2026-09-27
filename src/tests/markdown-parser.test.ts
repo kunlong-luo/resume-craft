@@ -57,6 +57,24 @@ describe('markdown-parser', () => {
       expect(res.role).toBe('资深前端开发专家');
       expect(res.time).toBe('2021.06 - 至今');
     });
+
+    it('should preserve full project name containing hyphens with explicit pipe role', () => {
+      const res = splitItemTitle(
+        'FlexAgent - 开源大模型多Agent低代码编排系统 ｜ 独立作者与主导设计 ｜ *2025.01 — 至今*'
+      );
+      expect(res.org).toBe('FlexAgent - 开源大模型多Agent低代码编排系统');
+      expect(res.role).toBe('独立作者与主导设计');
+      expect(res.time).toContain('2025.01 — 至今');
+    });
+
+    it('should preserve full project name containing hyphens without explicit role', () => {
+      const res = splitItemTitle(
+        'FlexAgent - 开源大模型多Agent低代码编排系统 *2025.01 — 至今*'
+      );
+      expect(res.org).toBe('FlexAgent - 开源大模型多Agent低代码编排系统');
+      expect(res.role).toBe('');
+      expect(res.time).toContain('2025.01 — 至今');
+    });
   });
 
   describe('parseContactString', () => {
@@ -161,6 +179,25 @@ describe('markdown-parser', () => {
       for (const template of TEMPLATES) {
         expect(template.content).not.toMatch(/^- \*\*项目角色[：:]\*\*/m);
       }
+    });
+
+    it('parses and roundtrips the full FlexAgent project name in the frontend template', () => {
+      const frontendTpl = TEMPLATES.find(t => t.id === 'frontend')!;
+      expect(frontendTpl).toBeDefined();
+
+      const form = parseMarkdownToForm(frontendTpl.content);
+      const projectSec = form.sections.find(s => s.title.includes('项目'));
+      expect(projectSec).toBeDefined();
+
+      const flexItem = projectSec?.items.find(item => item.org.includes('FlexAgent'));
+      expect(flexItem).toBeDefined();
+      expect(flexItem?.org).toBe('FlexAgent - 开源大模型多Agent低代码编排系统');
+      expect(flexItem?.role).toBe('独立作者与主导设计');
+
+      const regeneratedMd = parseFormToMarkdown(form);
+      expect(regeneratedMd).toContain(
+        '### FlexAgent - 开源大模型多Agent低代码编排系统 ｜ 独立作者与主导设计 ｜ *2025.01 — 至今*'
+      );
     });
   });
 

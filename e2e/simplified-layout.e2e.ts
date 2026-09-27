@@ -107,7 +107,7 @@ test.describe('simplified workspace actions', () => {
 
     const layoutDialog = page.getByRole('dialog', { name: 'Layout' });
     await layoutDialog.getByRole('button', { name: 'Target market' }).click();
-    await page.getByRole('option', { name: 'United States' }).click();
+    await page.getByRole('option', { name: 'United States', exact: true }).click();
 
     await expect
       .poll(() =>

@@ -2,13 +2,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangle, ArrowRight, Check, Clipboard, FileCode2, FileInput, FileText, Loader2, ScanText, ShieldCheck, Trash2, Upload, Wand2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { parseRawTextToResumeMarkdown } from '../../lib/raw-text-importer';
+import { parseRawTextToResumeMarkdown, detectResumeMarket } from '../../lib/raw-text-importer';
 import {
   extractResumeTextFromPdf,
   MAX_PDF_FILE_SIZE,
   PdfImportError,
   type PdfExtractionResult,
 } from '../../lib/pdf-import';
+import { importFromJsonResume, adaptMarkdownToTargetMarket } from '../../lib/export-utils';
+import { getMarketProfile } from '../../lib/market-profile';
+import { useResumeStore } from '../../store/useResumeStore';
 
 interface RawTextImportModalProps {
   isOpen: boolean;
@@ -25,6 +28,7 @@ interface LoadedFileInfo {
   content: string;
   type: 'md' | 'txt' | 'json' | 'pdf';
   pdf?: PdfExtractionResult;
+  detectedMarket?: string;
 }
 
 export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: RawTextImportModalProps) {
@@ -35,10 +39,15 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
   const [selectedFile, setSelectedFile] = useState<LoadedFileInfo | null>(null);
   const [isParsingPdf, setIsParsingPdf] = useState(false);
   const [fileError, setFileError] = useState('');
+  const [autoAdaptToMarket, setAutoAdaptToMarket] = useState(true);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const isEn = lang === 'en';
+
+  const { settings } = useResumeStore();
+  const currentMarket = settings.marketRegion || 'cn';
+  const currentMarketProfile = getMarketProfile(currentMarket);
 
   // Keep keyboard focus inside the modal and restore it to the trigger on close.
   useEffect(() => {
@@ -119,16 +128,25 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
     const lines = content.split('\n').length;
     const size = new Blob([content]).size;
     let type: 'md' | 'txt' | 'json' = 'md';
+    let processedContent = content;
+    let detectedMarketStr = '';
 
     if (fileName.endsWith('.json')) {
       type = 'json';
       try {
         const parsed = JSON.parse(content);
         if (parsed && typeof parsed === 'object') {
-          if (parsed.markdown && typeof parsed.markdown === 'string') {
-            content = parsed.markdown;
+          if (parsed.basics || parsed.work || parsed.skills) {
+            // Standard JSON Resume schema
+            const jsonRes = importFromJsonResume(parsed);
+            processedContent = jsonRes.markdown;
+            if (jsonRes.detectedSettings?.marketRegion) {
+              detectedMarketStr = jsonRes.detectedSettings.marketRegion;
+            }
+          } else if (parsed.markdown && typeof parsed.markdown === 'string') {
+            processedContent = parsed.markdown;
           } else if (parsed.content && typeof parsed.content === 'string') {
-            content = parsed.content;
+            processedContent = parsed.content;
           }
         }
       } catch (e) {
@@ -136,14 +154,20 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
       }
     } else if (fileName.endsWith('.txt')) {
       type = 'txt';
+      const detection = detectResumeMarket(content);
+      detectedMarketStr = detection.detectedMarket;
+    } else {
+      const detection = detectResumeMarket(content);
+      detectedMarketStr = detection.detectedMarket;
     }
 
     setSelectedFile({
       name: fileName,
       size,
       lines,
-      content,
-      type
+      content: processedContent,
+      type,
+      detectedMarket: detectedMarketStr,
     });
   };
 
@@ -190,6 +214,7 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
       setIsParsingPdf(true);
       try {
         const result = await extractResumeTextFromPdf(file);
+        const marketDetect = detectResumeMarket(result.text);
         setSelectedFile({
           name: file.name,
           size: file.size,
@@ -197,6 +222,7 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
           content: result.text,
           type: 'pdf',
           pdf: result,
+          detectedMarket: marketDetect.detectedMarket,
         });
       } catch (error) {
         setFileError(getPdfErrorMessage(error));
@@ -253,7 +279,15 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
 
   const handleExecuteTextImport = () => {
     if (!rawText.trim()) return;
-    const generatedMarkdown = parseRawTextToResumeMarkdown(rawText);
+    let generatedMarkdown = parseRawTextToResumeMarkdown(rawText);
+    if (autoAdaptToMarket) {
+      const adapted = adaptMarkdownToTargetMarket(
+        generatedMarkdown,
+        currentMarket,
+        settings.lang
+      );
+      generatedMarkdown = adapted.adaptedMarkdown;
+    }
     onImport(generatedMarkdown);
     setRawText('');
     onClose();
@@ -261,13 +295,23 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
 
   const handleExecuteFileImport = () => {
     if (!selectedFile) return;
+    let finalMd = '';
     if (selectedFile.type === 'txt' || selectedFile.type === 'pdf') {
-      const generatedMarkdown = parseRawTextToResumeMarkdown(selectedFile.content);
-      onImport(generatedMarkdown);
+      finalMd = parseRawTextToResumeMarkdown(selectedFile.content);
     } else {
-      // If it's standard md or parsed json
-      onImport(selectedFile.content);
+      finalMd = selectedFile.content;
     }
+
+    if (autoAdaptToMarket) {
+      const adapted = adaptMarkdownToTargetMarket(
+        finalMd,
+        currentMarket,
+        settings.lang
+      );
+      finalMd = adapted.adaptedMarkdown;
+    }
+
+    onImport(finalMd);
     setSelectedFile(null);
     onClose();
   };
@@ -419,9 +463,16 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
                             <FileText className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 truncate max-w-[240px] sm:max-w-xs">
-                              {selectedFile.name}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 truncate max-w-[200px] sm:max-w-xs">
+                                {selectedFile.name}
+                              </p>
+                              {selectedFile.detectedMarket && (
+                                <span className="rounded-full bg-indigo-100/80 px-2 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                                  {getMarketProfile(selectedFile.detectedMarket as any).flag} {getMarketProfile(selectedFile.detectedMarket as any).name}
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[11px] text-slate-400">
                               {(selectedFile.size / 1024).toFixed(1)} KB · {selectedFile.lines} {isEn ? 'lines' : '行内容'}
                               {selectedFile.type === 'pdf' && selectedFile.pdf
@@ -563,6 +614,33 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
                 {fileError}
               </div>
             )}
+
+            {/* Market Adaptation Option */}
+            <div className="mx-5 mb-3 rounded-xl border border-indigo-100 bg-indigo-50/50 p-2.5 dark:border-indigo-950/60 dark:bg-indigo-950/30">
+              <label className="flex items-center justify-between gap-2 cursor-pointer select-none">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Wand2 className="h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+                  <div className="min-w-0">
+                    <span className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                      {isEn
+                        ? `Auto-adapt to ${currentMarketProfile.name} Standards`
+                        : `自动规范化适配当前目标市场 (${currentMarketProfile.name})`}
+                    </span>
+                    <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                      {isEn
+                        ? `Standardizes dates (${currentMarketProfile.defaultDateStyle}), section titles, and EEO sanitization`
+                        : `自动将日期转为目标国规范 (${currentMarketProfile.defaultDateStyle}) 并进行招聘合规优化`}
+                    </span>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={autoAdaptToMarket}
+                  onChange={(e) => setAutoAdaptToMarket(e.target.checked)}
+                  className="h-4 w-4 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500/20 dark:border-slate-700"
+                />
+              </label>
+            </div>
 
             {/* Footer Actions */}
             <div className="flex items-center justify-between px-5 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/70">

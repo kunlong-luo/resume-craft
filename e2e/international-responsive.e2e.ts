@@ -86,8 +86,12 @@ test.describe('international responsive UX', () => {
     await expectInsideViewport(picker, 390, 844);
 
     const currentYear = new Date().getFullYear();
+    await picker
+      .getByRole('button', { name: String(currentYear), exact: true })
+      .first()
+      .click();
     await expect(
-      picker.getByRole('button', { name: String(currentYear - 50), exact: true }).first(),
+      page.getByRole('option', { name: String(currentYear - 50), exact: true }),
     ).toBeVisible();
   });
 });

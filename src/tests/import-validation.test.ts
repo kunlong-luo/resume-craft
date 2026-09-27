@@ -82,6 +82,19 @@ describe('import validation', () => {
     });
   });
 
+  it('derives missing paper and date defaults from an imported target market', () => {
+    const normalized = normalizeImportedSettings(
+      {
+        marketRegion: 'us',
+      },
+      fallbackSettings,
+    );
+
+    expect(normalized?.marketRegion).toBe('us');
+    expect(normalized?.paperSize).toBe('letter');
+    expect(normalized?.dateStyle).toBe('month-short');
+  });
+
   it('rejects invalid date styles and falls back safely', () => {
     const normalized = normalizeImportedSettings(
       {

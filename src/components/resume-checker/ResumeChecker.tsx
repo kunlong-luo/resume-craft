@@ -3,6 +3,7 @@ import { SpellCheck, ClipboardCheck, X, Type, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { analyzeResume } from '../../lib/resume-checker-utils';
 import { formatChineseEnglishSpacing } from '../../lib/format-utils';
+import { autoFormatAndCleanResume } from '../../lib/resume-auto-fixer';
 import { ScoreDisplay } from './ScoreDisplay';
 import { DiagnosticList } from './DiagnosticList';
 import { useResumeStore } from '../../store/useResumeStore';
@@ -24,6 +25,7 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
   const isOpen = props.isOpen ?? store.isCheckerOpen;
   const onClose = props.onClose ?? (() => store.setIsCheckerOpen(false));
   const lang = props.lang ?? store.settings.lang;
+  const marketRegion = store.settings.marketRegion;
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocus({ isOpen, dialogRef, onClose });
 
@@ -34,8 +36,25 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
   }, [markdown]);
 
   const analysis = useMemo(() => {
-    return analyzeResume(markdown, onUpdateMarkdown, lang);
-  }, [markdown, onUpdateMarkdown, lang]);
+    return analyzeResume(markdown, onUpdateMarkdown, lang, marketRegion);
+  }, [markdown, onUpdateMarkdown, lang, marketRegion]);
+
+  const handleFixAll = () => {
+    const result = autoFormatAndCleanResume(markdown, {
+      marketRegion,
+      lang,
+      dateStyle: store.settings.dateStyle,
+      sanitizeMarketFields: true,
+    });
+    if (result.hasChanges) {
+      onUpdateMarkdown(result.cleanedMarkdown, true);
+    } else {
+      // Fallback to iterating fixable items if any
+      analysis.issues.forEach(i => {
+        if (i.fixable && i.onFix) i.onFix();
+      });
+    }
+  };
 
   const scoreBadge = useMemo(() => {
     if (analysis.score >= 90) return { label: lang === 'en' ? 'Excellent' : '极佳', color: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300', text: 'text-emerald-600 dark:text-emerald-400' };
@@ -198,7 +217,7 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
                   className="space-y-8"
                 >
                   <ScoreDisplay analysis={analysis} scoreBadge={scoreBadge} lang={lang} />
-                  <DiagnosticList issues={analysis.issues} lang={lang} />
+                  <DiagnosticList issues={analysis.issues} lang={lang} onFixAll={handleFixAll} />
                 </motion.div>
               ) : (
                 <motion.div 

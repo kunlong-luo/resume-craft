@@ -242,10 +242,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'content',
-      title: isEn ? `Quantified Results: Excellent (${metricCount} data metrics)` : `量化成果：丰富 (${metricCount} 处数据指标)`,
+      title: isEn ? `Quantified Results: Strong coverage (${metricCount} data metrics)` : `量化成果：覆盖较充分 (${metricCount} 处数据指标)`,
       desc: isEn 
-        ? 'Your resume integrates rich metrics and quantified achievements, making it highly persuasive and professional!'
-        : '您的简历在职责和项目中融入了丰富的数据指标和成果描述，非常专业且具说服力！'
+        ? 'The local check found several measurable outcomes across the resume, giving readers concrete evidence of scope or impact.'
+        : '本地规则识别到多处可量化结果，为经历的规模或影响提供了较具体的证据。'
     });
   } else if (metricCount >= 1) {
     score -= 5;
@@ -262,10 +262,10 @@ export function analyzeResume(
     issues.push({
       type: 'error',
       category: 'content',
-      title: isEn ? 'Quantified Results: Extremely scarce (no metric data)' : '量化成果：极度匮乏 (无数据支持)',
+      title: isEn ? 'Quantified Results: Few measurable outcomes detected' : '量化成果：暂未识别到明显可量化结果',
       desc: isEn 
-        ? 'No metrics or business achievements detected. Professional resumes should follow the STAR methodology, including quantified metrics to prove your impact.'
-        : '未检测到具体的业务指标或量化结果。优秀的简历遵循 STAR 法则，必须包含具体的数值（如百分比、资金、效率提升等）来证明成效。'
+        ? 'No obvious metrics or measurable outcomes were detected. Where the result is genuinely measurable, consider adding scope, time, volume, quality, or business-impact evidence.'
+        : '暂未识别到明显的量化结果。如果成果本身适合量化，可补充规模、周期、效率、质量或业务影响等证据；并非每条经历都需要数字。'
     });
   }
 

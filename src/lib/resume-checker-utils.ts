@@ -28,7 +28,8 @@ export function analyzeResume(
   markdown: string,
   onUpdateMarkdown: (newMarkdown: string, immediate?: boolean) => void,
   lang?: string,
-  marketRegion?: MarketRegion
+  marketRegion?: MarketRegion,
+  measuredPageCount?: number
 ): AnalysisResult {
   const issues: IssueItem[] = [];
   let score = 100;
@@ -307,62 +308,78 @@ export function analyzeResume(
     });
   }
 
-  // 8. Page split control
-  const pureContent = markdown
-    .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(/[#*`_~>[\]()-]/g, '')
-    .replace(/\s+/g, '')
-    .trim();
-  const pureCharCount = pureContent.length;
+  // 8. Page count and pagination guidance
+  const [recommendedMinPages, recommendedMaxPages] = marketProfile.recommendedPageRange;
+  const hasMeasuredPageCount =
+    typeof measuredPageCount === 'number' &&
+    Number.isFinite(measuredPageCount) &&
+    measuredPageCount > 0;
   const hasPageBreak = /<!--\s*pagebreak\s*-->/gi.test(markdown);
-  
-  if (pureCharCount > 2400) {
-    if (hasPageBreak) {
-      issues.push({
-        type: 'success',
-        category: 'formatting',
-        title: isEn ? 'Layout Control: Manual pagebreak used' : '排版控制：已使用分页符',
-        desc: isEn 
-          ? 'Your resume is long, but you have wisely used the <!-- pagebreak --> tag to control pagination, avoiding automatic cutoffs.'
-          : '简历字数较多，但您已经明智地使用了 <!-- pagebreak --> 标签来控制打印分页，避免了打印时产生跨页截断。'
-      });
-    } else {
+
+  if (hasMeasuredPageCount) {
+    if (measuredPageCount > recommendedMaxPages) {
       score -= 10;
       issues.push({
         type: 'warning',
         category: 'formatting',
-        title: isEn ? 'Layout Warning: Pagebreak recommended' : '排版警告：建议插入分页符',
-        desc: isEn 
-          ? 'Your resume has a high word count, which may cause unintended page clipping when printing to PDF. It is highly recommended to click the scissor icon in the toolbar to insert "<!-- pagebreak -->" after an appropriate section.'
-          : '当前简历总字数较多，如果直接打印为 PDF 可能会产生无章法的自动截断。建议在一页纸写不下的合适段落之后，点击编辑工具栏的剪刀按钮插入「<!-- pagebreak -->」进行优雅的手动分页。',
-        fixable: true,
-        onFix: () => {
-          const linesArr = markdown.split('\n');
-          let insertIdx = -1;
-          for (let i = Math.floor(linesArr.length * 0.45); i < linesArr.length; i++) {
-            if (linesArr[i].trim().startsWith('## ')) {
-              insertIdx = i;
-              break;
-            }
-          }
-          if (insertIdx !== -1) {
-            linesArr.splice(insertIdx, 0, '<!-- pagebreak -->');
-            onUpdateMarkdown(linesArr.join('\n'), true);
-          } else {
-            onUpdateMarkdown(markdown + '\n\n<!-- pagebreak -->\n', true);
-          }
-        }
+        title: isEn
+          ? `Page Count: ${measuredPageCount} measured pages`
+          : `页数建议：实测 ${measuredPageCount} 页`,
+        desc: isEn
+          ? `Preview currently measures ${measuredPageCount} pages. The ${marketProfile.labelEn} profile recommends about ${recommendedMinPages}–${recommendedMaxPages} pages; consider tightening content or layout where appropriate.`
+          : `当前预览实测为 ${measuredPageCount} 页；${marketProfile.labelZh}市场配置建议约 ${recommendedMinPages}–${recommendedMaxPages} 页，可按经历深度酌情精简内容或排版。`,
+      });
+    } else {
+      issues.push({
+        type: 'success',
+        category: 'formatting',
+        title: isEn
+          ? `Page Count: ${measuredPageCount} measured page${measuredPageCount === 1 ? '' : 's'}`
+          : `页数建议：实测 ${measuredPageCount} 页`,
+        desc: isEn
+          ? `Preview measures ${measuredPageCount} page${measuredPageCount === 1 ? '' : 's'}, within the ${marketProfile.labelEn} profile's recommended ${recommendedMinPages}–${recommendedMaxPages} page range.`
+          : `当前预览实测为 ${measuredPageCount} 页，处于${marketProfile.labelZh}市场配置建议的 ${recommendedMinPages}–${recommendedMaxPages} 页范围内。`,
+      });
+    }
+
+    if (measuredPageCount > 1 && hasPageBreak) {
+      issues.push({
+        type: 'success',
+        category: 'formatting',
+        title: isEn ? 'Pagination: Manual page break detected' : '分页控制：已使用手动分页',
+        desc: isEn
+          ? 'A manual page break is present. Verify its position in preview to keep sections grouped cleanly.'
+          : '检测到手动分页符；建议结合预览确认分页位置，避免章节被不自然拆分。',
       });
     }
   } else {
-    issues.push({
-      type: 'success',
-      category: 'formatting',
-      title: isEn ? 'Layout Control: Optimal length (One page version)' : '排版控制：字数适中 (一页精简版)',
-      desc: isEn 
-        ? 'The content length appears moderate. Verify the measured page count in preview, because actual pagination depends on paper size, typography, and spacing.'
-        : '当前内容长度看起来适中，但实际页数仍应以预览测量结果为准，因为纸张、字号和间距都会影响分页。'
-    });
+    const pureContent = markdown
+      .replace(/<!--[\s\S]*?-->/g, ' ')
+      .replace(/[#*`_~>[\]()-]/g, '')
+      .replace(/\s+/g, '')
+      .trim();
+    const pureCharCount = pureContent.length;
+
+    if (pureCharCount > 2400) {
+      score -= 5;
+      issues.push({
+        type: 'warning',
+        category: 'formatting',
+        title: isEn ? 'Page Count: Preview measurement pending' : '页数建议：等待预览实测',
+        desc: isEn
+          ? 'The content is relatively long, but character count cannot reliably predict pagination. Open or refresh preview and use the measured page count before deciding whether to shorten the resume.'
+          : '当前内容较长，但字符数无法可靠推断实际页数。请以预览实测页数为准，再决定是否需要精简。',
+      });
+    } else {
+      issues.push({
+        type: 'success',
+        category: 'formatting',
+        title: isEn ? 'Page Count: Awaiting preview measurement' : '页数建议：等待预览实测',
+        desc: isEn
+          ? 'No measured page count is available yet. Actual pagination depends on paper size, typography, spacing, and rendered content.'
+          : '当前还没有可用的预览实测页数；实际分页取决于纸张、字号、间距和渲染内容。',
+      });
+    }
   }
 
   // 9. Subjective Pronoun Audit

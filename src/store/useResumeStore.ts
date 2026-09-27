@@ -28,7 +28,7 @@ interface ResumeState {
   pdfExportProgress: string | null;
   atsKeywords: string[];
   jdText: string;
-  measuredPageCount: number;
+  measuredPageCount: number | null;
 
   // Multi-Profile States
   profiles: ResumeProfile[];
@@ -50,7 +50,7 @@ interface ResumeState {
   setPdfExportProgress: (progress: string | null) => void;
   setAtsKeywords: (keywords: string[]) => void;
   setJdText: (text: string) => void;
-  setMeasuredPageCount: (count: number) => void;
+  setMeasuredPageCount: (count: number | null) => void;
   setIsProfileHubOpen: (open: boolean) => void;
 
   // Profile Management Actions
@@ -329,7 +329,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   pdfExportProgress: null,
   atsKeywords: [],
   jdText: '',
-  measuredPageCount: 1,
+  measuredPageCount: null,
 
   // Multi-Profile States
   profiles: initialProfiles,
@@ -430,7 +430,8 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       history: [target.markdown],
       historyIndex: 0,
       currentTemplateId: getInitialTemplateId(target.markdown),
-      lastSaved: new Date().toLocaleTimeString()
+      lastSaved: new Date().toLocaleTimeString(),
+      measuredPageCount: null
     });
   },
 
@@ -526,7 +527,8 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         activeProfileId: nextActive.id,
         markdown: nextActive.markdown,
         settings: nextActive.settings,
-        customFileName: nextActive.customFileName || ''
+        customFileName: nextActive.customFileName || '',
+        measuredPageCount: null
       });
     } else {
       set({ profiles: updated });
@@ -561,6 +563,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       lastSaved: new Date().toLocaleTimeString(),
       isSaving: false,
       saveStatus: 'saved',
+      measuredPageCount: null,
     });
   },
 
@@ -586,10 +589,11 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         profiles: updatedProfiles,
         lastSaved: new Date().toLocaleTimeString(),
         isSaving: false,
-        saveStatus: 'saved'
+        saveStatus: 'saved',
+        measuredPageCount: null
       });
     } else {
-      set({ markdown: newVal, profiles: updatedProfiles, isSaving: true, saveStatus: 'editing' });
+      set({ markdown: newVal, profiles: updatedProfiles, isSaving: true, saveStatus: 'editing', measuredPageCount: null });
       
       typingTimer = setTimeout(() => {
         set({ saveStatus: 'saving' });
@@ -676,7 +680,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         : p
     );
     storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
-    set({ settings: newSettings, markdown: nextMarkdown, profiles: updatedProfiles });
+    set({ settings: newSettings, markdown: nextMarkdown, profiles: updatedProfiles, measuredPageCount: null });
   },
 
   updateSettings: (partialSettings) => {
@@ -700,7 +704,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         : p
     );
     storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
-    set({ settings: newSettings, markdown: nextMarkdown, profiles: updatedProfiles });
+    set({ settings: newSettings, markdown: nextMarkdown, profiles: updatedProfiles, measuredPageCount: null });
   }
 }));
 

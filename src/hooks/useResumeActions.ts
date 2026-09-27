@@ -4,6 +4,7 @@ import { useResumeStore } from '../store/useResumeStore';
 import { exportDirectPDF } from '../lib/pdf-export';
 import { trackAnalyticsEvent } from '../lib/analytics';
 import { getMarketDefaultFileName } from '../lib/export-utils';
+import { getPrintPageStyle } from '../lib/print-style';
 
 interface UseResumeActionsProps {
   contentRef: React.RefObject<HTMLDivElement | null>;
@@ -32,6 +33,7 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
   const handlePrint = useReactToPrint({
     contentRef: contentRef,
     documentTitle: getExportTitle(),
+    pageStyle: getPrintPageStyle(settings.paperSize),
     onAfterPrint: () => {
       setIsExportingPDF(false);
       setPdfExportProgress(null);

@@ -3,6 +3,7 @@ import { useReactToPrint } from 'react-to-print';
 import { useResumeStore } from '../store/useResumeStore';
 import { exportDirectPDF } from '../lib/pdf-export';
 import { trackAnalyticsEvent } from '../lib/analytics';
+import { getMarketDefaultFileName } from '../lib/export-utils';
 
 interface UseResumeActionsProps {
   contentRef: React.RefObject<HTMLDivElement | null>;
@@ -21,22 +22,16 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
   } = useResumeStore();
   
   const getExportTitle = () => {
-    if (customFileName.trim()) {
-      return customFileName.trim().replace(/[\\\/:*?"<>|]/g, '-');
-    }
-    const firstLine = markdown.trim().split('\n')[0];
-    if (firstLine && firstLine.startsWith('# ')) {
-      const parsedName = firstLine.replace('# ', '').trim();
-      if (parsedName) {
-        return parsedName.replace(/[\\\/:*?"<>|]/g, '-');
-      }
-    }
-    return settings.lang === 'en' ? 'resume' : '简历';
+    return getMarketDefaultFileName({
+      markdown,
+      settings,
+      customFileName,
+    });
   };
 
   const handlePrint = useReactToPrint({
     contentRef: contentRef,
-    documentTitle: `${getExportTitle()}_${settings.lang === 'en' ? 'resume' : '简历'}`,
+    documentTitle: getExportTitle(),
     onAfterPrint: () => {
       setIsExportingPDF(false);
       setPdfExportProgress(null);
@@ -64,7 +59,8 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
       }
 
       await exportDirectPDF(targetElement, {
-        filename: `${getExportTitle()}_${settings.lang === 'en' ? 'resume' : '简历'}.pdf`,
+        filename: `${getExportTitle()}.pdf`,
+        paperSize: settings.paperSize,
         onProgress: (status) => {
           setPdfExportProgress(status);
         }

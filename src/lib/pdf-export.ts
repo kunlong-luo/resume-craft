@@ -1,8 +1,11 @@
-import { A4_HEIGHT_MM, A4_HEIGHT_PX, A4_WIDTH_MM, A4_WIDTH_PX } from './page-layout';
+import { CSS_PX_PER_MM } from './page-layout';
+import { PaperSize } from '../types';
+import { getPaperSpec } from './paper';
 
 export interface DirectPDFExportOptions {
   filename?: string;
   onProgress?: (status: string) => void;
+  paperSize?: PaperSize;
 }
 
 /**
@@ -139,7 +142,7 @@ export async function exportDirectPDF(
   elementOrId: HTMLElement | string,
   options: DirectPDFExportOptions = {}
 ): Promise<boolean> {
-  const { filename = 'resume.pdf', onProgress } = options;
+  const { filename = 'resume.pdf', onProgress, paperSize: explicitPaperSize } = options;
 
   onProgress?.('准备简历渲染数据...');
   let targetElement = typeof elementOrId === 'string'
@@ -154,6 +157,17 @@ export async function exportDirectPDF(
   if (!targetElement) {
     throw new Error('未找到简历内容节点');
   }
+
+  const paperSpec = getPaperSpec(
+    explicitPaperSize ||
+    (targetElement.getAttribute?.('data-paper-size') as PaperSize) ||
+    'a4'
+  );
+  const pageWidth = paperSpec.widthMm;
+  const pageHeight = paperSpec.heightMm;
+  const jsPdfFormat = paperSpec.id === 'letter' ? 'letter' : 'a4';
+  const windowWidthPx = Math.ceil(pageWidth * CSS_PX_PER_MM);
+  const windowHeightPx = Math.ceil(pageHeight * CSS_PX_PER_MM);
 
   // Ensure fonts are ready before canvas capture
   if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
@@ -173,8 +187,8 @@ export async function exportDirectPDF(
   exportWrapper.style.position = 'fixed';
   exportWrapper.style.left = '-9999px';
   exportWrapper.style.top = '0px';
-  exportWrapper.style.width = `${A4_WIDTH_MM}mm`;
-  exportWrapper.style.minHeight = `${A4_HEIGHT_MM}mm`;
+  exportWrapper.style.width = `${pageWidth}mm`;
+  exportWrapper.style.minHeight = `${pageHeight}mm`;
   exportWrapper.style.zIndex = '-9999';
   exportWrapper.style.opacity = '1';
   exportWrapper.style.visibility = 'visible';
@@ -186,6 +200,7 @@ export async function exportDirectPDF(
 
   const clone = targetElement.cloneNode(true) as HTMLElement;
   clone.id = 'resume-temp-pdf-export-clone';
+  clone.setAttribute('data-paper-size', paperSpec.id);
 
   // Clean out UI elements that shouldn't appear in export (guides, overflow alerts, toolbars)
   const hiddenSelectors = [
@@ -198,14 +213,14 @@ export async function exportDirectPDF(
     clone.querySelectorAll(sel).forEach(el => el.remove());
   });
 
-  // Enforce pristine A4 printable styling on the clone with box-sizing & padding
+  // Enforce pristine printable styling on the clone with box-sizing & padding
   clone.style.position = 'relative';
   clone.style.left = 'auto';
   clone.style.top = 'auto';
-  clone.style.width = `${A4_WIDTH_MM}mm`;
-  clone.style.minWidth = `${A4_WIDTH_MM}mm`;
-  clone.style.maxWidth = `${A4_WIDTH_MM}mm`;
-  clone.style.minHeight = `${A4_HEIGHT_MM}mm`;
+  clone.style.width = `${pageWidth}mm`;
+  clone.style.minWidth = `${pageWidth}mm`;
+  clone.style.maxWidth = `${pageWidth}mm`;
+  clone.style.minHeight = `${pageHeight}mm`;
   clone.style.transform = 'none';
   clone.style.margin = '0 auto';
   clone.style.boxSizing = 'border-box';
@@ -250,7 +265,7 @@ export async function exportDirectPDF(
 
     onProgress?.('正在生成超清渲染光栅...');
     
-    // Let the offscreen A4 clone settle before capture.
+    // Let the offscreen clone settle before capture.
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
     const canvas = await html2canvas(clone, {
@@ -261,22 +276,19 @@ export async function exportDirectPDF(
       logging: false,
       scrollX: 0,
       scrollY: 0,
-      windowWidth: Math.ceil(A4_WIDTH_PX),
-      windowHeight: Math.max(Math.ceil(A4_HEIGHT_PX), clone.scrollHeight || Math.ceil(A4_HEIGHT_PX)),
+      windowWidth: windowWidthPx,
+      windowHeight: Math.max(windowHeightPx, clone.scrollHeight || windowHeightPx),
     });
 
-    onProgress?.('正在进行 A4 智能防截断分页排版...');
+    onProgress?.(`正在进行 ${paperSpec.id === 'letter' ? 'US Letter' : 'A4'} 智能防截断分页排版...`);
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a4',
+      format: jsPdfFormat,
       compress: true
     });
 
-    const pageWidth = A4_WIDTH_MM;
-    const pageHeight = A4_HEIGHT_MM;
-
-    // Calculate canvas page slice height in canvas pixels (A4 aspect ratio: 297 / 210)
+    // Calculate canvas page slice height in canvas pixels based on paper aspect ratio
     const idealPageCanvasHeight = Math.floor(canvas.width * (pageHeight / pageWidth));
     const mainCtx = canvas.getContext('2d', { willReadFrequently: true });
 
@@ -314,7 +326,7 @@ export async function exportDirectPDF(
 
       const pageCanvas = document.createElement('canvas');
       pageCanvas.width = canvas.width;
-      pageCanvas.height = idealPageCanvasHeight; // maintain standard A4 canvas ratio
+      pageCanvas.height = idealPageCanvasHeight; // maintain standard canvas ratio
       const ctx = pageCanvas.getContext('2d');
 
       if (ctx) {
@@ -329,7 +341,7 @@ export async function exportDirectPDF(
         );
 
         if (pageCount > 1) {
-          pdf.addPage('a4', 'p');
+          pdf.addPage(jsPdfFormat, 'p');
         }
 
         const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.96);

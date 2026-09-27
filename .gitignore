@@ -4,6 +4,11 @@ dist/
 coverage/
 .DS_Store
 *.log
+.idea/
+.omo/
+bun.lock
+bun.lockb
+package-lock.json
 .env*
 !.env.example
 playwright-report/

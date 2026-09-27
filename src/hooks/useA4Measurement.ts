@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useRef, RefObject } from 'react';
 import { storage, STORAGE_KEYS } from '../lib/storage';
+import { PaperSize } from '../types';
+import { getPaperSpec } from '../lib/paper';
 
 interface A4Metrics {
   isOver: boolean;
@@ -12,8 +14,10 @@ export function useA4Measurement(
   elementRef: RefObject<HTMLDivElement | null>,
   targetPageLimit: 1 | 2 | 3,
   onPageCountChange?: (count: number) => void,
-  dependencies: any[] = []
+  dependencies: any[] = [],
+  paperSize: PaperSize = 'a4'
 ) {
+  const paperSpec = getPaperSpec(paperSize);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [wrapperWidth, setWrapperWidth] = useState<number>(850);
   const [unscaledHeight, setUnscaledHeight] = useState<number>(0);
@@ -59,18 +63,18 @@ export function useA4Measurement(
     };
   }, []);
 
-  // Compute calculated scale factor based on viewport width
+  // Compute calculated scale factor based on viewport width and paper standard width
   const calculatedZoom = useMemo(() => {
     if (zoomMode === 'fit') {
       const horizontalPadding = wrapperWidth < 640 ? 20 : 64;
       const targetWidth = Math.max(100, wrapperWidth - horizontalPadding);
-      const scale = targetWidth / 794; // 210mm standard is ~794px at 96dpi
+      const scale = targetWidth / paperSpec.baseWidthPx;
       return Math.max(0.2, Math.min(1.2, scale));
     }
     return zoomMode;
-  }, [zoomMode, wrapperWidth]);
+  }, [zoomMode, wrapperWidth, paperSpec.baseWidthPx]);
 
-  // Track and measure A4 sheet height
+  // Track and measure sheet height according to paper aspect ratio
   useEffect(() => {
     const element = elementRef?.current;
     if (!element) return;
@@ -84,8 +88,8 @@ export function useA4Measurement(
         const height = element.clientHeight;
         if (!width || !height) return;
 
-        // Standard A4 aspect ratio height: 297mm / 210mm = 1.4142857
-        const pHeight = (width / 210) * 297;
+        // Paper aspect ratio height (heightMm / widthMm)
+        const pHeight = width * paperSpec.aspectRatio;
 
         // Measure true content height by inspecting actual resume content nodes
         let maxContentBottom = 0;
@@ -151,7 +155,7 @@ export function useA4Measurement(
       observer.disconnect();
       clearTimeout(timer);
     };
-  }, [elementRef, targetPageLimit, onPageCountChange, ...dependencies]);
+  }, [elementRef, targetPageLimit, onPageCountChange, paperSpec.aspectRatio, ...dependencies]);
 
   const handleZoomChange = (newMode: 'fit' | number) => {
     setZoomMode(newMode);

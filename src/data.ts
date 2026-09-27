@@ -80,11 +80,17 @@ AI后端开发工程师 ｜ 智能体网关架构 ｜ 分布式系统研发
 - **荣誉成就**：全国大学生数学建模大赛一等奖、ACM-ICPC 区域赛铜奖、省级优秀毕业生
 `;
 
+import { MarketRegion, PaperSize, DateStyle } from './types';
+
 export interface ResumeTemplate {
   id: string;
   name: string;
   category: string;
   content: string;
+  targetMarket?: MarketRegion;
+  defaultPaperSize?: PaperSize;
+  dateStyle?: DateStyle;
+  suggestedLang?: 'zh' | 'en';
 }
 
 export const TEMPLATES: ResumeTemplate[] = [
@@ -92,12 +98,20 @@ export const TEMPLATES: ResumeTemplate[] = [
     id: 'ai_backend',
     name: 'AI后端工程师 (默认)',
     category: '研发开发',
+    targetMarket: 'cn',
+    defaultPaperSize: 'a4',
+    dateStyle: 'cn-dot',
+    suggestedLang: 'zh',
     content: DEFAULT_MARKDOWN
   },
   {
     id: 'frontend',
     name: 'AI前端工程师',
     category: '研发开发',
+    targetMarket: 'cn',
+    defaultPaperSize: 'a4',
+    dateStyle: 'cn-dot',
+    suggestedLang: 'zh',
     content: `# 林智远
 AI前端工程师 ｜ React大模型应用架构 ｜ 全栈实战
 13812345678 · zhiyuan_lin@163.com · https://github.com/linzy-ai-frontend
@@ -147,6 +161,10 @@ AI前端工程师 ｜ React大模型应用架构 ｜ 全栈实战
     id: 'pm_lead',
     name: '技术产品经理 / 研发总监',
     category: '产品管理',
+    targetMarket: 'cn',
+    defaultPaperSize: 'a4',
+    dateStyle: 'cn-dot',
+    suggestedLang: 'zh',
     content: `# 赵泽宇
 研发总监 ｜ 资深技术产品经理 ｜ 高并发系统架构
 13987654321 · zeyu_zhao@gmail.com · 微信：tech_lead_zhao
@@ -195,6 +213,10 @@ AI前端工程师 ｜ React大模型应用架构 ｜ 全栈实战
     id: 'operations',
     name: '产品运营 ｜ 用户增长专家',
     category: '产品运营',
+    targetMarket: 'cn',
+    defaultPaperSize: 'a4',
+    dateStyle: 'cn-dot',
+    suggestedLang: 'zh',
     content: `# 李安琪
 资深产品运营 ｜ 用户增长专家 ｜ 用户裂变与商业化实战
 13812345678 · anqi_li@163.com · 微信：anqi_growth
@@ -248,6 +270,10 @@ AI前端工程师 ｜ React大模型应用架构 ｜ 全栈实战
     id: 'campus',
     name: '应届生求职 ｜ 校园研发方向',
     category: '应届生求职',
+    targetMarket: 'cn',
+    defaultPaperSize: 'a4',
+    dateStyle: 'cn-dot',
+    suggestedLang: 'zh',
     content: `# 赵小萌
 2026届应届毕业生 ｜ 计算机科学与技术专业 ｜ 前端开发方向
 13812345678 · xiaomeng_zhao@163.com · https://github.com/xiaomeng-zhao
@@ -294,58 +320,168 @@ AI前端工程师 ｜ React大模型应用架构 ｜ 全栈实战
 `
   },
   {
-    id: 'english',
-    name: 'English CV (Global Standard)',
+    id: 'us_swe',
+    name: 'US Software Engineer (Resume)',
     category: 'Overseas / Global',
+    targetMarket: 'us',
+    defaultPaperSize: 'letter',
+    dateStyle: 'month-short',
+    suggestedLang: 'en',
     content: `# Alex Chen
-Senior Full-Stack & AI Systems Architect | Distributed Cloud Systems
-+1 (555) 234-5678 · alex.chen@fake-email.com · https://github.com/alex-chen-ai
-7 Years Exp ｜ B.S. in CS ｜ 29 ｜ San Francisco, CA · Remote ｜ Immediate
+San Francisco, CA · (555) 234-5678 · alex.chen@example.com · github.com/alex-chen-ai · linkedin.com/in/alexchen-dev
 
 ## Summary
-- 7+ years of engineering experience in high-concurrency distributed systems and AI Agent application architecture. Served as lead architect designing multi-model streaming gateways and resilient microservices handling tens of millions of daily API requests.
-- Deep expertise in LLM system engineering, Model Context Protocol (MCP), Spring AI, and LangChain, spearheading hybrid RAG vector database (pgvector) retrieval pipelines and autonomous multi-agent routing frameworks.
-- Strong technical leadership and full-stack ownership, proficient in Cloud-Native Kubernetes deployments, high-throughput Kafka streaming, Netty network programming, and modern React/TypeScript frontends.
+Results-driven Senior Full-Stack & AI Systems Architect with 7+ years of experience engineering high-throughput distributed systems and generative AI applications. Spearheaded low-latency microservice architectures handling 15M+ daily requests with 99.99% availability. Deep expertise in Spring Cloud, Go, React/TypeScript, Kafka, and pgvector RAG retrieval pipelines.
 
-## Skills
-- **Core Languages:** Java, Go, TypeScript, Python, SQL, Rust
-- **AI & LLM Stack:** Model Context Protocol (MCP), Spring AI, LangChain, RAG, pgvector, DeepSeek, OpenAI
-- **Distributed Systems:** Spring Cloud, Netty, Redis, Apache Kafka, PostgreSQL, Docker, Kubernetes, gRPC
-- **Engineering Tools:** Git, Linux, Prometheus, Grafana, CI/CD Pipelines, Vite, Next.js
+## Technical Skills
+- **Languages:** Java, Go, TypeScript, Python, SQL, Rust
+- **AI & LLM:** Model Context Protocol (MCP), Spring AI, LangChain, RAG, pgvector, DeepSeek, OpenAI
+- **Distributed Systems:** Spring Cloud, Netty, Redis, Apache Kafka, PostgreSQL, Docker, Kubernetes, AWS, gRPC
+- **Frontend & Tooling:** React, Next.js, Tailwind CSS, Vite, Prometheus, Grafana, GitHub Actions
 
-## Work Experience
+## Professional Experience
 
-### Apex Nexus Technologies Inc.　Lead AI Systems Architect　*2024.03 — Present*
-- Spearheaded the end-to-end architecture and rollout of a next-generation AI streaming gateway, implementing dynamic load routing, request queuing, and failover across multiple LLM clusters to support 15M+ daily requests.
-- Developed an enterprise-grade Model Context Protocol (MCP) tool registry and intelligent scheduling center, enabling dynamic API discovery with 94% execution accuracy and a 40% reduction in tool calling latency.
-- Optimized the pgvector-based RAG knowledge base using HNSW multi-route recall and hybrid reranking, boosting semantic recall precision by 25% with average p95 retrieval latency under 80ms.
-- Architected a reactive SSE streaming distribution pipeline with Kafka asynchronous decoupling and Redis cache warming, achieving 5,000+ peak TPS with 99.99% service reliability.
+### Apex Technologies Inc. | Lead AI Systems Architect | Mar 2024 – Present
+- Spearheaded the end-to-end architecture and deployment of a multi-model AI streaming gateway, supporting 15M+ daily API calls with 99.99% uptime.
+- Developed an enterprise Model Context Protocol (MCP) tool registry, reducing dynamic tool invocation latency by 40% with 94% execution accuracy.
+- Optimized pgvector semantic search via HNSW multi-route indexing and hybrid reranking, improving recall precision by 25% with sub-80ms p95 latency.
+- Engineered reactive Server-Sent Events (SSE) streaming with Kafka asynchronous decoupling and Redis cache warming, achieving 5,000+ peak TPS.
 
-### CloudWing Dynamics Inc.　Senior Backend Engineer　*2021.06 — 2024.02*
-- Led technical execution for the company's real-time IoT data aggregation platform connecting 3,000+ distributed sensors with 99.9% uptime.
-- Engineered a high-performance Go/Netty binary protocol gateway, resolving heartbeat keepalive bottlenecks and supporting 100,000+ concurrent long-lived TCP connections per instance.
-- Championed automated CI/CD workflows and Kubernetes service mesh integration, improving deployment cadence by 60% with zero-downtime canary rollouts.
+### CloudWing Dynamics | Senior Backend Engineer | Jun 2021 – Feb 2024
+- Architected real-time IoT ingestion pipeline for 3,000+ distributed sensors with 99.9% uptime.
+- Engineered high-performance Go/Netty binary protocol gateway, sustaining 100,000+ concurrent persistent TCP connections per instance.
+- Automated CI/CD deployment pipelines on Kubernetes, shortening release cycles by 60% with zero-downtime canary rollouts.
 
-### Horizon ChainTech Corp.　Software Engineer　*2018.08 — 2021.05*
-- Refactored core microservice business modules and optimized complex SQL queries, suppressing high-frequency endpoint latency below 50ms.
-- Built a partitioned Kafka event processing engine with multi-threaded consumers, completely eliminating message queue buildup during peak traffic surges.
+### Horizon Tech Corp. | Software Engineer | Aug 2018 – May 2021
+- Refactored high-traffic payment and billing microservices, reducing p99 API latency from 120ms to 45ms.
+- Scaled Kafka event processing pipeline with multi-partition consumer groups, eliminating queue backlog during peak traffic spikes.
 
-## Featured Projects
+## Key Projects
 
-### Ares Multi-Agent Routing Gateway System　*2025.02 — Present*
-- **Role & Scope:** Principal Architect & Full-Stack Developer
-- **Tech Stack:** Spring Cloud, Spring AI, pgvector, Apache Kafka, Redis, React
-- **Impact & Deliverables:**
-  - Built an open-source, low-latency agent workflow router with dynamic memory isolation and secure multi-tenant streaming distribution.
-  - Implemented SSE relay proxy in Netty, mitigating long-lived connection memory overhead and slashing first-token latency to under 350ms.
-  - Integrated pgvector prompt template caching and conversational vector store for multi-turn RAG retrieval.
+### Ares Agentic Router (Open Source) | Creator & Lead Developer | Feb 2025 – Present
+- Created high-performance open-source multi-agent orchestration framework with dynamic prompt caching and memory isolation.
+- Built lightweight Netty streaming proxy reducing first-token latency to under 350ms for LLM conversational workflows.
 
 ## Education
 
-### Zhejiang University ｜ B.S. in Computer Science & Technology ｜ *2014.09 — 2018.06*
-- **GPA / Performance**: GPA 3.82 / 4.0 (Top 5% in Major), First-Class Academic Scholarship
-- **Core Courses**: Advanced Data Structures, Distributed Systems, Computer Networks, Operating Systems, Database Internals
-- **Honors & Awards**: First Prize in National Mathematical Contest in Modeling, ACM-ICPC Regional Bronze Medal, Provincial Outstanding Graduate
+### University of California, Berkeley | B.S. in Computer Science | Sep 2014 – Jun 2018
+- **Honors & GPA**: GPA 3.85 / 4.0, Dean's Honor List, Magna Cum Laude
+- **Relevant Coursework**: Distributed Systems, Operating Systems, Database Systems, Computer Networks, Algorithms
+`
+  },
+  {
+    id: 'uk_cv',
+    name: 'UK Tech Lead & Full-Stack (CV)',
+    category: 'Overseas / Global',
+    targetMarket: 'uk',
+    defaultPaperSize: 'a4',
+    dateStyle: 'month-long',
+    suggestedLang: 'en',
+    content: `# Oliver Davies
+London, UK · +44 20 7946 0912 · oliver.davies@example.co.uk · linkedin.com/in/oliverdavies-uk
+
+## Professional Profile
+Accomplished Senior Full-Stack Engineer and Technical Lead with 8 years of commercial experience delivering enterprise web applications and scalable cloud backends. Proven track record in leading agile cross-functional engineering teams, architecting microservice platforms on AWS/Kubernetes, and championing modern React/TypeScript best practices.
+
+## Core Competencies
+- **Frontend:** React, Next.js, TypeScript, Tailwind CSS, Redux Toolkit, Webpack/Vite
+- **Backend & Cloud:** Node.js, Python, Java, PostgreSQL, Redis, Docker, Kubernetes, AWS (Lambda, ECS, S3)
+- **Architecture & Practices:** Microservices, Event-Driven Architecture, CI/CD, TDD/BDD, Agile/Scrum Leadership
+
+## Career History
+
+### Meridian Fintech Solutions Ltd | Technical Lead | March 2023 – Present
+- Lead a team of 9 software engineers delivering high-security banking APIs and responsive wealth management portals.
+- Spearheaded modular React/Next.js frontend refactor, cutting initial bundle size by 45% and boosting Core Web Vitals score to 98.
+- Introduced automated continuous integration and end-to-end testing suite with Playwright, driving defect escape rate down by 65%.
+- Partnered with product and compliance teams to ensure full adherence to UK Open Banking and FCA security standards.
+
+### Quantum Leap Digital Ltd | Senior Full-Stack Developer | June 2020 – February 2023
+- Engineered real-time trade monitoring platform processing 250,000+ daily transactions with 99.98% availability.
+- Designed RESTful and GraphQL APIs in Node.js and PostgreSQL, reducing client payload sizes by 40%.
+- Mentored 4 junior and mid-level developers, establishing code review standards and design system component guidelines.
+
+### Apex Media Group | Software Developer | September 2017 – May 2020
+- Developed customer-facing publishing applications using React, TypeScript, and AWS serverless stack.
+- Optimized relational database queries and indexing strategies, slashing peak reporting generation time from 8 minutes to 25 seconds.
+
+## Education & Qualifications
+
+### University of Edinburgh | B.Sc. (Hons) in Software Engineering | September 2013 – June 2017
+- **Classification**: First Class Honours (1st Class Hons)
+- **Key Modules**: Software Architecture, Distributed Computing, Database Systems, Computer Security
+`
+  },
+  {
+    id: 'ca_tech',
+    name: 'Canadian Cloud & Data Engineer (Resume)',
+    category: 'Overseas / Global',
+    targetMarket: 'ca',
+    defaultPaperSize: 'letter',
+    dateStyle: 'month-short',
+    suggestedLang: 'en',
+    content: `# Marcus Roy
+Toronto, ON · (416) 555-0198 · marcus.roy@example.ca · github.com/marcus-cloud · linkedin.com/in/marcusroy-ca
+
+## Summary
+Senior Cloud Infrastructure & Data Platform Engineer with 6+ years of experience building resilient data pipelines and multi-cloud Kubernetes platforms. Proven success reducing cloud spend by 35% while scaling real-time analytics to 50TB+ daily ingestion volume across AWS and GCP.
+
+## Core Technical Skills
+- **Cloud & DevOps:** AWS, GCP, Terraform, Kubernetes, Helm, Docker, CI/CD (GitHub Actions, ArgoCD)
+- **Data & Streaming:** Apache Spark, Kafka, Snowflake, dbt, PostgreSQL, Redis, BigQuery
+- **Programming:** Python, Go, SQL, Bash, TypeScript
+
+## Professional Experience
+
+### Maple Leaf Data Systems | Staff Cloud Platform Engineer | May 2023 – Present
+- Lead the cloud platform team managing 40+ Kubernetes clusters hosting real-time analytics for 2M+ end users.
+- Automated multi-region disaster recovery failover via Terraform and AWS Route 53, achieving RTO < 5 minutes.
+- Spearheaded company-wide FinOps initiative, optimizing compute provisioning and reducing annual cloud expenditure by $320,000.
+
+### NorthStar Analytics Corp. | Senior Data Infrastructure Engineer | Sep 2020 – Apr 2023
+- Engineered real-time event streaming pipeline processing 100,000 events/second using Kafka and Apache Flink.
+- Built automated data quality validation framework with Great Expectations, eliminating silent data corruption incidents.
+
+## Education
+
+### University of Waterloo | B.A.Sc. in Computer Engineering | Sep 2016 – Apr 2020
+- **Honors**: Graduated with Distinction, Co-op Honours Degree
+`
+  },
+  {
+    id: 'english',
+    name: 'Global Full-Stack & Remote (Resume)',
+    category: 'Overseas / Global',
+    targetMarket: 'international',
+    defaultPaperSize: 'a4',
+    dateStyle: 'month-short',
+    suggestedLang: 'en',
+    content: `# Alex Chen
+San Francisco, CA · Remote Worldwide · (555) 234-5678 · alex.chen@fake-email.com · github.com/alex-chen-ai
+
+## Summary
+Senior Full-Stack & Distributed Systems Architect with 7+ years of experience leading international remote engineering teams. Track record of delivering scalable AI infrastructure, resilient cloud microservices, and modern web applications.
+
+## Technical Skills
+- **Languages:** Java, Go, TypeScript, Python, SQL, Rust
+- **Cloud & AI:** Spring AI, MCP, LangChain, pgvector, Docker, Kubernetes, AWS, Apache Kafka
+- **Frontend & Web:** React, Next.js, Tailwind CSS, Vite, Zustand
+
+## Experience
+
+### Apex Nexus Technologies | Principal Architect | Mar 2024 – Present
+- Spearheaded the global streaming gateway architecture supporting 15M+ daily requests with 99.99% uptime across 4 continents.
+- Built enterprise Model Context Protocol (MCP) registry, reducing dynamic tool invocation latency by 40%.
+
+### CloudWing Dynamics | Senior Backend Engineer | Jun 2021 – Feb 2024
+- Engineered high-performance Go/Netty IoT gateway supporting 100,000+ concurrent persistent connections.
+- Championed automated CI/CD pipelines improving delivery frequency by 60%.
+
+## Education
+
+### University of California, Berkeley | B.S. in Computer Science | Sep 2014 – Jun 2018
+- **Honors**: GPA 3.82 / 4.0, First-Class Academic Honors
 `
   }
 ];
+

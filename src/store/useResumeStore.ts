@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { STARTER_MARKDOWN, STARTER_MARKDOWN_EN, TEMPLATES } from '../data';
-import { ResumeSettings, ResumeProfile } from '../types';
+import { ResumeSettings, ResumeProfile, MarketRegion } from '../types';
 import { storage, STORAGE_KEYS } from '../lib/storage';
 import { translateMarkdownContent } from '../lib/section-translator';
 import { migrateStoredMarkdown } from '../lib/markdown-migrations';
+import { isMarketRegion, resolveDefaultPaperSize } from '../lib/market-profile';
+import { isPaperSize } from '../lib/paper';
 
 interface ResumeState {
   // States
@@ -135,6 +137,16 @@ const sanitizeSettings = (raw: Partial<ResumeSettings> | null, defaultSettings: 
     merged.fontSize = 'standard';
   }
 
+  // Sanitize marketRegion
+  if (!merged.marketRegion || !isMarketRegion(merged.marketRegion)) {
+    merged.marketRegion = merged.lang === 'zh' ? 'cn' : 'international';
+  }
+
+  // Sanitize paperSize
+  if (!merged.paperSize || !isPaperSize(merged.paperSize)) {
+    merged.paperSize = resolveDefaultPaperSize(merged.marketRegion);
+  }
+
   return merged;
 };
 
@@ -147,6 +159,9 @@ const getBrowserLanguage = (): 'zh' | 'en' => {
 };
 
 const getInitialSettings = (): ResumeSettings => {
+  const initialLang = getBrowserLanguage();
+  const initialMarket: MarketRegion = initialLang === 'zh' ? 'cn' : 'international';
+
   const defaultSettings: ResumeSettings = {
     themeColor: 'indigo',
     customColor: '#4F46E5',
@@ -161,7 +176,9 @@ const getInitialSettings = (): ResumeSettings => {
     letterSpacing: 0.0,
     showPageBreakLine: true,
     templateLayout: 'single',
-    lang: getBrowserLanguage(),
+    lang: initialLang,
+    marketRegion: initialMarket,
+    paperSize: resolveDefaultPaperSize(initialMarket),
     themeMode: (storage.getString(STORAGE_KEYS.THEME_MODE, 'light') || 'light') as 'light' | 'dark' | 'system',
   };
   

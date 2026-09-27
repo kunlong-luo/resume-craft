@@ -3,7 +3,127 @@
  * into clean, structured Markdown resume format.
  */
 
+import { MarketRegion } from '../types';
 import { findPhoneCandidate } from './phone-utils';
+
+export interface MarketDetectionResult {
+  detectedMarket: MarketRegion;
+  confidence: 'high' | 'medium' | 'low';
+  reasons: string[];
+}
+
+/**
+ * Heuristics to automatically detect the likely target job market of a resume text.
+ */
+export function detectResumeMarket(rawText: string): MarketDetectionResult {
+  if (!rawText || !rawText.trim()) {
+    return { detectedMarket: 'cn', confidence: 'low', reasons: ['Empty text'] };
+  }
+
+  const reasons: string[] = [];
+  let scoreCn = 0;
+  let scoreUs = 0;
+  let scoreUk = 0;
+  let scoreCa = 0;
+  let scoreIe = 0;
+
+  // 1. Phone numbers
+  if (/\+86[\s\-]|\b1[3-9]\d{9}\b/.test(rawText)) {
+    scoreCn += 4;
+    reasons.push('Contains China phone number (+86)');
+  }
+  if (/\+1[\s\-]|(?:\b\(\d{3}\)\s*\d{3}[-\s]\d{4}\b)/.test(rawText)) {
+    scoreUs += 3;
+    scoreCa += 2;
+    reasons.push('Contains North American phone format (+1 / (xxx) xxx-xxxx)');
+  }
+  if (/\+44[\s\-]|\b07\d{9}\b/.test(rawText)) {
+    scoreUk += 4;
+    reasons.push('Contains UK phone format (+44)');
+  }
+  if (/\+353[\s\-]/.test(rawText)) {
+    scoreIe += 4;
+    reasons.push('Contains Ireland phone format (+353)');
+  }
+
+  // 2. Language & Character density
+  const cjkMatches = rawText.match(/[\u4e00-\u9fa5]/g) || [];
+  if (cjkMatches.length > 30) {
+    scoreCn += 5;
+    reasons.push('Contains significant Chinese text');
+  }
+
+  // 3. Nomenclature & Vocabulary
+  if (/\b(?:Curriculum Vitae|CV)\b/i.test(rawText)) {
+    scoreUk += 3;
+    scoreIe += 2;
+    reasons.push('Uses "Curriculum Vitae / CV" heading');
+  }
+  if (/\b(?:Postcode|Postal Code)\b/i.test(rawText)) {
+    scoreUk += 2;
+    scoreCa += 2;
+    reasons.push('Uses Postcode / Postal Code');
+  }
+  if (/\b(?:Zip Code|ZIP)\b/i.test(rawText)) {
+    scoreUs += 3;
+    reasons.push('Uses ZIP code notation');
+  }
+  if (/\b(?:GPA|Magna Cum Laude|Dean's List)\b/i.test(rawText)) {
+    scoreUs += 3;
+    scoreCa += 2;
+    reasons.push('Uses US academic honors (GPA / Dean’s List)');
+  }
+  if (/\b(?:GCSE|A-Levels|First Class Honours|2:1 Honours)\b/i.test(rawText)) {
+    scoreUk += 4;
+    reasons.push('Uses UK educational grading terms (GCSE / Honours)');
+  }
+  if (/\b(?:WeChat|微信号|微信)\b/i.test(rawText)) {
+    scoreCn += 3;
+    reasons.push('Mentions WeChat');
+  }
+  if (/\b(?:Canada|Ontario|Toronto|Vancouver|Montreal|Quebec|British Columbia)\b/i.test(rawText)) {
+    scoreCa += 4;
+    reasons.push('Mentions Canadian locations');
+  }
+  if (/\b(?:London|Manchester|Birmingham|Edinburgh|Glasgow|United Kingdom|UK)\b/i.test(rawText)) {
+    scoreUk += 4;
+    reasons.push('Mentions UK locations');
+  }
+  if (/\b(?:Dublin|Cork|Galway|Limerick|Ireland)\b/i.test(rawText)) {
+    scoreIe += 4;
+    reasons.push('Mentions Ireland locations');
+  }
+  if (/\b(?:New York|California|San Francisco|Seattle|Austin|Boston|Chicago|USA|United States)\b/i.test(rawText)) {
+    scoreUs += 4;
+    reasons.push('Mentions US locations');
+  }
+
+  const scores: Record<MarketRegion, number> = {
+    cn: scoreCn,
+    us: scoreUs,
+    uk: scoreUk,
+    ca: scoreCa,
+    ie: scoreIe,
+    international: 0,
+  };
+
+  const sorted = (Object.keys(scores) as MarketRegion[]).sort((a, b) => scores[b] - scores[a]);
+  const best = sorted[0];
+  const highestScore = scores[best];
+
+  let confidence: 'high' | 'medium' | 'low' = 'low';
+  if (highestScore >= 6) {
+    confidence = 'high';
+  } else if (highestScore >= 3) {
+    confidence = 'medium';
+  }
+
+  return {
+    detectedMarket: best,
+    confidence,
+    reasons: reasons.slice(0, 3),
+  };
+}
 
 export function parseRawTextToResumeMarkdown(rawText: string): string {
   if (!rawText || rawText.trim() === '') return '';

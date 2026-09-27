@@ -1,9 +1,13 @@
 import { FormItem, FormSection, ResumeFormModel } from './form-types';
 import { findPhoneCandidate, normalizePhoneForResume } from './phone-utils';
+import { COMPREHENSIVE_DATE_REGEX, parseDateRange } from './date-parser';
 
 export function isTimeString(s: string): boolean {
   const clean = s.replace(/[*_]/g, '').trim();
-  if (/\b(?:19|20)\d{2}\b/.test(clean) || clean.includes('至今') || clean.includes('present') || clean.includes('Present') || clean.includes('毕业')) {
+  if (parseDateRange(clean)) {
+    return true;
+  }
+  if (/\b(?:19|20)\d{2}\b/.test(clean) || clean.includes('至今') || /present|current|now|毕业/i.test(clean)) {
     return true;
   }
   return false;
@@ -28,6 +32,7 @@ export function cleanPart(s: string): string {
 
 const DEGREE_REGEX = /^(本科|学士|硕士|博士|大专|高职|专科|中专|高中|双学士|研究生|PhD|Ph\.D|Master|Bachelor|Associate)$/i;
 const DEGREE_EXTRACT_REGEX = /[（\(](本科|学士|硕士|博士|大专|高职|专科|双学士|研究生|PhD|Master|Bachelor)[）\)]/i;
+const ROLE_REGEX = /(?:工程师|架构|开发|研发|设计|产品|运营|总监|经理|专家|顾问|专员|研究员|应用|全栈|算法|前端|后端|大数据|数据分析|实习生|助理|负责人|作者|架构师|Lead|Manager|Engineer|Developer|Architect|Consultant|Intern|Specialist|Designer)/i;
 
 export function splitItemTitle(titleStr: string): { org: string; role: string; time: string; degree?: string } {
   let clean = titleStr.trim();
@@ -36,27 +41,45 @@ export function splitItemTitle(titleStr: string): { org: string; role: string; t
   }
   
   // 1. Check for time range and extract it if explicitly present
-  // Matches: 2024.03 — 至今, *2024.03 — 至今*, 2021.06 - 2024.02, 2018 - 2022, 2020.09 ~ 2024.06, etc.
-  const TIME_PATTERN = /(?:\*|_)?(?:\b(?:19|20)\d{2}(?:[年\.\-\/]\d{1,2}(?:[月\.\-\/]\d{1,2})?|年?)?\s*(?:[-—–―~～至到\s]+)\s*(?:(?:19|20)\d{2}(?:[年\.\-\/]\d{1,2}(?:[月\.\-\/]\d{1,2})?|年?)?|至今|现在|present|Present|毕业)|(?:\b(?:19|20)\d{2}(?:[年\.\-\/]\d{1,2}(?:月)?)?)\s*(?:至今|现在|present|Present|毕业)|\b(?:19|20)\d{2}\s*[-—–―~～]\s*(?:19|20)\d{2}\b)(?:\*|_)?/i;
-  
+  // Matches: 2024.03 — 至今, *2024.03 — 至今*, Mar 2024 – Present, March 2024 - Present, 2021.06 - 2024.02, 2018 - 2022, etc.
   let extractedTime = '';
-  const timeMatch = clean.match(TIME_PATTERN);
-  if (timeMatch && timeMatch.index !== undefined) {
-    extractedTime = cleanPart(timeMatch[0]);
-    // Remove the time from the string along with nearby delimiters
-    clean = (clean.slice(0, timeMatch.index) + ' ' + clean.slice(timeMatch.index + timeMatch[0].length)).trim();
+  const comprehensiveMatch = clean.match(COMPREHENSIVE_DATE_REGEX);
+  if (comprehensiveMatch && comprehensiveMatch.index !== undefined) {
+    extractedTime = cleanPart(comprehensiveMatch[0]);
+    clean = (clean.slice(0, comprehensiveMatch.index) + ' ' + clean.slice(comprehensiveMatch.index + comprehensiveMatch[0].length)).trim();
   }
 
-  // 2. Split remainder by universal separators:
-  // - Full/half-width pipe: | or ｜
-  // - Full-width ideographic space: \u3000
-  // - Middle dots / bullets: · or • or ● or ▪
-  // - Slashes with spaces: / or ／
-  // - Hyphens/dashes with spaces: - or — or – or ―
-  // - Multiple spaces: \s{2,}
-  const SEPARATOR_REGEX = /\s*[|｜\u3000]\s*|\s*[·•●▪]\s*|\s+[/／]\s+|\s+[-—–―]\s+|\s{2,}/;
-  
-  const rawParts = clean.split(SEPARATOR_REGEX).map(p => cleanPart(p)).filter(Boolean);
+  // Clean trailing and leading delimiters & leftover markdown formatting from time extraction
+  clean = clean.replace(/^[\s|｜\u3000·•●▪/／\-—–―,，\*\_]+|[\s|｜\u3000·•●▪/／\-—–―,，\*\_]+$/g, '').trim();
+
+  // 2. Split remainder by delimiter precedence:
+  // - High priority: Explicit full/half-width pipes (| or ｜) or full-width ideographic space (\u3000)
+  // - Medium priority: Middle dots / bullets (·, •, etc.) or slashes with spaces (/ or ／)
+  // - Lower priority: Multiple spaces (\s{2,})
+  // - Lowest priority: Hyphens/dashes with spaces (\s+[-—–―]\s+), ONLY if a trailing segment is a recognized role or degree.
+  //   This prevents project or company subtitles (e.g., "FlexAgent - 开源大模型多Agent低代码编排系统") from being broken in half.
+  let rawParts: string[];
+  if (/[|｜\u3000]/.test(clean)) {
+    rawParts = clean.split(/\s*[|｜\u3000]\s*/).map(p => cleanPart(p)).filter(Boolean);
+  } else if (/[·•●▪]/.test(clean)) {
+    rawParts = clean.split(/\s*[·•●▪]\s*/).map(p => cleanPart(p)).filter(Boolean);
+  } else if (/\s+[/／]\s+/.test(clean)) {
+    rawParts = clean.split(/\s+[/／]\s+/).map(p => cleanPart(p)).filter(Boolean);
+  } else if (/\s{2,}/.test(clean)) {
+    rawParts = clean.split(/\s{2,}/).map(p => cleanPart(p)).filter(Boolean);
+  } else if (/\s+[-—–―]\s+/.test(clean)) {
+    const candidateParts = clean.split(/\s+[-—–―]\s+/).map(p => cleanPart(p)).filter(Boolean);
+    const hasRoleOrDegree = candidateParts.slice(1).some(p => 
+      DEGREE_REGEX.test(p) || ROLE_REGEX.test(p)
+    );
+    if (hasRoleOrDegree) {
+      rawParts = candidateParts;
+    } else {
+      rawParts = [clean];
+    }
+  } else {
+    rawParts = [clean];
+  }
 
   let org = '';
   let role = '';
@@ -80,6 +103,9 @@ export function splitItemTitle(titleStr: string): { org: string; role: string; t
     } else if (DEGREE_REGEX.test(p0)) {
       degree = p0;
       role = p1;
+    } else if (ROLE_REGEX.test(p0) && !ROLE_REGEX.test(p1)) {
+      org = p1;
+      role = p0;
     } else {
       org = p0;
       role = p1;

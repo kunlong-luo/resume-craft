@@ -1,6 +1,9 @@
 import { formatChineseEnglishSpacing } from './format-utils';
 import { parseMarkdownToForm } from './markdown-parser';
 import { findPhoneCandidate } from './phone-utils';
+import { getMarketProfile } from './market-profile';
+import { normalizeAllDatesInMarkdown, sanitizeSensitiveFieldsForMarket } from './resume-auto-fixer';
+import { MarketRegion } from '../types';
 
 export interface IssueItem {
   type: 'error' | 'warning' | 'success';
@@ -8,6 +11,7 @@ export interface IssueItem {
   desc: string;
   fixable?: boolean;
   onFix?: () => void;
+  category?: 'market' | 'ats' | 'content' | 'formatting';
 }
 
 export interface AnalysisResult {
@@ -16,22 +20,28 @@ export interface AnalysisResult {
   hasPlaceholders: boolean;
   metricCount: number;
   foundVerbsCount: number;
+  marketRegion?: MarketRegion;
+  marketLabel?: string;
 }
 
 export function analyzeResume(
   markdown: string,
   onUpdateMarkdown: (newMarkdown: string, immediate?: boolean) => void,
-  lang?: string
+  lang?: string,
+  marketRegion?: MarketRegion
 ): AnalysisResult {
   const issues: IssueItem[] = [];
   let score = 100;
   const isEn = lang === 'en';
+  const effectiveMarket = marketRegion || (isEn ? 'us' : 'cn');
+  const marketProfile = getMarketProfile(effectiveMarket);
 
   // 1. Check Name (H1)
   const hasH1 = markdown.trim().split('\n').some(line => line.startsWith('# '));
   if (hasH1) {
     issues.push({
       type: 'success',
+      category: 'content',
       title: isEn ? 'Basic Info: Name header found' : '基本信息：姓名标题已设置',
       desc: isEn 
         ? 'Your resume starts with a level 1 heading (# Name), which is standard and easy to read.'
@@ -41,6 +51,7 @@ export function analyzeResume(
     score -= 20;
     issues.push({
       type: 'error',
+      category: 'content',
       title: isEn ? 'Basic Info: Missing name header (#)' : '基本信息：缺失姓名一级标题',
       desc: isEn 
         ? 'The very top of your resume should start with your name, styled as "# Your Name".'
@@ -60,6 +71,7 @@ export function analyzeResume(
   if (hasEmail) {
     issues.push({
       type: 'success',
+      category: 'content',
       title: isEn ? 'Contact Info: Email address is valid' : '联系方式：电子邮箱有效',
       desc: isEn 
         ? 'A valid email address has been found.' 
@@ -69,6 +81,7 @@ export function analyzeResume(
     score -= 10;
     issues.push({
       type: 'warning',
+      category: 'content',
       title: isEn ? 'Contact Info: Email is missing or placeholder' : '联系方式：邮箱缺失或为默认占位符',
       desc: isEn 
         ? 'No valid email address was found. Email is the primary channel for recruiters to reach you.'
@@ -90,6 +103,7 @@ export function analyzeResume(
   if (hasPhone && phoneCandidate) {
     issues.push({
       type: 'success',
+      category: 'content',
       title: isEn ? 'Contact Info: Phone number found' : '联系方式：已识别电话号码',
       desc: phoneCandidate.isInternational
         ? isEn
@@ -103,6 +117,7 @@ export function analyzeResume(
     score -= 10;
     issues.push({
       type: 'warning',
+      category: 'content',
       title: isEn ? 'Contact Info: Phone number is missing or placeholder' : '联系方式：电话号码缺失或为占位符',
       desc: isEn 
         ? 'No recognizable phone number was found, or the resume still contains a placeholder.'
@@ -110,7 +125,77 @@ export function analyzeResume(
     });
   }
 
-  // 3. Template leftovers/placeholders check
+  // 3. Market Anti-Bias / Sensitive Personal Information Audit
+  const isWesternMarket = ['us', 'ca', 'uk', 'ie', 'international'].includes(effectiveMarket);
+  if (isWesternMarket) {
+    const hasPhoto = /!\[.*?\]\(.*?\)|<img[^>]*>/i.test(markdown);
+    const hasAge = /\b\d{1,2}\s*(?:岁|years?\s*old)\b/i.test(markdown) || /出生[年月于]/i.test(markdown) || /\b(?:DOB|Date of birth|Born in)\b/i.test(markdown);
+    const hasMaritalOrGender = /(?:未婚|已婚|婚姻状况|性别|政治面貌|群众|党员|团员|国籍|籍贯|民族|Marital\s*Status|Gender|Sex|Nationality|Citizenship)\b/i.test(markdown);
+    
+    if (hasPhoto || hasAge || hasMaritalOrGender) {
+      score -= 10;
+      const detectedItems: string[] = [];
+      if (hasPhoto) detectedItems.push(isEn ? 'Photo' : '证件照片');
+      if (hasAge) detectedItems.push(isEn ? 'Age/DOB' : '年龄/出生年月');
+      if (hasMaritalOrGender) detectedItems.push(isEn ? 'Marital/Gender/Nationality' : '婚姻/性别/国籍等');
+
+      issues.push({
+        type: 'warning',
+        category: 'market',
+        title: isEn 
+          ? `Equal Opportunity: Sensitive personal info detected (${detectedItems.join(', ')})` 
+          : `合规风控：检测到敏感个人信息 (${detectedItems.join('、')})`,
+        desc: isEn 
+          ? `In ${marketProfile.labelEn} hiring processes, employers strictly avoid personal details (photos, age, marital status, nationality) to adhere to Equal Employment Opportunity laws. Resumes containing photos or age may be automatically disqualified to avoid bias liability.`
+          : `在 ${marketProfile.labelZh} 招聘流程中，企业严格遵循反就业歧视法（EEO）。简历中若包含照片、年龄、婚姻或国籍，招聘方为规避用工歧视法律风险，常会直接过滤。建议一键脱敏。`,
+        fixable: true,
+        onFix: () => {
+          const sanitized = sanitizeSensitiveFieldsForMarket(markdown);
+          onUpdateMarkdown(sanitized.markdown, true);
+        }
+      });
+    } else {
+      issues.push({
+        type: 'success',
+        category: 'market',
+        title: isEn ? 'Equal Opportunity: Free of biased personal details' : '合规风控：完全符合欧美反就业歧视规范',
+        desc: isEn 
+          ? `No photo, age, or marital status was found, matching the ${marketProfile.labelEn} standard.`
+          : `未包含照片、年龄、婚育等敏感字段，完全契合 ${marketProfile.labelZh} 招聘市场的反歧视合规要求。`
+      });
+    }
+  }
+
+  // 4. Market Date Style Consistency Check
+  const dateCheckResult = normalizeAllDatesInMarkdown(markdown, marketProfile.dateStyle, isEn);
+  if (dateCheckResult.convertedCount > 0) {
+    score -= 5;
+    issues.push({
+      type: 'warning',
+      category: 'market',
+      title: isEn 
+        ? `Market Date Format: ${dateCheckResult.convertedCount} date range(s) can be normalized` 
+        : `日期格式：发现 ${dateCheckResult.convertedCount} 处可统一为${marketProfile.labelZh}标准`,
+      desc: isEn 
+        ? `Target market (${marketProfile.labelEn}) standard date format is "${marketProfile.dateStyle}". Click Auto Fix to convert all dates across your resume automatically.`
+        : `当前目标市场（${marketProfile.labelZh}）推荐采用「${marketProfile.dateStyle}」日期风格。点击智能修正可一键将简历内经历与教育时间全部统一。`,
+      fixable: true,
+      onFix: () => {
+        onUpdateMarkdown(dateCheckResult.markdown, true);
+      }
+    });
+  } else {
+    issues.push({
+      type: 'success',
+      category: 'market',
+      title: isEn ? `Market Date Format: Standardized (${marketProfile.dateStyle})` : `日期格式：完全符合${marketProfile.labelZh}标准`,
+      desc: isEn 
+        ? `All dates conform to the ${marketProfile.labelEn} date format standard.`
+        : `简历中的所有时间区间均已完全符合 ${marketProfile.labelZh} 推荐规范。`
+    });
+  }
+
+  // 5. Template leftovers/placeholders check
   const placeholders = [
     '13800000000', '13812345678', 'your-email', 'your.email', 'yourgithub', 
     '【请在此处', '请替换', '[请填写', '某某公司', '某某大学', 'xxxx', 'XXXX'
@@ -120,6 +205,7 @@ export function analyzeResume(
   if (foundPlaceholders.length === 0) {
     issues.push({
       type: 'success',
+      category: 'content',
       title: isEn ? 'Content Compliance: No template placeholders found' : '内容合规：未发现模版残留文本',
       desc: isEn 
         ? 'All template tags and brackets have been replaced successfully.'
@@ -129,6 +215,7 @@ export function analyzeResume(
     score -= (foundPlaceholders.length * 8);
     issues.push({
       type: 'error',
+      category: 'content',
       title: isEn ? `Content Warning: Found ${foundPlaceholders.length} template leftovers` : `内容警告：存在 ${foundPlaceholders.length} 处模版残留`,
       desc: isEn 
         ? `Placeholder fields detected: ${foundPlaceholders.map(p => `"${p}"`).join(', ')}. Please update them with your real information!`
@@ -136,15 +223,16 @@ export function analyzeResume(
     });
   }
 
-  // 4. Quantifiable metrics evaluation
-  const metricWords = ['%', '％', '万', '亿', '倍', '提升', '增长', '降低', '优化', '减少', '节省', '达到'];
+  // 6. Quantifiable metrics evaluation
+  const metricWords = ['%', '％', '万', '亿', '倍', '提升', '增长', '降低', '优化', '减少', '节省', '达到', 'ms', 'qps', 'tps', 'rps', 'gb', 'tb', 'pb'];
   let metricCount = 0;
   const lines = markdown.split('\n');
   lines.forEach(line => {
     let lineHasMetric = false;
-    if (/\d+(?:\.\d+)?(?:%|万|亿|倍)/.test(line)) lineHasMetric = true;
+    if (/\d+(?:\.\d+)?(?:%|％|万|亿|倍|x|k|m|\$|¥|€|£)/i.test(line)) lineHasMetric = true;
+    if (/\b\d+(?:\.\d+)?\s*(?:ms|s|qps|tps|rps|gb|tb|pb)\b/i.test(line)) lineHasMetric = true;
     metricWords.forEach(w => {
-      if (line.includes(w)) lineHasMetric = true;
+      if (line.toLowerCase().includes(w.toLowerCase())) lineHasMetric = true;
     });
     if (lineHasMetric) metricCount++;
   });
@@ -152,6 +240,7 @@ export function analyzeResume(
   if (metricCount >= 5) {
     issues.push({
       type: 'success',
+      category: 'content',
       title: isEn ? `Quantified Results: Excellent (${metricCount} data metrics)` : `量化成果：丰富 (${metricCount} 处数据指标)`,
       desc: isEn 
         ? 'Your resume integrates rich metrics and quantified achievements, making it highly persuasive and professional!'
@@ -161,6 +250,7 @@ export function analyzeResume(
     score -= 5;
     issues.push({
       type: 'warning',
+      category: 'content',
       title: isEn ? `Quantified Results: Slightly thin (${metricCount} metric(s))` : `量化成果：稍显薄弱 (${metricCount} 处指标)`,
       desc: isEn 
         ? 'Some metrics or numbers are present but limited. Consider specifying achievements (e.g., "boosted throughput by 30%", "shortened dev cycles by 2 weeks").'
@@ -170,6 +260,7 @@ export function analyzeResume(
     score -= 15;
     issues.push({
       type: 'error',
+      category: 'content',
       title: isEn ? 'Quantified Results: Extremely scarce (no metric data)' : '量化成果：极度匮乏 (无数据支持)',
       desc: isEn 
         ? 'No metrics or business achievements detected. Professional resumes should follow the STAR methodology, including quantified metrics to prove your impact.'
@@ -177,22 +268,29 @@ export function analyzeResume(
     });
   }
 
-  // 5. Action Verbs analysis
-  const actionVerbs = ['负责', '主导', '重构', '重写', '设计', '架构', '编写', '实现', '优化', '搭建', '协调', '落地', '推行', '维护'];
-  const foundVerbs = actionVerbs.filter(v => markdown.includes(v));
-  if (foundVerbs.length >= 6) {
+  // 7. Action Verbs analysis (Bilingual)
+  const actionVerbsZh = ['负责', '主导', '重构', '重写', '设计', '架构', '编写', '实现', '优化', '搭建', '协调', '落地', '推行', '维护', '驱动', '研发', '带领', '攻坚'];
+  const actionVerbsEn = ['spearheaded', 'architected', 'engineered', 'designed', 'developed', 'implemented', 'orchestrated', 'optimized', 'accelerated', 'streamlined', 'directed', 'executed', 'managed', 'led', 'formulated', 'built', 'deployed', 'reduced', 'increased', 'boosted', 'scaled'];
+  
+  const foundVerbsZh = actionVerbsZh.filter(v => markdown.includes(v));
+  const foundVerbsEn = actionVerbsEn.filter(v => new RegExp(`\\b${v}\\b`, 'i').test(markdown));
+  const totalFoundVerbsCount = foundVerbsZh.length + foundVerbsEn.length;
+
+  if (totalFoundVerbsCount >= 6) {
     issues.push({
       type: 'success',
-      title: isEn ? `Action Verbs: Excellent (${foundVerbs.length} strong verbs used)` : `专业动词：表现极佳 (已使用 ${foundVerbs.length} 个强动词)`,
+      category: 'content',
+      title: isEn ? `Action Verbs: Excellent (${totalFoundVerbsCount} strong verbs used)` : `专业动词：表现极佳 (已使用 ${totalFoundVerbsCount} 个强动词)`,
       desc: isEn 
-        ? `Uses strong action-oriented verbs (such as ${foundVerbs.slice(0, 5).join(', ')}), effectively demonstrating your proficiency.`
-        : '使用了丰富的专业行动词汇（如：' + foundVerbs.slice(0, 5).join('、') + ' 等），能很好地展示您的专业度。'
+        ? `Uses strong action-oriented verbs, effectively demonstrating your leadership and engineering ownership.`
+        : '使用了丰富的专业行动词汇，能很好地展示您的专业深度与业务担当。'
     });
-  } else if (foundVerbs.length >= 2) {
+  } else if (totalFoundVerbsCount >= 2) {
     score -= 5;
     issues.push({
       type: 'warning',
-      title: isEn ? `Action Verbs: Recommended to add (only ${foundVerbs.length} verb(s) found)` : `专业动词：建议补充 (仅发现 ${foundVerbs.length} 个动词)`,
+      category: 'content',
+      title: isEn ? `Action Verbs: Recommended to add (only ${totalFoundVerbsCount} verb(s) found)` : `专业动词：建议补充 (仅发现 ${totalFoundVerbsCount} 个动词)`,
       desc: isEn 
         ? 'Consider starting your experience items with dynamic action verbs (e.g., refactored, spearheaded, optimized) rather than generic words like "worked on" or "responsible for".'
         : `建议更多地使用强有力的行动词汇（例如：重构、主导、独立设计、优化等）作为每项工作描述的开头，避免单一使用「负责」或「做过」。`
@@ -201,6 +299,7 @@ export function analyzeResume(
     score -= 15;
     issues.push({
       type: 'error',
+      category: 'content',
       title: isEn ? 'Action Verbs: Flat descriptions' : '专业动词：动作描述苍白',
       desc: isEn 
         ? 'Almost no professional action verbs detected. Use words like "spearheaded", "engineered", or "architected" to highlight technical competence.'
@@ -208,7 +307,7 @@ export function analyzeResume(
     });
   }
 
-  // 6. Page split control
+  // 8. Page split control
   const pureContent = markdown
     .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/[#*`_~>[\]()-]/g, '')
@@ -216,12 +315,12 @@ export function analyzeResume(
     .trim();
   const pureCharCount = pureContent.length;
   const hasPageBreak = /<!--\s*pagebreak\s*-->/gi.test(markdown);
-  // A standard A4 single page accommodates around 1200-1800 pure characters.
-  // Resumes exceeding 2400 pure characters legitimately require multiple pages.
+  
   if (pureCharCount > 2400) {
     if (hasPageBreak) {
       issues.push({
         type: 'success',
+        category: 'formatting',
         title: isEn ? 'Layout Control: Manual pagebreak used' : '排版控制：已使用分页符',
         desc: isEn 
           ? 'Your resume is long, but you have wisely used the <!-- pagebreak --> tag to control pagination, avoiding automatic cutoffs.'
@@ -231,23 +330,24 @@ export function analyzeResume(
       score -= 10;
       issues.push({
         type: 'warning',
+        category: 'formatting',
         title: isEn ? 'Layout Warning: Pagebreak recommended' : '排版警告：建议插入分页符',
         desc: isEn 
           ? 'Your resume has a high word count, which may cause unintended page clipping when printing to PDF. It is highly recommended to click the scissor icon in the toolbar to insert "<!-- pagebreak -->" after an appropriate section.'
           : '当前简历总字数较多，如果直接打印为 PDF 可能会产生无章法的自动截断。建议在一页纸写不下的合适段落之后，点击编辑工具栏的剪刀按钮插入「<!-- pagebreak -->」进行优雅的手动分页。',
         fixable: true,
         onFix: () => {
-          const lines = markdown.split('\n');
+          const linesArr = markdown.split('\n');
           let insertIdx = -1;
-          for (let i = Math.floor(lines.length * 0.45); i < lines.length; i++) {
-            if (lines[i].trim().startsWith('## ')) {
+          for (let i = Math.floor(linesArr.length * 0.45); i < linesArr.length; i++) {
+            if (linesArr[i].trim().startsWith('## ')) {
               insertIdx = i;
               break;
             }
           }
           if (insertIdx !== -1) {
-            lines.splice(insertIdx, 0, '<!-- pagebreak -->');
-            onUpdateMarkdown(lines.join('\n'), true);
+            linesArr.splice(insertIdx, 0, '<!-- pagebreak -->');
+            onUpdateMarkdown(linesArr.join('\n'), true);
           } else {
             onUpdateMarkdown(markdown + '\n\n<!-- pagebreak -->\n', true);
           }
@@ -257,14 +357,15 @@ export function analyzeResume(
   } else {
     issues.push({
       type: 'success',
+      category: 'formatting',
       title: isEn ? 'Layout Control: Optimal length (One page version)' : '排版控制：字数适中 (一页精简版)',
       desc: isEn 
         ? 'The length is moderate and fits perfectly onto a single page, which recruiters highly favor.'
-        : '简历长度适宜，通常可以完美放入一页 A4 纸内，符合绝大多数招聘官的阅读习惯。'
+        : '简历长度适宜，通常可以完美放入一页 A4/Letter 纸内，符合绝大多数招聘官的阅读习惯。'
     });
   }
 
-  // 7. Subjective Pronoun Audit
+  // 9. Subjective Pronoun Audit
   const pronounRegex = /[我他她它你][们]?|自己/g;
   const pronounMatches = markdown.match(pronounRegex) || [];
   const pronounCount = pronounMatches.length;
@@ -273,6 +374,7 @@ export function analyzeResume(
     score -= Math.min(15, pronounCount * 3);
     issues.push({
       type: 'warning',
+      category: 'content',
       title: isEn ? `Subjective Pronouns: Detected ${pronounCount} pronoun(s) (I/We)` : `主观人称：检测到 ${pronounCount} 处主观代词 (我/自己)`,
       desc: isEn 
         ? 'Resumes should be written in an objective, professional third-person style. Avoid words like "I", "me", "myself" or "we", and begin statements directly with action verbs.'
@@ -299,6 +401,7 @@ export function analyzeResume(
   } else {
     issues.push({
       type: 'success',
+      category: 'content',
       title: isEn ? 'Subjective Pronouns: Perfectly objective' : '主观人称：符合客观书写规范',
       desc: isEn 
         ? 'No subjective personal pronouns (I/We) were found, adhering perfectly to resume writing standards.'
@@ -306,7 +409,7 @@ export function analyzeResume(
     });
   }
 
-  // 8. CJK Spacing Audit
+  // 10. CJK Spacing Audit
   const formattedText = formatChineseEnglishSpacing(markdown);
   const missingSpacesCount = formattedText.length - markdown.length;
 
@@ -314,6 +417,7 @@ export function analyzeResume(
     score -= 10;
     issues.push({
       type: 'warning',
+      category: 'formatting',
       title: isEn ? `Typography: Found ${missingSpacesCount} missing spaces (CN/EN)` : `排版美化：发现 ${missingSpacesCount} 处中英/数字缺少空格`,
       desc: isEn 
         ? 'Adding a space between Chinese characters, English words, and numbers is standard practice, greatly enhancing readability (e.g., "React开发" to "React 开发").'
@@ -326,6 +430,7 @@ export function analyzeResume(
   } else {
     issues.push({
       type: 'success',
+      category: 'formatting',
       title: isEn ? 'Typography: Perfect spacing formatting' : '排版美化：中英混排格式完美',
       desc: isEn 
         ? 'All Chinese characters, English words, and numbers are separated by standard half-width spaces. Clean and professional!'
@@ -333,7 +438,7 @@ export function analyzeResume(
     });
   }
 
-  // 9. ATS Compatibility Check
+  // 11. ATS Compatibility Check
   const hasEmojis = /[\u{1F300}-\u{1F5FF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu.test(markdown);
   const hasTables = /\|.+\|.+\|/g.test(markdown);
 
@@ -352,12 +457,14 @@ export function analyzeResume(
     }
     issues.push({
       type: 'warning',
+      category: 'ats',
       title: isEn ? 'ATS Friendliness: Potential parsing risks detected' : 'ATS 友好度：检测到潜在解析风险',
       desc: descParts.join(' ')
     });
   } else {
     issues.push({
       type: 'success',
+      category: 'ats',
       title: isEn ? 'ATS Friendliness: Perfect machine parsing compatibility' : 'ATS 友好度：完美通过机器预审',
       desc: isEn 
         ? 'Your resume contains no emojis or complex multi-column tables, ensuring that ATS screening systems can parse your content cleanly without any errors.'
@@ -365,7 +472,7 @@ export function analyzeResume(
     });
   }
 
-  // 10. English Verb Tense Verification
+  // 12. English Verb Tense Verification
   const model = parseMarkdownToForm(markdown);
   let pastTenseInconsistency = false;
   let checkedRolesCount = 0;
@@ -380,8 +487,8 @@ export function analyzeResume(
           const isPastExperience = !/(至今|现在|present|Present|now)/i.test(item.time);
           if (isPastExperience) {
             checkedRolesCount++;
-            const lines = item.content.split('\n');
-            const hasPresentVerb = lines.some(line => englishPresentRegex.test(line));
+            const itemLines = item.content.split('\n');
+            const hasPresentVerb = itemLines.some(l => englishPresentRegex.test(l));
             if (hasPresentVerb) {
               pastTenseInconsistency = true;
               if (item.org && !offendingOrgs.includes(item.org)) {
@@ -398,6 +505,7 @@ export function analyzeResume(
     score -= 5;
     issues.push({
       type: 'warning',
+      category: 'content',
       title: isEn ? 'Tense Agreement: Suggest using past tense for past roles' : '时态规范：已结束经历建议采用过去式动词',
       desc: isEn 
         ? `Detected present tense verbs (e.g., Develop, Lead) in your past experience items (e.g., ${offendingOrgs.join(', ')}). Past roles should consistently use past tense verbs (e.g., Developed, Led).`
@@ -406,6 +514,7 @@ export function analyzeResume(
   } else if (checkedRolesCount > 0) {
     issues.push({
       type: 'success',
+      category: 'content',
       title: isEn ? 'Tense Agreement: Perfect verbs tense consistency' : '时态规范：英文经历动作时态高度一致',
       desc: isEn 
         ? 'All past roles use past tense action verbs perfectly, demonstrating excellent professional rigor.'
@@ -425,6 +534,8 @@ export function analyzeResume(
     issues: sortedIssues,
     hasPlaceholders: foundPlaceholders.length > 0,
     metricCount,
-    foundVerbsCount: foundVerbs.length
+    foundVerbsCount: totalFoundVerbsCount,
+    marketRegion: effectiveMarket,
+    marketLabel: isEn ? marketProfile.labelEn : marketProfile.labelZh,
   };
 }

@@ -6,6 +6,7 @@ import { MonthRangePicker } from './MonthRangePicker';
 import { SmartMarkdownTextarea } from './SmartMarkdownTextarea';
 import { Tooltip } from '../ui/Tooltip';
 import { getTranslation } from '../../i18n';
+import { MarketRegion } from '../../types';
 
 interface ItemEditorProps {
   item: FormItem;
@@ -19,6 +20,7 @@ interface ItemEditorProps {
   onDelete: () => void;
   onInsertStarTemplate: () => void;
   lang?: string;
+  marketRegion?: MarketRegion;
 }
 
 const CATEGORY_CONFIGS = {
@@ -111,7 +113,8 @@ const CATEGORY_CONFIGS = {
 export function ItemEditor({
   item, index, totalItems, category,
   onFieldChange, onContentChange, onMove, onReorderItem, onDelete, onInsertStarTemplate,
-  lang = 'zh'
+  lang = 'zh',
+  marketRegion
 }: ItemEditorProps) {
   const activeLang = lang === 'en' ? 'en' : 'zh';
   const translations = getTranslation(activeLang);
@@ -235,6 +238,7 @@ export function ItemEditor({
             className="px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input font-mono"
             placeholder={cat.timePlaceholder}
             lang={lang}
+            marketRegion={marketRegion}
             showPresentToggle={index === 0 && (category === 'work' || category === 'project')}
           />
         </div>

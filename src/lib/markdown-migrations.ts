@@ -16,6 +16,12 @@ export function migrateStoredMarkdown(markdown: string): string {
   // Rename the legacy education heading to the current convention.
   md = md.replace(/## 教育经历/g, '## 教育背景');
 
+  // Heal project heading if a hyphen in the project name was mistakenly converted into a delimiter
+  md = md.replace(
+    /###\s+FlexAgent\s*[|｜]\s*开源大模型多Agent低代码编排系统/g,
+    '### FlexAgent - 开源大模型多Agent低代码编排系统'
+  );
+
   // Normalize legacy project items that stored the project role as the first
   // description bullet instead of in the structured item heading.
   const migrateProjectSection = (section: string): string => {

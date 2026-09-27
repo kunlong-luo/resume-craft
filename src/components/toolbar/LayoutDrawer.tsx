@@ -163,6 +163,39 @@ export function LayoutDrawer({
               onChange={(value) => updateSetting('margin', value)}
             />
           </div>
+
+          <div>
+            <div className="mb-1.5 flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <span>{isEn ? 'Paper size' : '纸张规格'}</span>
+              <span className="text-[9px] font-normal text-slate-400">
+                {settings.paperSize === 'letter' ? '215.9 × 279.4 mm (US / CA)' : '210 × 297 mm (Global / UK)'}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+              <button
+                type="button"
+                onClick={() => updateSetting('paperSize', 'a4')}
+                className={`rounded-lg px-2 py-1.5 text-[10px] font-bold transition ${
+                  (settings.paperSize || 'a4') === 'a4'
+                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                    : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+              >
+                A4 (210 × 297 mm)
+              </button>
+              <button
+                type="button"
+                onClick={() => updateSetting('paperSize', 'letter')}
+                className={`rounded-lg px-2 py-1.5 text-[10px] font-bold transition ${
+                  settings.paperSize === 'letter'
+                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                    : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+              >
+                US Letter (8.5 × 11 in)
+              </button>
+            </div>
+          </div>
         </section>
 
         <section className="space-y-3 border-t border-slate-100 pt-4 dark:border-slate-800">

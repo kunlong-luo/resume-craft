@@ -10,6 +10,8 @@ import type {
   TemplateLayout,
   ThemeColor,
   ThemeMode,
+  PaperSize,
+  MarketRegion,
 } from '../types';
 
 type UnknownRecord = Record<string, unknown>;
@@ -45,6 +47,8 @@ const TEMPLATE_LAYOUTS = [
 ] as const satisfies readonly TemplateLayout[];
 const LANGUAGES = ['zh', 'en'] as const satisfies readonly Language[];
 const THEME_MODES = ['light', 'dark', 'system'] as const satisfies readonly ThemeMode[];
+const PAPER_SIZES = ['a4', 'letter'] as const satisfies readonly PaperSize[];
+const MARKET_REGIONS = ['cn', 'us', 'ca', 'uk', 'ie', 'international'] as const satisfies readonly MarketRegion[];
 
 const MAX_MARKDOWN_LENGTH = 2_000_000;
 const MAX_PROFILE_TEXT_LENGTH = 240;
@@ -153,6 +157,12 @@ export function normalizeImportedSettings(
 
   const lang = isOneOf(value.lang, LANGUAGES) ? value.lang : fallback.lang;
   if (lang !== undefined) normalized.lang = lang;
+
+  const paperSize = isOneOf(value.paperSize, PAPER_SIZES) ? value.paperSize : fallback.paperSize;
+  if (paperSize !== undefined) normalized.paperSize = paperSize;
+
+  const marketRegion = isOneOf(value.marketRegion, MARKET_REGIONS) ? value.marketRegion : fallback.marketRegion;
+  if (marketRegion !== undefined) normalized.marketRegion = marketRegion;
 
   const isPrivacyMasked =
     typeof value.isPrivacyMasked === 'boolean'

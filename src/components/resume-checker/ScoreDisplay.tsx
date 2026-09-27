@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { Globe2 } from 'lucide-react';
 import { AnalysisResult } from '../../lib/resume-checker-utils';
 
 interface ScoreDisplayProps {
@@ -18,13 +19,21 @@ export function ScoreDisplay({ analysis, scoreBadge, lang }: ScoreDisplayProps) 
     <div className="space-y-6">
       {/* Score Ring Display */}
       <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/80 dark:to-slate-850 border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm text-center relative overflow-hidden">
+        <div className="absolute top-2.5 left-2.5">
+          {analysis.marketLabel && (
+            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-800/60">
+              <Globe2 className="w-3 h-3" />
+              <span>{analysis.marketLabel}</span>
+            </span>
+          )}
+        </div>
         <div className="absolute top-2.5 right-2.5">
           <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${scoreBadge.color}`}>
             {scoreBadge.label}
           </span>
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-2">
+        <div className="flex flex-col items-center justify-center gap-2 pt-2">
           {/* Visual Gauge */}
           <div className="relative w-28 h-28 flex items-center justify-center">
             <svg className="w-full h-full transform -rotate-90">
@@ -69,8 +78,8 @@ export function ScoreDisplay({ analysis, scoreBadge, lang }: ScoreDisplayProps) 
             </p>
             <p className="text-[11px] text-slate-400 dark:text-slate-400 px-3">
               {isEn 
-                ? 'Calculated based on information integrity, action verbs, quantified results, and template guidelines.'
-                : '根据基本信息完整度、行业动词数量、量化成果比例、格式残留等方面智能演算'}
+                ? 'Evaluated based on information integrity, market compliance, action verbs, and ATS metrics.'
+                : '根据基本信息完整度、目标市场合规风控、动词质量与 ATS 友好度智能演算'}
             </p>
           </div>
         </div>

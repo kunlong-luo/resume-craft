@@ -366,46 +366,58 @@ export function analyzeResume(
   }
 
   // 9. Subjective Pronoun Audit
-  const pronounRegex = /[我他她它你][们]?|自己/g;
+  // Keep English matching case-aware so the country abbreviation "US" is not
+  // mistaken for the first-person object pronoun "us".
+  const pronounRegex = isEn
+    ? /\b(?:I|[Mm]e|[Mm]y|[Mm]ine|[Mm]yself|[Ww]e|[Uu]s|[Oo]ur|[Oo]urs|[Oo]urselves)\b/g
+    : /(?:我们|我|自己)/g;
   const pronounMatches = markdown.match(pronounRegex) || [];
   const pronounCount = pronounMatches.length;
+  const canAutoFixPronouns = isEn
+    ? /^\s*[-*+]\s+(?:I|[Ww]e)\b/m.test(markdown)
+    : /^\s*[-*+]\s*(?:我们|我|自己)/m.test(markdown);
 
   if (pronounCount > 0) {
     score -= Math.min(15, pronounCount * 3);
     issues.push({
       type: 'warning',
       category: 'content',
-      title: isEn ? `Subjective Pronouns: Detected ${pronounCount} pronoun(s) (I/We)` : `主观人称：检测到 ${pronounCount} 处主观代词 (我/自己)`,
+      title: isEn ? `Subjective Pronouns: Detected ${pronounCount} first-person reference(s)` : `主观人称：检测到 ${pronounCount} 处主观代词 (我/自己)`,
       desc: isEn 
-        ? 'Resumes should be written in an objective, professional third-person style. Avoid words like "I", "me", "myself" or "we", and begin statements directly with action verbs.'
-        : '简历应采用第三人称客观视角叙述。请尽量避免使用“我”、“自己”、“我们”等主观代词，直接以“负责...”、“主导...”等动词开头。',
-      fixable: true,
-      onFix: () => {
+        ? 'Resume bullets usually read more directly when they start with action verbs instead of first-person wording such as "I", "we", "my", or "our".'
+        : '简历应采用客观、直接的动作描述。请尽量避免使用“我”、“自己”、“我们”等主观代词，直接以“负责...”、“主导...”等动词开头。',
+      fixable: canAutoFixPronouns,
+      onFix: canAutoFixPronouns ? () => {
         let fixed = markdown;
-        fixed = fixed.replace(/^-\s*我负责了/gm, '- 负责');
-        fixed = fixed.replace(/^-\s*我负责/gm, '- 负责');
-        fixed = fixed.replace(/^-\s*我自己主导了/gm, '- 主导');
-        fixed = fixed.replace(/^-\s*我自己主导/gm, '- 主导');
-        fixed = fixed.replace(/^-\s*我主导了/gm, '- 主导');
-        fixed = fixed.replace(/^-\s*我主导/gm, '- 主导');
-        fixed = fixed.replace(/^-\s*我完成了/gm, '- 完成');
-        fixed = fixed.replace(/^-\s*我完成/gm, '- 完成');
-        fixed = fixed.replace(/^-\s*我参与了/gm, '- 参与');
-        fixed = fixed.replace(/^-\s*我参与/gm, '- 参与');
-        fixed = fixed.replace(/^-\s*我/gm, '- ');
-        fixed = fixed.replace(/^-\s*自己/gm, '- ');
-        fixed = fixed.replace(/^-\s*我们/gm, '- ');
+        if (isEn) {
+          fixed = fixed.replace(
+            /^(\s*[-*+]\s+)(?:I|[Ww]e)\s+([A-Za-z])/gm,
+            (_match, prefix: string, firstLetter: string) => `${prefix}${firstLetter.toUpperCase()}`,
+          );
+        } else {
+          fixed = fixed.replace(/^(\s*[-*+]\s*)我负责了/gm, '$1负责');
+          fixed = fixed.replace(/^(\s*[-*+]\s*)我负责/gm, '$1负责');
+          fixed = fixed.replace(/^(\s*[-*+]\s*)我自己主导了/gm, '$1主导');
+          fixed = fixed.replace(/^(\s*[-*+]\s*)我自己主导/gm, '$1主导');
+          fixed = fixed.replace(/^(\s*[-*+]\s*)我主导了/gm, '$1主导');
+          fixed = fixed.replace(/^(\s*[-*+]\s*)我主导/gm, '$1主导');
+          fixed = fixed.replace(/^(\s*[-*+]\s*)我完成了/gm, '$1完成');
+          fixed = fixed.replace(/^(\s*[-*+]\s*)我完成/gm, '$1完成');
+          fixed = fixed.replace(/^(\s*[-*+]\s*)我参与了/gm, '$1参与');
+          fixed = fixed.replace(/^(\s*[-*+]\s*)我参与/gm, '$1参与');
+          fixed = fixed.replace(/^(\s*[-*+]\s*)(?:我们|我|自己)/gm, '$1');
+        }
         onUpdateMarkdown(fixed, true);
-      }
+      } : undefined
     });
   } else {
     issues.push({
       type: 'success',
       category: 'content',
-      title: isEn ? 'Subjective Pronouns: Perfectly objective' : '主观人称：符合客观书写规范',
+      title: isEn ? 'Subjective Pronouns: Direct action-oriented wording' : '主观人称：符合客观书写规范',
       desc: isEn 
-        ? 'No subjective personal pronouns (I/We) were found, adhering perfectly to resume writing standards.'
-        : '未包含主观的人称代词（我/自己），通篇采用客观的第三人称或动词开头，非常符合招聘规范。'
+        ? 'No first-person wording was found; the resume uses direct, action-oriented phrasing.'
+        : '未包含主观的人称代词（我/自己/我们），通篇采用客观、直接的动作描述。'
     });
   }
 

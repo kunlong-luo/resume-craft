@@ -271,7 +271,6 @@ export function TemplateCenterModal({
         marketRegion: selectedTemplate.targetMarket,
         paperSize: selectedTemplate.defaultPaperSize || settings.paperSize,
         dateStyle: selectedTemplate.dateStyle || settings.dateStyle,
-        lang: selectedTemplate.suggestedLang || settings.lang,
       });
     }
 

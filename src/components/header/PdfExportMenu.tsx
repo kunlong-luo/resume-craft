@@ -160,7 +160,7 @@ export function PdfExportMenu({
         type="button"
         onClick={() => setIsOpen((value) => !value)}
         disabled={isExporting}
-        aria-label={isEn ? 'Choose export format' : '选择导出格式'}
+        aria-label={isEn ? 'Choose PDF export mode' : '选择 PDF 下载方式'}
         aria-expanded={isOpen}
         className="flex items-center justify-center rounded-r-xl border-l border-white/20 bg-blue-600 px-2 text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-75"
       >
@@ -184,7 +184,7 @@ export function PdfExportMenu({
           <div className="mb-2 rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800/70">
             <div className="flex items-center justify-between">
               <label htmlFor={fileNameId} className="block text-[10px] font-black uppercase tracking-[0.1em] text-slate-400">
-                {isEn ? 'Export File Name' : '导出文件名'}
+                {isEn ? 'PDF file name' : 'PDF 文件名'}
               </label>
               {customFileName && (
                 <button

@@ -1,6 +1,6 @@
 import { formatChineseEnglishSpacing } from './format-utils';
 import { parseMarkdownToForm, parseFormToMarkdown } from './markdown-parser';
-import { formatDateRange } from './date-parser';
+import { DATE_RANGE_REGEX, formatDateRange } from './date-parser';
 import { getMarketProfile } from './market-profile';
 import { MarketRegion, DateStyle } from '../types';
 
@@ -26,29 +26,29 @@ export function normalizeAllDatesInMarkdown(
   dateStyle: DateStyle = 'month-short',
   isEn: boolean = false
 ): { markdown: string; convertedCount: number } {
-  const model = parseMarkdownToForm(markdown);
   let convertedCount = 0;
+  const dateRangeRegex = new RegExp(DATE_RANGE_REGEX.source, 'gi');
 
-  model.sections.forEach(sec => {
-    if (sec.type === 'items') {
-      sec.items.forEach(item => {
-        if (item.time && item.time.trim()) {
-          const formatted = formatDateRange(item.time, dateStyle, isEn);
-          if (formatted && formatted !== item.time) {
-            item.time = formatted;
-            convertedCount++;
-          }
-        }
+  const normalized = markdown
+    .split('\n')
+    .map((line) => {
+      // Structured resume item dates live in item headings. Patching only the
+      // matched date range keeps all unrelated custom Markdown byte-for-byte.
+      if (!/^#{3,4}\s+/.test(line)) return line;
+
+      return line.replace(dateRangeRegex, (rawRange) => {
+        const formatted = formatDateRange(rawRange, dateStyle, isEn);
+        if (!formatted || formatted === rawRange) return rawRange;
+        convertedCount++;
+        return formatted;
       });
-    }
-  });
+    })
+    .join('\n');
 
-  if (convertedCount === 0) {
-    return { markdown, convertedCount: 0 };
-  }
-
-  const newMarkdown = parseFormToMarkdown(model);
-  return { markdown: newMarkdown, convertedCount };
+  return {
+    markdown: convertedCount > 0 ? normalized : markdown,
+    convertedCount,
+  };
 }
 
 /**

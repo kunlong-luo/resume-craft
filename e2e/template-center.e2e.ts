@@ -16,7 +16,7 @@ test.describe('template center', () => {
 
     const toolbar = page.locator('#resume-main-toolbar');
     await expect(
-      toolbar.getByRole('button', { name: /Browse resume templates|浏览与切换简历模板/ }),
+      toolbar.getByRole('button', { name: /Open template library|打开模板库/ }),
     ).toHaveCount(1);
 
     await expect(
@@ -55,7 +55,7 @@ test.describe('template center', () => {
     await page.goto('/');
 
     await page
-      .getByRole('button', { name: /Browse resume templates|浏览与切换简历模板/ })
+      .getByRole('button', { name: /Open template library|打开模板库/ })
       .click();
 
     const dialog = page.getByRole('dialog', {
@@ -87,7 +87,7 @@ test.describe('template center', () => {
     );
 
     await page
-      .getByRole('button', { name: /Browse resume templates|浏览与切换简历模板/ })
+      .getByRole('button', { name: /Open template library|打开模板库/ })
       .click();
 
     const dialog = page.getByRole('dialog', {
@@ -118,7 +118,7 @@ test.describe('template center', () => {
     await page.goto('/');
 
     await page
-      .getByRole('button', { name: /Browse resume templates|浏览与切换简历模板/ })
+      .getByRole('button', { name: /Open template library|打开模板库/ })
       .click();
 
     const dialog = page.getByRole('dialog', {
@@ -163,18 +163,18 @@ test.describe('template center', () => {
 
     const toolbar = page.locator('#resume-main-toolbar');
 
-    await toolbar.getByRole('button', { name: /Open layout settings|打开排版设置/ }).click();
+    await toolbar.getByRole('button', { name: 'Layout' }).click();
     const layoutDialog = page.getByRole('dialog', { name: 'Layout' });
     await layoutDialog.getByRole('button', { name: /Two columns/ }).click();
     await layoutDialog.getByRole('button', { name: 'Close Layout' }).click();
 
-    await toolbar.getByRole('button', { name: /Open style settings|打开样式设置/ }).click();
+    await toolbar.getByRole('button', { name: 'Style' }).click();
     const styleDialog = page.getByRole('dialog', { name: 'Style' });
     await styleDialog.getByRole('button', { name: 'Tech & Internet' }).click();
     await styleDialog.getByRole('button', { name: 'Close Style' }).click();
 
     await toolbar
-      .getByRole('button', { name: /Browse resume templates|浏览与切换简历模板/ })
+      .getByRole('button', { name: /Open template library|打开模板库/ })
       .click();
 
     const templateDialog = page.getByRole('dialog', {
@@ -194,14 +194,14 @@ test.describe('template center', () => {
       .getByRole('button', { name: /Use content template|使用内容模板/ })
       .click();
 
-    await toolbar.getByRole('button', { name: /Open layout settings|打开排版设置/ }).click();
+    await toolbar.getByRole('button', { name: 'Layout' }).click();
     const layoutAfter = page.getByRole('dialog', { name: 'Layout' });
     await expect(
       layoutAfter.getByRole('button', { name: /Two columns/ }),
     ).toHaveAttribute('aria-pressed', 'true');
     await layoutAfter.getByRole('button', { name: 'Close Layout' }).click();
 
-    await toolbar.getByRole('button', { name: /Open style settings|打开样式设置/ }).click();
+    await toolbar.getByRole('button', { name: 'Style' }).click();
     const styleAfter = page.getByRole('dialog', { name: 'Style' });
     await expect(
       styleAfter.getByRole('button', { name: 'Tech & Internet' }),
@@ -212,7 +212,7 @@ test.describe('template center', () => {
     await page.goto('/');
 
     const trigger = page.getByRole('button', {
-      name: /Browse resume templates|浏览与切换简历模板/,
+      name: /Open template library|打开模板库/,
     });
     await trigger.focus();
     await trigger.press('Enter');

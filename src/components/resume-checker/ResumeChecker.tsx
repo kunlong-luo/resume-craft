@@ -36,8 +36,14 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
   }, [markdown]);
 
   const analysis = useMemo(() => {
-    return analyzeResume(markdown, onUpdateMarkdown, lang, marketRegion);
-  }, [markdown, onUpdateMarkdown, lang, marketRegion]);
+    return analyzeResume(
+      markdown,
+      onUpdateMarkdown,
+      lang,
+      marketRegion,
+      store.measuredPageCount,
+    );
+  }, [markdown, onUpdateMarkdown, lang, marketRegion, store.measuredPageCount]);
 
   const handleFixAll = () => {
     const result = autoFormatAndCleanResume(markdown, {

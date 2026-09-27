@@ -19,6 +19,15 @@ describe('print page style', () => {
     expect(css).not.toContain('width: 210mm !important');
   });
 
+  it('resets preview-only positioning inside the isolated print document', () => {
+    const css = getPrintPageStyle('a4');
+
+    expect(css).toContain('overflow: visible !important');
+    expect(css).toContain('position: static !important');
+    expect(css).toContain('transform: none !important');
+    expect(css).toContain('inset: auto !important');
+  });
+
   it('falls back to A4 when no paper size is supplied', () => {
     expect(getPrintPageStyle()).toContain('size: A4 portrait');
   });

@@ -3,6 +3,14 @@ import { Calendar, Check, X, RotateCcw } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
 import { CustomCheckbox } from '../ui/CustomCheckbox';
 import { Tooltip } from '../ui/Tooltip';
+import { DateStyle, MarketRegion } from '../../types';
+import { getMarketProfile } from '../../lib/market-profile';
+import {
+  parseDateRange,
+  formatDateRange,
+  MONTH_NAMES_SHORT,
+  MONTH_NAMES_LONG,
+} from '../../lib/date-parser';
 
 interface MonthRangePickerProps {
   value: string;
@@ -12,6 +20,8 @@ interface MonthRangePickerProps {
   lang?: string;
   leftIcon?: React.ReactNode;
   showPresentToggle?: boolean;
+  dateStyle?: DateStyle;
+  marketRegion?: MarketRegion;
 }
 
 export function MonthRangePicker({
@@ -21,13 +31,18 @@ export function MonthRangePicker({
   className = '',
   lang = 'zh',
   leftIcon,
-  showPresentToggle = false
+  showPresentToggle = false,
+  dateStyle,
+  marketRegion,
 }: MonthRangePickerProps) {
   const isEn = lang === 'en';
+  const effectiveDateStyle: DateStyle =
+    dateStyle || (marketRegion ? getMarketProfile(marketRegion).dateStyle : (isEn ? 'month-short' : 'cn-dot'));
+
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Parse existing value e.g. "2021.09 - 2024.06" or "2021.09 - 至今"
+  // Parse existing value e.g. "2021.09 - 2024.06" or "Mar 2021 – Present"
   const currentYearStr = String(new Date().getFullYear());
   const [startYear, setStartYear] = useState(currentYearStr);
   const [startMonth, setStartMonth] = useState('09');
@@ -35,7 +50,7 @@ export function MonthRangePicker({
   const [endMonth, setEndMonth] = useState('06');
   const [isOngoing, setIsOngoing] = useState(false);
 
-  // Generate Year Options: from currentYear + 5 down to 25 years ago
+  // Generate Year Options: from currentYear + 4 down to 25 years ago
   const years = useMemoYears();
 
   function useMemoYears() {
@@ -49,54 +64,29 @@ export function MonthRangePicker({
 
   const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 
-  // Handle parsing when opening the picker
+  // Handle parsing when opening the picker using robust parseDateRange
   useEffect(() => {
     if (isOpen && value) {
-      // Split by any common range separator: hyphen (-), em-dash (—), en-dash (–), tilde (~), '至', or 'to'
-      const parts = value.split(/\s*(?:[\-—–~至]|to)\s*/i).map(s => s.trim()).filter(Boolean);
-      if (parts.length >= 1) {
-        // Split year and month by '.', '-', '/', '年', or '月'
-        const startParts = parts[0].split(/[\.\-\/年月]/).map(s => s.trim()).filter(Boolean);
-        if (startParts.length >= 1) {
-          const year = startParts[0];
-          if (year.length === 4) setStartYear(year);
+      const parsed = parseDateRange(value);
+      if (parsed) {
+        if (parsed.start?.year) {
+          setStartYear(String(parsed.start.year));
         }
-        if (startParts.length >= 2) {
-          const month = startParts[1].padStart(2, '0');
-          if (month.length === 2 && months.includes(month)) setStartMonth(month);
+        if (parsed.start?.month) {
+          setStartMonth(String(parsed.start.month).padStart(2, '0'));
         }
-      }
-      if (parts.length >= 2) {
-        const endStr = parts[1];
-        const now = new Date();
-        const cy = String(now.getFullYear());
-        const cm = String(now.getMonth() + 1).padStart(2, '0');
 
-        if (endStr === '至今' || endStr.toLowerCase() === 'present' || endStr === '现在' || endStr === 'now') {
-          setIsOngoing(true);
-        } else {
-          const endParts = endStr.split(/[\.\-\/年月]/).map(s => s.trim()).filter(Boolean);
-          let parsedYear = endYear;
-          let parsedMonth = endMonth;
-          if (endParts.length >= 1) {
-            const year = endParts[0];
-            if (year.length === 4) {
-              parsedYear = year;
-              setEndYear(year);
-            }
-          }
-          if (endParts.length >= 2) {
-            const month = endParts[1].padStart(2, '0');
-            if (month.length === 2 && months.includes(month)) {
-              parsedMonth = month;
-              setEndMonth(month);
-            }
-          }
-          // If the parsed date is the current year and month, default isOngoing to true
-          if (parsedYear === cy && parsedMonth === cm) {
+        if (parsed.hasRange && parsed.end) {
+          if (parsed.end.isPresent) {
             setIsOngoing(true);
           } else {
             setIsOngoing(false);
+            if (parsed.end.year) {
+              setEndYear(String(parsed.end.year));
+            }
+            if (parsed.end.month) {
+              setEndMonth(String(parsed.end.month).padStart(2, '0'));
+            }
           }
         }
       }
@@ -122,8 +112,10 @@ export function MonthRangePicker({
 
   const handleApply = () => {
     const startStr = `${startYear}.${startMonth}`;
-    const endStr = isOngoing ? (isEn ? 'Present' : '至今') : `${endYear}.${endMonth}`;
-    onChange(`${startStr} - ${endStr}`);
+    const endStr = isOngoing ? '至今' : `${endYear}.${endMonth}`;
+    const rawRange = `${startStr} - ${endStr}`;
+    const formatted = formatDateRange(rawRange, effectiveDateStyle, isEn);
+    onChange(formatted);
     setIsOpen(false);
   };
 
@@ -136,32 +128,46 @@ export function MonthRangePicker({
     setIsOpen(false);
   };
 
-  const isEndingWithPresent = /(至今|present|现在|current|now)/i.test(value);
+  const isEndingWithPresent = /(至今|present|现在|current|now|毕业)/i.test(value);
 
   const handleTogglePresentQuickly = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const presentLabel = isEn ? 'Present' : '至今';
+    const cy = new Date().getFullYear();
+    const cm = String(new Date().getMonth() + 1).padStart(2, '0');
+
     if (!value.trim()) {
-      const cy = new Date().getFullYear();
-      onChange(`${cy}.01 - ${presentLabel}`);
+      const raw = `${cy}.01 - 至今`;
+      onChange(formatDateRange(raw, effectiveDateStyle, isEn));
       return;
     }
-    
-    const parts = value.split(/\s*(?:[\-—–~至]|to)\s*/i).map(s => s.trim()).filter(Boolean);
-    if (parts.length === 0) {
-      const cy = new Date().getFullYear();
-      onChange(`${cy}.01 - ${presentLabel}`);
-    } else {
-      const startPart = parts[0];
-      if (isEndingWithPresent) {
-        const cy = new Date().getFullYear();
-        const cm = String(new Date().getMonth() + 1).padStart(2, '0');
-        onChange(`${startPart} - ${cy}.${cm}`);
-      } else {
-        onChange(`${startPart} - ${presentLabel}`);
-      }
+
+    const parsed = parseDateRange(value);
+    if (!parsed || !parsed.start) {
+      const raw = `${cy}.01 - 至今`;
+      onChange(formatDateRange(raw, effectiveDateStyle, isEn));
+      return;
     }
+
+    const startStr = `${parsed.start.year || cy}.${String(parsed.start.month || 1).padStart(2, '0')}`;
+    if (isEndingWithPresent) {
+      const raw = `${startStr} - ${cy}.${cm}`;
+      onChange(formatDateRange(raw, effectiveDateStyle, isEn));
+    } else {
+      const raw = `${startStr} - 至今`;
+      onChange(formatDateRange(raw, effectiveDateStyle, isEn));
+    }
+  };
+
+  const getMonthLabel = (m: string) => {
+    const mNum = parseInt(m, 10);
+    if (effectiveDateStyle === 'month-short') {
+      return MONTH_NAMES_SHORT[mNum - 1];
+    }
+    if (effectiveDateStyle === 'month-long') {
+      return MONTH_NAMES_LONG[mNum - 1];
+    }
+    return `${m}${isEn ? '' : '月'}`;
   };
 
   const cleanedClassName = className
@@ -265,7 +271,7 @@ export function MonthRangePicker({
                           : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                       }`}
                     >
-                      {m}{isEn ? '' : '月'}
+                      {getMonthLabel(m)}
                     </button>
                   );
                 })}
@@ -320,7 +326,7 @@ export function MonthRangePicker({
                           : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer'
                       }`}
                     >
-                      {m}{isEn ? '' : '月'}
+                      {getMonthLabel(m)}
                     </button>
                   );
                 })}

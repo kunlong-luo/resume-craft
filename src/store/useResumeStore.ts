@@ -346,7 +346,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     );
     storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     storage.set(STORAGE_KEYS.MARKDOWN, markdown);
-    set({ markdown, profiles: updatedProfiles });
+    set({ markdown, profiles: updatedProfiles, measuredPageCount: null });
   },
   setSettings: (settings) => {
     const { profiles, activeProfileId } = get();
@@ -357,7 +357,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     );
     storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     storage.set(STORAGE_KEYS.SETTINGS, settings);
-    set({ settings, profiles: updatedProfiles });
+    set({ settings, profiles: updatedProfiles, measuredPageCount: null });
   },
   setCurrentTemplateId: (currentTemplateId) => set({ currentTemplateId }),
   setLastSaved: (lastSaved) => set({ lastSaved }),

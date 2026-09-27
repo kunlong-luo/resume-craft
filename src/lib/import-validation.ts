@@ -161,8 +161,11 @@ export function normalizeImportedSettings(
   const lang = isOneOf(value.lang, LANGUAGES) ? value.lang : fallback.lang;
   if (lang !== undefined) normalized.lang = lang;
 
-  const hasExplicitMarket = isOneOf(value.marketRegion, MARKET_REGIONS);
-  const marketRegion = hasExplicitMarket ? value.marketRegion : fallback.marketRegion;
+  const explicitMarket = isOneOf(value.marketRegion, MARKET_REGIONS)
+    ? value.marketRegion
+    : undefined;
+  const hasExplicitMarket = explicitMarket !== undefined;
+  const marketRegion = explicitMarket ?? fallback.marketRegion;
   if (marketRegion !== undefined) normalized.marketRegion = marketRegion;
 
   const marketDefaults = marketRegion ? getMarketProfile(marketRegion) : undefined;

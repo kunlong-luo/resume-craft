@@ -1,4 +1,5 @@
 import { ResumeSettings } from '../types';
+import { COMPREHENSIVE_DATE_REGEX } from './date-parser';
 
 export const THEME_MAP = {
   blue: {
@@ -173,7 +174,7 @@ export function parseResumeHeader(markdown: string) {
         (titles.length === 0 && !line.startsWith('- ') && !line.startsWith('* ') && (lower.includes('运营') || lower.includes('工程师') || lower.includes('开发') || lower.includes('架构师') || lower.includes('总监') || lower.includes('经理') || lower.includes('主管') || lower.includes('专员') || lower.includes('设计师') || lower.includes('产品') || lower.includes('developer') || lower.includes('engineer') || lower.includes('manager')));
 
       // 2. Check if contact line (phone, email, social link, etc.)
-      const hasDateRange = /(?:19|20)\d{2}(?:[\.\-\/]\d{1,2})?\s*[-—–~至到]/i.test(stripped);
+      const hasDateRange = COMPREHENSIVE_DATE_REGEX.test(stripped);
       const isPhoneLike = !hasDateRange && (
         /^(?:电话|手机|手机号|手机号码|联系方式|联系电话|Tel|Mobile|Phone|Contact)[:：\s-]*[+0-9\s\-()]{7,25}/i.test(stripped) ||
         (/(?:\+?86[\s-]?)?1[3-9](?:[\s-]?\d){9}/.test(stripped) && !/(?:经验|运营|负责|工作|年限|学校|学历|能力)/.test(stripped)) ||
@@ -292,8 +293,9 @@ export function cleanMarkdown(markdown: string): string {
   // Preceded by space, Chinese character, or asterisks. Followed by a Chinese character or a word/letter (excluding numeric date ranges).
   // Note: We only split on dash-like markers (-, –, —, －) here to prevent breaking inline lists separated by dots (·, •, ●, etc.) or contact details.
   // CRITICAL FIX: Must NOT split if preceded by a date or followed by ongoing date terms (至今, 现在, 目前, present, etc.)
+  // or English month names (Jan, Feb, Mar, etc.)
   processed = processed.replace(
-    /(?<!\n|^)(?<!\b(?:19|20)\d{2}(?:[.\-/年]\d{1,2}(?:[月.\-/]\d{1,2})?)?\s*)(?<=\s|[\u4e00-\u9fa5]|\*\*\*|\*\*|\*)\s*[-–—－]\s*(?!\s*(?:至今|现在|目前|present|Present|now|current|毕业|\b(?:19|20)\d{2}))(?=[\u4e00-\u9fa5]|[a-zA-Z]{2,})/g,
+    /(?<!\n|^)(?<!\b(?:19|20)\d{2}(?:[.\-/年]\d{1,2}(?:[月.\-/]\d{1,2})?)?\s*)(?<!\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[.,]?\s*(?:19|20)\d{2}\s*)(?<=\s|[\u4e00-\u9fa5]|\*\*\*|\*\*|\*)\s*[-–—－]\s*(?!\s*(?:至今|现在|目前|present|Present|now|current|毕业|\b(?:19|20)\d{2}|(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)))(?=[\u4e00-\u9fa5]|[a-zA-Z]{2,})/gi,
     '\n- '
   );
 

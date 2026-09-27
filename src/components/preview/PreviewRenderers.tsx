@@ -1,9 +1,10 @@
 import React from 'react';
 import { getH2ClassName } from '../../lib/preview-utils';
 import { translateSectionTitle } from '../../lib/section-translator';
+import { COMPREHENSIVE_DATE_REGEX, formatDateRange } from '../../lib/date-parser';
+import { getMarketProfile } from '../../lib/market-profile';
 
 // Static constants lifted out of render cycle to prevent repeated compilation and memory allocation overhead
-const DATE_REGEX = /(?:(?:19|20)\d{2}[\.\-\/年\s]\d{1,2}\s*月?|(?:19|20)\d{2})\s*(?:[\-—–―~～至到]|--+|\s+)\s*(?:(?:19|20)\d{2}[\.\-\/年\s]\d{1,2}\s*月?|(?:19|20)\d{2}|至今|现在|目前|present|Present|now|current|毕业)/gi;
 const SPLIT_REGEX = /[　]|\s*[|｜·•]\s*|\s{2,}/g;
 
 const ROLE_KEYWORDS = [
@@ -34,17 +35,18 @@ function renderStructuralRow(
   children: any,
   sizeClasses: any,
   theme: any,
-  defaultRender: () => React.ReactElement
+  defaultRender: () => React.ReactElement,
+  settings?: any
 ): React.ReactElement {
   const textContent = getChildrenText(children).trim();
 
   let datePart = '';
   let mainText = textContent;
   
-  const matches = textContent.match(DATE_REGEX);
+  const matches = textContent.match(COMPREHENSIVE_DATE_REGEX);
   if (matches && matches.length > 0) {
     datePart = matches[0].trim();
-    mainText = textContent.replace(DATE_REGEX, '').trim();
+    mainText = textContent.replace(COMPREHENSIVE_DATE_REGEX, '').trim();
     mainText = mainText.replace(/[\*\s\(\)]+$/, '').trim();
     mainText = mainText.replace(/^[\*\s\(\)]+/, '').trim();
   }
@@ -68,6 +70,13 @@ function renderStructuralRow(
           companyOrProject = segments[1];
           roleOrTitle = segments[0];
         }
+      }
+
+      // Format datePart according to market profile dateStyle if available
+      let formattedDate = datePart;
+      if (datePart && settings) {
+        const market = getMarketProfile(settings.marketRegion);
+        formattedDate = formatDateRange(datePart, market.dateStyle, settings.lang === 'en');
       }
 
       // Elegant premium typography for resume headers
@@ -97,9 +106,9 @@ function renderStructuralRow(
             </div>
           </div>
 
-          {datePart && (
+          {formattedDate && (
             <span className="text-gray-500 font-semibold font-mono whitespace-nowrap ml-auto tabular-nums text-[12.5px]">
-              {datePart}
+              {formattedDate}
             </span>
           )}
         </div>
@@ -140,17 +149,17 @@ export function createMarkdownComponents({
     h3: ({ node, children, ...props }: any) => {
       return renderStructuralRow(children, sizeClasses, theme, () => (
         <h3 className={sizeClasses.h3} {...props}>{children}</h3>
-      ));
+      ), settings);
     },
     h4: ({ node, children, ...props }: any) => {
       return renderStructuralRow(children, sizeClasses, theme, () => (
         <h4 className="text-[13px] font-bold text-gray-800 mt-2 mb-1" {...props}>{children}</h4>
-      ));
+      ), settings);
     },
     p: ({ node, children, ...props }: any) => {
       return renderStructuralRow(children, sizeClasses, theme, () => (
         <p className={sizeClasses.p} {...props}>{children}</p>
-      ));
+      ), settings);
     },
     ul: ({ node, ...props }: any) => <ul className={sizeClasses.ul} {...props} />,
     ol: ({ node, ...props }: any) => <ol className={sizeClasses.ol} {...props} />,

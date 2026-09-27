@@ -13,6 +13,7 @@ import { ResumeHeader } from './ResumeHeader';
 import { ZoomControls } from './ZoomControls';
 import { useA4Measurement } from '../../hooks/useA4Measurement';
 import { getPaperMarginMm } from '../../lib/page-layout';
+import { getPaperSpec } from '../../lib/paper';
 import { trackAnalyticsEvent } from '../../lib/analytics';
 
 interface PreviewProps {
@@ -38,7 +39,15 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
   const [targetPageLimit, setTargetPageLimit] = useState<1 | 2 | 3>(1);
   const [isAutoFitting, setIsAutoFitting] = useState(false);
 
-  // Hook for A4 wrapper measuring, zoom calculation & page limits
+  const paperSpec = useMemo(() => getPaperSpec(settings.paperSize), [settings.paperSize]);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-paper-size', paperSpec.id);
+    }
+  }, [paperSpec.id]);
+
+  // Hook for page wrapper measuring, zoom calculation & page limits
   const elementRef = (ref && 'current' in ref ? ref : { current: null }) as React.RefObject<HTMLDivElement | null>;
   const {
     wrapperRef,
@@ -47,7 +56,13 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
     setZoomMode,
     calculatedZoom,
     metrics
-  } = useA4Measurement(elementRef, targetPageLimit, setMeasuredPageCount, [markdown, settings]);
+  } = useA4Measurement(
+    elementRef,
+    targetPageLimit,
+    setMeasuredPageCount,
+    [markdown, settings],
+    paperSpec.id
+  );
 
   // Progressive smart auto-fit loop
   useEffect(() => {
@@ -119,12 +134,22 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
   // Memoized Inner Resume Content
   const resumeInnerContent = useMemo(() => {
     const bodyContent = headerInfo.hasHeader ? headerInfo.bodyMarkdown : cleaned;
-    const pageBreakLabel = settings.lang === 'en' ? 'A4 Page {p} Boundary ({size}mm) ✂️' : 'A4 第 {p} 页边界线 ({size}mm) ✂️';
+    const isLetter = paperSpec.id === 'letter';
+    const paperName = settings.lang === 'en'
+      ? (isLetter ? 'Letter' : 'A4')
+      : (isLetter ? 'US Letter' : 'A4');
+    const pageBreakLabel = settings.lang === 'en' 
+      ? `${paperName} Page {p} Boundary ({size}mm) ✂️` 
+      : `${paperName} 第 {p} 页边界线 ({size}mm) ✂️`;
 
     return (
       <>
         <style dangerouslySetInnerHTML={{ __html: `
           @media print {
+            @page {
+              size: ${paperSpec.cssPageSize} portrait;
+              margin: 0mm !important;
+            }
             .resume-wrapper {
               height: auto !important;
               max-width: none !important;
@@ -184,15 +209,23 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
               <div 
                 key={p} 
                 className="absolute left-0 right-0 border-b-2 border-dashed border-rose-400/80 dark:border-rose-500/80 flex items-center justify-between text-[9.5px] select-none h-0 shadow-[0_1px_4px_rgba(244,63,94,0.15)]" 
-                style={{ top: `${p * 297}mm` }}
+                style={{ top: `${p * paperSpec.heightMm}mm` }}
               >
                 <div className="bg-rose-500 dark:bg-rose-600 text-white border border-rose-400/60 px-2.5 py-0.5 rounded-full shadow-md ml-4 -translate-y-1/2 flex items-center gap-1.5 font-bold tracking-tight">
                   <span className="text-[10px]">✂️</span>
-                  <span className="text-[9.5px] font-mono tracking-wider">{settings.lang === 'en' ? `A4 Page ${p} Fold` : `A4 第 ${p} 页裁切参考线`}</span>
+                  <span className="text-[9.5px] font-mono tracking-wider">
+                    {settings.lang === 'en'
+                      ? `${paperName} Page ${p} Fold`
+                      : `${paperName} 第 ${p} 页裁切参考线`}
+                  </span>
                 </div>
                 <div className="bg-white/95 dark:bg-slate-850/95 backdrop-blur-md border border-rose-200/90 dark:border-rose-800 text-rose-600 dark:text-rose-300 px-2.5 py-0.5 rounded-full shadow-xs mr-4 -translate-y-1/2 font-mono flex items-center gap-1.5 text-[9.5px] font-bold tracking-tight">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block animate-pulse" />
-                  <span>{pageBreakLabel.replace('{p}', String(p)).replace('{size}', String(p * 297))}</span>
+                  <span>
+                    {pageBreakLabel
+                      .replace('{p}', String(p))
+                      .replace('{size}', String(Math.round(p * paperSpec.heightMm)))}
+                  </span>
                 </div>
               </div>
             ))}
@@ -307,7 +340,9 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
       <div className="flex flex-row items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200/60 dark:border-slate-800/80 backdrop-blur-sm z-30 select-none print:hidden shrink-0 gap-2 transition-all">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-            {isEn ? 'Real-time Rendering Preview (A4 Page)' : '实时渲染预览 (A4 页面)'}
+            {isEn 
+              ? `Real-time Rendering Preview (${paperSpec.id === 'letter' ? 'US Letter' : 'A4'})` 
+              : `实时渲染预览 (${paperSpec.id === 'letter' ? 'US Letter 纸张' : 'A4 纸张'})`}
           </span>
         </div>
         
@@ -326,7 +361,7 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
         <div 
           style={{
             width: '100%',
-            maxWidth: `${210 * calculatedZoom}mm`,
+            maxWidth: `${paperSpec.widthMm * calculatedZoom}mm`,
             height: unscaledHeight ? `${unscaledHeight * calculatedZoom}px` : 'auto',
             position: 'relative',
           }}
@@ -335,18 +370,20 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
           <div 
             ref={ref}
             id="resume-print-content"
+            data-paper-size={paperSpec.id}
             style={{
               transformOrigin: 'top center',
-              width: '210mm',
-              minWidth: '210mm',
-              maxWidth: '210mm',
+              width: `${paperSpec.widthMm}mm`,
+              minWidth: `${paperSpec.widthMm}mm`,
+              maxWidth: `${paperSpec.widthMm}mm`,
+              minHeight: `${paperSpec.heightMm}mm`,
               position: 'absolute',
               top: 0,
               left: '50%',
               transform: `translateX(-50%) scale(${calculatedZoom})`,
               padding: `${pagePaddingMm}mm`,
             }}
-            className={`bg-white resume-content w-[210mm] min-w-[210mm] max-w-[210mm] min-h-[297mm] h-fit mx-auto print:shadow-none print:ring-0 print:m-0 print:w-full relative origin-top transition-all duration-300 print:relative print:left-auto print:top-auto print:transform-none print:max-w-full print:w-full ${fontClass} ${
+            className={`bg-white resume-content h-fit mx-auto print:shadow-none print:ring-0 print:m-0 print:w-full relative origin-top transition-all duration-300 print:relative print:left-auto print:top-auto print:transform-none print:max-w-full print:w-full ${fontClass} ${
               metrics.isOver 
                 ? 'shadow-[0_4px_24px_rgba(244,63,94,0.08),0_16px_40px_-6px_rgba(15,23,42,0.12),0_0_0_1.5px_rgba(244,63,94,0.4)] ring-1 ring-rose-400/30' 
                 : 'shadow-[0_4px_6px_-1px_rgba(0,0,0,0.02),0_12px_28px_-4px_rgba(15,23,42,0.06),0_24px_60px_-12px_rgba(15,23,42,0.08),0_0_0_1px_rgba(15,23,42,0.04)] ring-1 ring-black/5'

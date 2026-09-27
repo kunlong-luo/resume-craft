@@ -10,7 +10,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
+    "build": "node scripts/generate-og-card.mjs && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "clean": "rm -rf dist server.js",

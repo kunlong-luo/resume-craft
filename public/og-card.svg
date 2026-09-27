@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Resume Craft — Local-first Markdown Resume Builder</title>
+  <desc id="desc">Social preview card for Resume Craft with a Markdown editor and live resume preview.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111b72"/>
+      <stop offset="0.55" stop-color="#263bd6"/>
+      <stop offset="1" stop-color="#754cff"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef2ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#08103e" flood-opacity=".34"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <path d="M0 95C190 10 374 20 570 110S955 190 1200 54V0H0Z" fill="#fff" opacity=".07"/>
+  <path d="M0 522C220 620 435 575 640 512S1018 440 1200 520V630H0Z" fill="#081052" opacity=".28"/>
+  <circle cx="1070" cy="105" r="145" fill="#9d8bff" opacity=".12"/>
+
+  <g transform="translate(58 74)">
+    <rect width="68" height="82" rx="15" fill="#eef2ff"/>
+    <path d="M45 0l23 23H55a10 10 0 0 1-10-10Z" fill="#8797ff"/>
+    <rect x="14" y="35" width="37" height="7" rx="3.5" fill="#4f46e5"/>
+    <rect x="14" y="51" width="42" height="7" rx="3.5" fill="#4f46e5"/>
+    <rect x="14" y="67" width="29" height="7" rx="3.5" fill="#4f46e5"/>
+  </g>
+
+  <text x="58" y="230" font-family="Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif" font-size="64" font-weight="800" fill="#fff">Resume Craft</text>
+  <text x="58" y="280" font-family="Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif" font-size="27" font-weight="750" fill="#dfe5ff">Local-first Markdown Resume Builder</text>
+  <text x="58" y="326" font-family="Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif" font-size="19" fill="#cfd7ff">Edit in Markdown or forms. Preview A4 / Letter live.</text>
+
+  <g font-family="Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif" font-size="16" font-weight="700" fill="#fff">
+    <rect x="58" y="365" width="190" height="42" rx="21" fill="#fff" opacity=".12"/>
+    <text x="80" y="392">Live Preview</text>
+    <rect x="260" y="365" width="150" height="42" rx="21" fill="#fff" opacity=".12"/>
+    <text x="284" y="392">ATS Checks</text>
+    <rect x="58" y="420" width="145" height="42" rx="21" fill="#fff" opacity=".12"/>
+    <text x="84" y="447">Auto Fit</text>
+    <rect x="215" y="420" width="155" height="42" rx="21" fill="#fff" opacity=".12"/>
+    <text x="241" y="447">PDF Export</text>
+  </g>
+
+  <text x="58" y="530" font-family="Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif" font-size="18" fill="#dfe5ff">Open source · Local-first · React + TypeScript</text>
+
+  <g transform="translate(560 58)" filter="url(#shadow)">
+    <rect width="582" height="514" rx="24" fill="url(#paper)" stroke="#d9e1ff" stroke-width="3"/>
+    <rect width="582" height="44" rx="24" fill="#eef2ff"/>
+    <circle cx="23" cy="22" r="6" fill="#ff625f"/>
+    <circle cx="43" cy="22" r="6" fill="#ffbd44"/>
+    <circle cx="63" cy="22" r="6" fill="#23c552"/>
+
+    <rect x="18" y="62" width="82" height="424" rx="14" fill="#e9edff"/>
+    <g font-family="Inter,ui-sans-serif,system-ui" font-size="11.5" font-weight="700" fill="#2638bd">
+      <text x="32" y="101">Editor</text>
+      <text x="32" y="145">Preview</text>
+      <text x="32" y="189">ATS Check</text>
+      <text x="32" y="233">Export</text>
+    </g>
+
+    <rect x="112" y="62" width="212" height="424" rx="14" fill="#fff"/>
+    <text x="129" y="93" font-family="Inter,ui-sans-serif,system-ui" font-size="13" font-weight="800" fill="#17216d">Markdown</text>
+    <line x1="129" y1="106" x2="198" y2="106" stroke="#4f46e5" stroke-width="3"/>
+    <g font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="10" fill="#243078">
+      <text x="129" y="138"># Alex Chen</text>
+      <text x="129" y="160">Software Engineer</text>
+      <text x="129" y="201">## Summary</text>
+      <text x="129" y="221">Building delightful products</text>
+      <text x="129" y="239">with design and technology.</text>
+      <text x="129" y="283">## Experience</text>
+      <text x="129" y="304">### Senior Software Engineer</text>
+      <text x="129" y="325">Acme Corp · 2022 – Present</text>
+      <text x="129" y="350">- Built scalable web apps</text>
+      <text x="129" y="371">- Improved performance</text>
+      <text x="129" y="414">## Skills</text>
+      <text x="129" y="435">TypeScript · React · Vite</text>
+    </g>
+
+    <path d="M296 215c18-22 36-22 54 0" fill="none" stroke="#7182ff" stroke-width="7" stroke-linecap="round"/>
+    <path d="M345 208l9 15-17 2" fill="#7182ff"/>
+
+    <rect x="336" y="62" width="228" height="424" rx="14" fill="#fff"/>
+    <text x="359" y="112" font-family="Inter,ui-sans-serif,system-ui" font-size="25" font-weight="800" fill="#12184d">Alex Chen</text>
+    <text x="359" y="133" font-family="Inter,ui-sans-serif,system-ui" font-size="11" fill="#47507a">Software Engineer</text>
+    <line x1="359" y1="153" x2="542" y2="153" stroke="#dce2f8"/>
+    <text x="359" y="183" font-family="Inter,ui-sans-serif,system-ui" font-size="11" font-weight="800" fill="#12184d">SUMMARY</text>
+    <text x="359" y="204" font-family="Inter,ui-sans-serif,system-ui" font-size="10" fill="#47507a">Building delightful products with</text>
+    <text x="359" y="220" font-family="Inter,ui-sans-serif,system-ui" font-size="10" fill="#47507a">design and technology.</text>
+    <text x="359" y="262" font-family="Inter,ui-sans-serif,system-ui" font-size="11" font-weight="800" fill="#12184d">EXPERIENCE</text>
+    <circle cx="366" cy="289" r="4" fill="#2638bd"/>
+    <line x1="366" y1="289" x2="366" y2="357" stroke="#8b97d6"/>
+    <text x="381" y="291" font-family="Inter,ui-sans-serif,system-ui" font-size="10" font-weight="700" fill="#12184d">Senior Software Engineer</text>
+    <text x="381" y="311" font-family="Inter,ui-sans-serif,system-ui" font-size="9" fill="#586083">Acme Corp · 2022 – Present</text>
+    <text x="381" y="339" font-family="Inter,ui-sans-serif,system-ui" font-size="9" fill="#586083">• Built scalable applications</text>
+    <text x="381" y="356" font-family="Inter,ui-sans-serif,system-ui" font-size="9" fill="#586083">• Improved performance</text>
+    <text x="359" y="401" font-family="Inter,ui-sans-serif,system-ui" font-size="11" font-weight="800" fill="#12184d">SKILLS</text>
+    <g font-family="Inter,ui-sans-serif,system-ui" font-size="8.8" fill="#29336d">
+      <rect x="359" y="415" width="51" height="20" rx="10" fill="#eef1ff"/>
+      <text x="372" y="429">React</text>
+      <rect x="417" y="415" width="69" height="20" rx="10" fill="#eef1ff"/>
+      <text x="428" y="429">TypeScript</text>
+      <rect x="493" y="415" width="48" height="20" rx="10" fill="#eef1ff"/>
+      <text x="506" y="429">Vite</text>
+    </g>
+  </g>
+</svg>

@@ -22,7 +22,7 @@ describe('Phase 5: Market-Aware ATS Diagnostics and Auto-Fixing Engine', () => {
 `;
 
       const analysisUs = analyzeResume(resumeWithSensitiveInfo, mockUpdateMarkdown, 'en', 'us');
-      const marketIssue = analysisUs.issues.find(i => i.category === 'market' && i.title.includes('Equal Opportunity'));
+      const marketIssue = analysisUs.issues.find(i => i.category === 'market' && i.title.includes('Market Guidance'));
 
       expect(marketIssue).toBeDefined();
       expect(marketIssue?.type).toBe('warning');
@@ -46,7 +46,7 @@ describe('Phase 5: Market-Aware ATS Diagnostics and Auto-Fixing Engine', () => {
 `;
 
       const analysisCn = analyzeResume(resumeCn, mockUpdateMarkdown, 'zh', 'cn');
-      const sensitiveIssue = analysisCn.issues.find(i => i.category === 'market' && i.title.includes('合规风控'));
+      const sensitiveIssue = analysisCn.issues.find(i => i.category === 'market' && i.title.includes('市场建议'));
       expect(sensitiveIssue).toBeUndefined();
     });
   });
@@ -88,6 +88,74 @@ jane@example.com | +44 7911 123456
       const normalized = normalizeAllDatesInMarkdown(resume, 'month-long', true);
       expect(normalized.convertedCount).toBe(1);
       expect(normalized.markdown).toContain('March 2022 – Present');
+    });
+  });
+
+  describe('First-person pronoun audit', () => {
+    it('detects English first-person pronouns and safely removes bullet-leading I/We', () => {
+      mockUpdateMarkdown.mockClear();
+      const resume = `# Alex Taylor
+alex@example.com | +1 206 555 0123
+
+## Experience
+### Tech Corp | Engineer | Mar 2022 – Present
+- I led the migration to a new platform.
+- We reduced build time by 30%.
+`;
+
+      const analysis = analyzeResume(resume, mockUpdateMarkdown, 'en', 'us');
+      const issue = analysis.issues.find(i => i.title.includes('First-person Pronouns'));
+
+      expect(issue?.type).toBe('warning');
+      expect(issue?.fixable).toBe(true);
+
+      issue?.onFix?.();
+
+      const fixed = mockUpdateMarkdown.mock.calls.at(-1)?.[0] as string;
+      expect(fixed).toContain('- led the migration to a new platform.');
+      expect(fixed).toContain('- reduced build time by 30%.');
+      expect(fixed).not.toContain('- I ');
+      expect(fixed).not.toContain('- We ');
+    });
+
+    it('does not mistake the country abbreviation US for a first-person pronoun', () => {
+      const resume = `# Alex Taylor
+Seattle, US | alex@example.com | +1 206 555 0123
+
+## Experience
+### Tech Corp | Engineer | Mar 2022 – Present
+- Led platform migration and improved reliability by 30%.
+`;
+
+      const analysis = analyzeResume(resume, mockUpdateMarkdown, 'en', 'us');
+      const issue = analysis.issues.find(i => i.title.includes('First-person Pronouns'));
+
+      expect(issue?.type).toBe('success');
+      expect(issue?.title).toContain('None detected');
+    });
+  });
+
+  describe('Explicit date style settings', () => {
+    it('uses an explicit date style instead of forcing the market default', () => {
+      const resume = `# Alex Taylor
+alex@example.com | +1 206 555 0123
+
+## Experience
+### Tech Corp | Engineer | Mar 2022 – Jun 2024
+- Led platform migration and improved reliability by 30%.
+`;
+
+      const analysis = analyzeResume(
+        resume,
+        mockUpdateMarkdown,
+        'en',
+        'us',
+        'month-long',
+      );
+      const issue = analysis.issues.find(i => i.title.includes('Date Format'));
+
+      expect(issue?.type).toBe('warning');
+      expect(issue?.desc).toContain('month-long');
     });
   });
 

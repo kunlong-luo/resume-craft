@@ -7,6 +7,11 @@ export type H2Style = 'accent-line' | 'modern-badge' | 'minimal-clean' | 'academ
 export type TemplateLayout = 'single' | 'two-column' | 'academic' | 'modern-card';
 export type Language = 'zh' | 'en';
 export type ThemeMode = 'light' | 'dark' | 'system';
+export type PaperSize = 'a4' | 'letter';
+export type MarketRegion = 'cn' | 'us' | 'ca' | 'uk' | 'ie' | 'international';
+export type DocumentNomenclature = 'resume' | 'cv';
+export type DateStyle = 'cn-dot' | 'month-short' | 'month-long';
+export type PersonalField = 'photo' | 'age' | 'gender' | 'marital' | 'nationality' | 'political' | 'hometown';
 
 export interface ResumeSettings {
   themeColor: ThemeColor;
@@ -24,6 +29,8 @@ export interface ResumeSettings {
   showPageBreakLine: boolean;
   templateLayout: TemplateLayout;
   lang?: Language;
+  paperSize?: PaperSize;
+  marketRegion?: MarketRegion;
   isPrivacyMasked?: boolean;
 }
 

@@ -91,6 +91,34 @@ jane@example.com | +44 7911 123456
     });
   });
 
+  describe('Measured page-count guidance', () => {
+    const resume = `# Alex Taylor
+alex@example.com | +1 206 555 0123
+
+## Experience
+### Example Corp | Engineer | Jan 2024 – Present
+- Led a platform migration that reduced latency by 30%.
+`;
+
+    it('uses the measured page count instead of character-count guesses', () => {
+      const analysis = analyzeResume(resume, mockUpdateMarkdown, 'en', 'us', 2);
+      const issue = analysis.issues.find(i => i.title.startsWith('Page Count:'));
+
+      expect(issue?.type).toBe('success');
+      expect(issue?.title).toContain('2 measured pages');
+      expect(issue?.desc).toContain('recommended 1–2 page range');
+    });
+
+    it('warns when the measured page count exceeds the market recommendation', () => {
+      const analysis = analyzeResume(resume, mockUpdateMarkdown, 'en', 'us', 3);
+      const issue = analysis.issues.find(i => i.title.startsWith('Page Count:'));
+
+      expect(issue?.type).toBe('warning');
+      expect(issue?.title).toContain('3 measured pages');
+      expect(issue?.desc).toContain('recommends about 1–2 pages');
+    });
+  });
+
   describe('Language-aware pronoun audit', () => {
     it('detects English first-person wording and safely fixes bullet-leading I/We', () => {
       mockUpdateMarkdown.mockClear();

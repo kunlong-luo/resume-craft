@@ -4,7 +4,7 @@ import { ResumeSettings, ResumeProfile, MarketRegion } from '../types';
 import { storage, STORAGE_KEYS } from '../lib/storage';
 import { translateMarkdownContent } from '../lib/section-translator';
 import { migrateStoredMarkdown } from '../lib/markdown-migrations';
-import { isMarketRegion, resolveDefaultPaperSize } from '../lib/market-profile';
+import { getMarketProfile, isMarketRegion, resolveDefaultPaperSize } from '../lib/market-profile';
 import { isPaperSize } from '../lib/paper';
 
 interface ResumeState {
@@ -147,6 +147,11 @@ const sanitizeSettings = (raw: Partial<ResumeSettings> | null, defaultSettings: 
     merged.paperSize = resolveDefaultPaperSize(merged.marketRegion);
   }
 
+  // Sanitize dateStyle independently from language/paper while defaulting to the target market.
+  if (!merged.dateStyle || !['cn-dot', 'month-short', 'month-long'].includes(merged.dateStyle)) {
+    merged.dateStyle = getMarketProfile(merged.marketRegion).dateStyle;
+  }
+
   return merged;
 };
 
@@ -179,6 +184,7 @@ const getInitialSettings = (): ResumeSettings => {
     lang: initialLang,
     marketRegion: initialMarket,
     paperSize: resolveDefaultPaperSize(initialMarket),
+    dateStyle: getMarketProfile(initialMarket).dateStyle,
     themeMode: (storage.getString(STORAGE_KEYS.THEME_MODE, 'light') || 'light') as 'light' | 'dark' | 'system',
   };
   
@@ -210,6 +216,9 @@ const getInitialProfiles = (
         createdAt: p.createdAt || new Date().toISOString()
       };
     });
+
+    // Persist deterministic migrations so old profiles are not re-migrated on every reload.
+    storage.set(STORAGE_KEYS.PROFILES, migratedProfiles);
 
     const activeId = migratedProfiles.some(p => p.id === savedActiveId) ? savedActiveId : migratedProfiles[0].id;
     return { profiles: migratedProfiles, activeId };
@@ -255,7 +264,14 @@ const getInitialProfiles = (
     name: 'English CV (Global)',
     targetRole: 'Overseas',
     markdown: englishTemplate,
-    settings: { ...defaultSettings, lang: 'en', themeColor: 'teal' },
+    settings: {
+      ...defaultSettings,
+      lang: 'en',
+      marketRegion: 'international',
+      paperSize: 'a4',
+      dateStyle: 'month-short',
+      themeColor: 'teal',
+    },
     customFileName: '',
     updatedAt: now,
     createdAt: now,

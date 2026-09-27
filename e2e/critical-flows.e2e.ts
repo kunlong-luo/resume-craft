@@ -10,7 +10,7 @@ test.describe('critical resume flows', () => {
   test('persists Markdown edits locally across reloads', async ({ page }) => {
     await page.goto('/');
 
-    await page.getByRole('button', { name: /源码编辑|Markdown/ }).click();
+    await page.getByRole('button', { name: /^(Markdown source editor|Markdown 源码编辑模式)$/ }).click();
     const editor = page.locator('#markdown-textarea');
     await expect(editor).toBeVisible();
 
@@ -31,7 +31,7 @@ test.describe('critical resume flows', () => {
       .toBe(markdown);
 
     await page.reload();
-    await page.getByRole('button', { name: /源码编辑|Markdown/ }).click();
+    await page.getByRole('button', { name: /^(Markdown source editor|Markdown 源码编辑模式)$/ }).click();
     await expect(page.locator('#markdown-textarea')).toHaveValue(markdown);
   });
 

@@ -60,6 +60,7 @@ describe('privacy-friendly analytics', () => {
     ]);
 
     expect(isAllowedAnalyticsEvent('share_created')).toBe(true);
+    expect(isAllowedAnalyticsEvent('runtime_error')).toBe(true);
     expect(isAllowedAnalyticsEvent('resume:Jane Doe')).toBe(false);
     expect(isAllowedAnalyticsEvent('jd:senior frontend engineer')).toBe(false);
     expect(isAllowedAnalyticsEvent('file:private-resume.pdf')).toBe(false);

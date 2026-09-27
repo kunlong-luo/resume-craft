@@ -187,6 +187,35 @@ alex@example.com | +1 206 555 0123 | Seattle, US
     });
   });
 
+  describe('Sensitive-field sanitation preserves custom Markdown', () => {
+    it('removes header metadata without reserializing unrelated structure', () => {
+      const custom = `# Alex Taylor
+26 years old | Male | alex@example.com
+> Keep this custom blockquote **exactly**.
+
+## Experience
+### Tech Corp | Engineer | Mar 2022 – Jun 2024
+- Led migration
+  - nested item A
+  - nested item B
+
+## Custom Section
+1. First custom step
+   1. Nested numbered step
+`;
+
+      const sanitized = sanitizeSensitiveFieldsForMarket(custom);
+
+      expect(sanitized.sanitizedFieldsCount).toBeGreaterThan(0);
+      expect(sanitized.markdown).not.toContain('26 years old');
+      expect(sanitized.markdown).not.toContain('Male');
+      expect(sanitized.markdown).toContain('alex@example.com');
+      expect(sanitized.markdown).toContain('> Keep this custom blockquote **exactly**.');
+      expect(sanitized.markdown).toContain('  - nested item A\n  - nested item B');
+      expect(sanitized.markdown).toContain('1. First custom step\n   1. Nested numbered step');
+    });
+  });
+
   describe('Comprehensive Auto-Fixer (autoFormatAndCleanResume)', () => {
     it('fixes spacing, bullets, empty lines, and market dates in a single pass', () => {
       const messyResume = `# Alex Taylor

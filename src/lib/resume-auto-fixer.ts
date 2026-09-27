@@ -52,7 +52,7 @@ export function normalizeAllDatesInMarkdown(
 
 /**
  * Sanitizes discouraged personal details (photo, age, gender, marital status, nationality)
- * for US/UK/CA/IE/International compliance with anti-discrimination employment practices.
+ * for markets where resumes commonly omit non-job-related personal details.
  */
 export function sanitizeSensitiveFieldsForMarket(
   markdown: string
@@ -60,11 +60,11 @@ export function sanitizeSensitiveFieldsForMarket(
   let count = 0;
 
   const sensitivePatterns = [
-    /(?:[|｜·•\s]*\b\d{1,2}\s*岁\b[|｜·•\s]*)/g,
+    /(?:[|｜·•\s]*\d{1,2}\s*岁[|｜·•\s]*)/g,
     /(?:[|｜·•\s]*\b\d{1,2}\s*years?\s*old\b[|｜·•\s]*)/gi,
+    /(?:[|｜·•\s]*中国国籍[|｜·•\s]*)/g,
     /(?:[|｜·•\s]*(?:未婚|已婚|男|女|群众|党员|团员)[|｜·•\s]*)/g,
     /(?:[|｜·•\s]*(?:政治面貌|国籍|籍贯|民族)[:：\s]*[^|｜·•,，;；\n]+[|｜·•\s]*)/g,
-    /(?:[|｜·•\s]*中国国籍[|｜·•\s]*)/g,
     /(?:[|｜·•\s]*\b(?:Single|Married|Male|Female)\b[|｜·•\s]*)/gi,
     /(?:[|｜·•\s]*\b(?:Nationality|Citizenship|Marital\s*Status|Gender|Sex)[:：\s]*[^|｜·•,，;；\n]+[|｜·•\s]*)/gi,
   ];

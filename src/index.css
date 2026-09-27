@@ -101,75 +101,63 @@
    * 2. 容器悬停/滑动 (Hover/Scroll State): 平滑淡入 4-5px 精致圆润微胶囊
    * 3. 拖拽触控激活 (Drag/Active State): 高亮加深并延展，交互触觉灵敏清晰
    */
-  * {
+  /* Scrollbars are opt-in. Avoid universal * / *:hover rules because they
+   * trigger style invalidation across the whole app on pointer movement. */
+  html {
     scrollbar-width: thin;
-    scrollbar-color: rgba(148, 163, 184, 0.12) transparent;
+    scrollbar-color: rgba(148, 163, 184, 0.24) transparent;
   }
 
-  *:hover {
-    scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
-  }
-
-  .dark * {
-    scrollbar-color: rgba(148, 163, 184, 0.08) transparent;
-  }
-
-  .dark *:hover {
-    scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
-  }
-
-  ::-webkit-scrollbar {
+  html::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
-  ::-webkit-scrollbar-track {
+  html::-webkit-scrollbar-track,
+  html::-webkit-scrollbar-corner {
     background: transparent;
   }
 
-  ::-webkit-scrollbar-thumb {
-    background-color: rgba(148, 163, 184, 0.12);
+  html::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.24);
     border-radius: 9999px;
     border: 1.5px solid transparent;
     background-clip: content-box;
-    transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), border 0.2s ease;
   }
+}
 
-  *:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(148, 163, 184, 0.45);
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(99, 102, 241, 0.75) !important;
-    border: 0.5px solid transparent !important;
-  }
-
-  ::-webkit-scrollbar-thumb:active {
-    background-color: rgba(79, 70, 229, 0.95) !important;
-    border: 0px solid transparent !important;
-  }
-
-  .dark ::-webkit-scrollbar-thumb {
-    background-color: rgba(148, 163, 184, 0.08);
-  }
-
-  .dark *:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(148, 163, 184, 0.35);
-  }
-
-  .dark ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(129, 140, 248, 0.85) !important;
-    border: 0.5px solid transparent !important;
-  }
-
-  .dark ::-webkit-scrollbar-thumb:active {
-    background-color: rgba(99, 102, 241, 1) !important;
-    border: 0px solid transparent !important;
-  }
-
-  ::-webkit-scrollbar-corner {
-    background: transparent;
-  }
+.preview-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  scrollbar-gutter: stable;
+}
+.preview-scrollbar:hover,
+.preview-scrollbar:focus-within {
+  scrollbar-color: rgba(148, 163, 184, 0.42) transparent;
+}
+.preview-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.preview-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.preview-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+  border: 1.5px solid transparent;
+  background-clip: content-box;
+}
+.preview-scrollbar:hover::-webkit-scrollbar-thumb,
+.preview-scrollbar:focus-within::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.42);
+}
+.preview-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(99, 102, 241, 0.72);
+}
+.dark .preview-scrollbar:hover,
+.dark .preview-scrollbar:focus-within {
+  scrollbar-color: rgba(148, 163, 184, 0.32) transparent;
 }
 
 /* Exquisite Smart Capsule Scrollbar Utility */

@@ -365,8 +365,6 @@ Results-driven Senior Full-Stack & AI Systems Architect with 7+ years of experie
 ## Education
 
 ### University of California, Berkeley | B.S. in Computer Science | Sep 2014 – Jun 2018
-- **Honors & GPA**: GPA 3.85 / 4.0, Dean's Honor List, Magna Cum Laude
-- **Relevant Coursework**: Distributed Systems, Operating Systems, Database Systems, Computer Networks, Algorithms
 `
   },
   {

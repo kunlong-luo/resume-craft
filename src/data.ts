@@ -370,6 +370,51 @@ Results-driven Senior Full-Stack & AI Systems Architect with 7+ years of experie
 `
   },
   {
+    id: 'us_new_grad',
+    name: 'US New Grad Software Engineer (Resume)',
+    category: 'Overseas / Global',
+    targetMarket: 'us',
+    defaultPaperSize: 'letter',
+    dateStyle: 'month-short',
+    suggestedLang: 'en',
+    content: `# Maya Patel
+Seattle, WA · +1 206 555 0148 · maya.patel@example.com · linkedin.com/in/mayapatel-dev · github.com/mayapatel
+
+## Education
+
+### University of Washington | B.S. in Computer Science | Sep 2022 – Jun 2026
+- **GPA:** 3.82 / 4.00 · Dean's List
+- **Relevant Coursework:** Data Structures & Algorithms, Operating Systems, Database Systems, Distributed Systems
+- **Honors:** Undergraduate Research Scholarship, Hackathon Finalist
+
+## Technical Skills
+- **Languages:** Python, Java, TypeScript, SQL
+- **Frameworks & Tools:** React, Node.js, FastAPI, PostgreSQL, Docker, GitHub Actions, AWS
+
+## Experience
+
+### Nimbus Labs | Software Engineering Intern | Jun 2025 – Sep 2025
+- Built a TypeScript and React diagnostics dashboard used by 40+ internal engineers, reducing incident triage time by 28%.
+- Implemented API response caching and query batching, cutting median dashboard load time from 2.4s to 1.3s.
+- Added Playwright regression coverage for critical workflows and reduced escaped UI defects by 35%.
+
+### University Systems Lab | Undergraduate Research Assistant | Jan 2025 – Present
+- Developed Python tooling to replay distributed-system traces across 20+ experiment scenarios.
+- Automated benchmark collection and result validation, reducing manual experiment setup by 6 hours per week.
+
+## Projects
+
+### Campus Route Planner | Full-Stack Developer | Feb 2025 – May 2025
+- Designed a route-planning web app with React, FastAPI, and PostgreSQL for accessibility-aware campus navigation.
+- Implemented weighted pathfinding and caching, improving route calculation latency by 45%.
+- Deployed the application with Docker and GitHub Actions and documented local development setup for contributors.
+
+### StudySync | Team Lead | Sep 2024 – Dec 2024
+- Led a 4-person team building a collaborative study planner with real-time task updates.
+- Designed the PostgreSQL schema and REST API contract and coordinated weekly code reviews.
+`
+  },
+  {
     id: 'uk_cv',
     name: 'UK Tech Lead & Full-Stack (CV)',
     category: 'Overseas / Global',

@@ -30,6 +30,8 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
       expect(usTemplate.content).toContain('Mar 2024 – Present');
       expect(usTemplate.content).not.toContain('岁');
       expect(usTemplate.content).not.toContain('![photo]');
+      expect(usTemplate.content).not.toContain('Honors & GPA');
+      expect(usTemplate.content).not.toContain('Relevant Coursework');
     });
 
     it('configures US New Grad with education-first Letter metadata', () => {

@@ -352,23 +352,13 @@
   }
   
   html, body {
-    width: 210mm;
+    width: auto;
     height: auto;
     margin: 0;
     padding: 0;
     background-color: white !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-  }
-
-  html[data-paper-size="letter"],
-  body[data-paper-size="letter"] {
-    width: 215.9mm !important;
-  }
-
-  html[data-paper-size="a4"],
-  body[data-paper-size="a4"] {
-    width: 210mm !important;
   }
   
   /* Physical dimensions and spacing for pixel-perfect fidelity */

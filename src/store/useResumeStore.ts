@@ -142,13 +142,13 @@ const sanitizeSettings = (raw: Partial<ResumeSettings> | null, defaultSettings: 
     merged.marketRegion = merged.lang === 'zh' ? 'cn' : 'international';
   }
 
-  // Sanitize paperSize
-  if (!merged.paperSize || !isPaperSize(merged.paperSize)) {
+  // Older profiles may already know their target market while predating paper/date fields.
+  // Only preserve paper/date overrides when those fields were explicitly stored and valid.
+  if (!raw.paperSize || !isPaperSize(raw.paperSize)) {
     merged.paperSize = resolveDefaultPaperSize(merged.marketRegion);
   }
 
-  // Sanitize dateStyle independently from language/paper while defaulting to the target market.
-  if (!merged.dateStyle || !['cn-dot', 'month-short', 'month-long'].includes(merged.dateStyle)) {
+  if (!raw.dateStyle || !['cn-dot', 'month-short', 'month-long'].includes(raw.dateStyle)) {
     merged.dateStyle = getMarketProfile(merged.marketRegion).dateStyle;
   }
 

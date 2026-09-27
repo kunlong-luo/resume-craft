@@ -14,6 +14,7 @@ import type {
   MarketRegion,
   DateStyle,
 } from '../types';
+import { getMarketProfile } from './market-profile';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -160,13 +161,24 @@ export function normalizeImportedSettings(
   const lang = isOneOf(value.lang, LANGUAGES) ? value.lang : fallback.lang;
   if (lang !== undefined) normalized.lang = lang;
 
-  const paperSize = isOneOf(value.paperSize, PAPER_SIZES) ? value.paperSize : fallback.paperSize;
-  if (paperSize !== undefined) normalized.paperSize = paperSize;
-
-  const marketRegion = isOneOf(value.marketRegion, MARKET_REGIONS) ? value.marketRegion : fallback.marketRegion;
+  const hasExplicitMarket = isOneOf(value.marketRegion, MARKET_REGIONS);
+  const marketRegion = hasExplicitMarket ? value.marketRegion : fallback.marketRegion;
   if (marketRegion !== undefined) normalized.marketRegion = marketRegion;
 
-  const dateStyle = isOneOf(value.dateStyle, DATE_STYLES) ? value.dateStyle : fallback.dateStyle;
+  const marketDefaults = marketRegion ? getMarketProfile(marketRegion) : undefined;
+
+  const paperSize = isOneOf(value.paperSize, PAPER_SIZES)
+    ? value.paperSize
+    : hasExplicitMarket
+      ? marketDefaults?.defaultPaperSize
+      : fallback.paperSize;
+  if (paperSize !== undefined) normalized.paperSize = paperSize;
+
+  const dateStyle = isOneOf(value.dateStyle, DATE_STYLES)
+    ? value.dateStyle
+    : hasExplicitMarket
+      ? marketDefaults?.dateStyle
+      : fallback.dateStyle;
   if (dateStyle !== undefined) normalized.dateStyle = dateStyle;
 
   const isPrivacyMasked =

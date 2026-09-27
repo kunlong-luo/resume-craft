@@ -135,6 +135,45 @@ test.describe('international market flows', () => {
     );
   });
 
+  test('US New Grad template uses Letter and education-first content', async ({ page }) => {
+    await page.goto('/');
+    await applyTemplate(page, 'US New Grad Software Engineer');
+
+    await expect(page.locator('#resume-print-content')).toHaveAttribute(
+      'data-paper-size',
+      'letter',
+    );
+    await expect.poll(() =>
+      page.evaluate(() => window.localStorage.getItem('resume-markdown') || ''),
+    ).toContain('## Education');
+
+    await expect.poll(() =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}')),
+    ).toMatchObject({
+      marketRegion: 'us',
+      paperSize: 'letter',
+      dateStyle: 'month-short',
+    });
+  });
+
+  test('international optional fields prioritize global contact details', async ({ page }) => {
+    await page.goto('/');
+
+    const optional = page.getByRole('button', { name: '+ Optional Fields' });
+    if (await optional.count()) {
+      await optional.click();
+    }
+
+    await expect(page.getByText('LinkedIn / GitHub / Portfolio', { exact: true })).toBeVisible();
+    await expect(page.getByText('WeChat', { exact: true })).toHaveCount(0);
+
+    const layout = await openLayout(page);
+    await layout.getByRole('button', { name: 'China', exact: true }).click();
+    await layout.getByRole('button', { name: 'Close Layout' }).click();
+
+    await expect(page.getByText('WeChat', { exact: true })).toBeVisible();
+  });
+
   test('resume checker uses guidance wording instead of ATS or legal guarantees', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Check' }).click();

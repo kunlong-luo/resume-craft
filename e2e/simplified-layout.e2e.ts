@@ -17,16 +17,16 @@ test.describe('simplified workspace actions', () => {
     const toolbar = page.locator('#resume-main-toolbar');
 
     await expect(
-      toolbar.getByRole('button', { name: 'Open template library' }),
+      toolbar.getByRole('button', { name: /Browse resume templates|浏览与切换简历模板/ }),
     ).toBeVisible();
-    await expect(toolbar.getByRole('button', { name: 'Layout' })).toBeVisible();
-    await expect(toolbar.getByRole('button', { name: 'Style' })).toBeVisible();
-    await expect(toolbar.getByRole('button', { name: 'Fit Page' })).toBeVisible();
-    await expect(toolbar.getByRole('button', { name: 'Edit' })).toBeVisible();
-    await expect(toolbar.getByRole('button', { name: 'Split' })).toBeVisible();
-    await expect(toolbar.getByRole('button', { name: 'Preview' })).toBeVisible();
+    await expect(toolbar.getByRole('button', { name: /Open layout settings|打开排版设置/ })).toBeVisible();
+    await expect(toolbar.getByRole('button', { name: /Open style settings|打开样式设置/ })).toBeVisible();
+    await expect(toolbar.getByRole('button', { name: /Auto fit to single page|单页自动适配/ })).toBeVisible();
+    await expect(toolbar.getByRole('radio', { name: 'Edit Mode (Focus on editor)' })).toBeVisible();
+    await expect(toolbar.getByRole('radio', { name: 'Split Mode (Side-by-side edit & preview)' })).toBeVisible();
+    await expect(toolbar.getByRole('radio', { name: 'Preview Mode (Focus on resume)' })).toBeVisible();
 
-    await toolbar.getByRole('button', { name: 'Layout' }).click();
+    await toolbar.getByRole('button', { name: /Open layout settings|打开排版设置/ }).click();
 
     const layoutDialog = page.getByRole('dialog', { name: 'Layout' });
     await expect(layoutDialog).toBeVisible();
@@ -39,7 +39,7 @@ test.describe('simplified workspace actions', () => {
     await layoutDialog.getByRole('button', { name: 'Close Layout' }).click();
     await expect(layoutDialog).toBeHidden();
 
-    const styleButton = toolbar.getByRole('button', { name: 'Style' });
+    const styleButton = toolbar.getByRole('button', { name: /Open style settings|打开样式设置/ });
     await expect(styleButton).toBeVisible();
     await styleButton.click();
 
@@ -54,7 +54,7 @@ test.describe('simplified workspace actions', () => {
     await styleDialog.getByRole('button', { name: 'Close Style' }).click();
     await expect(styleDialog).toBeHidden();
 
-    await toolbar.getByRole('button', { name: 'Layout' }).click();
+    await toolbar.getByRole('button', { name: /Open layout settings|打开排版设置/ }).click();
     await expect(
       page.getByRole('dialog', { name: 'Layout' }).getByRole('button', { name: /Two columns/ }),
     ).toHaveAttribute('aria-pressed', 'true');
@@ -116,7 +116,7 @@ test.describe('simplified workspace actions', () => {
     await resumeCheck.click();
     const checkDialog = page.getByRole('dialog', { name: 'Resume Check' });
     await expect(checkDialog).toBeVisible();
-    await expect(checkDialog.getByText('Check Results', { exact: true })).toBeVisible();
+    await expect(checkDialog.getByText('Details', { exact: true })).toBeVisible();
     await expect(
       checkDialog.getByText(
         'Check resume structure, wording, and ATS readability with local analysis.',
@@ -139,7 +139,7 @@ test.describe('simplified workspace actions', () => {
     ).toBeVisible();
     await expect(
       page.getByRole('button', { name: 'Export Markdown' }),
-    ).toBeVisible();
+    ).toHaveCount(0);
     await expect(
       page.getByRole('button', { name: 'Versions & backup' }),
     ).toHaveCount(0);

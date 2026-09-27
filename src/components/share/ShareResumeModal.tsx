@@ -6,6 +6,7 @@ import {
   Link2,
   Loader2,
   LockKeyhole,
+  Share2,
   ShieldCheck,
   Unlock,
   X,
@@ -202,7 +203,7 @@ export function ShareResumeModal({ isOpen, onClose }: ShareResumeModalProps) {
         <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 mb-1">
-              <Link2 className="w-4 h-4" />
+              <Share2 className="w-4 h-4" />
               <span className="text-[11px] font-black uppercase tracking-widest">
                 {isEn ? 'Share' : '分享'}
               </span>

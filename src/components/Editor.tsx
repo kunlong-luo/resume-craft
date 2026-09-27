@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo, useDeferredValue } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Edit3, Copy, RotateCcw, Check, Bold, Italic, Link, List, ListOrdered, Table, Minus, Heading1, Heading2, Code, Scissors, Undo, Redo,
-  Layers, GraduationCap, ChevronDown, Briefcase, Sliders, ChevronsUp, ChevronsDown, Wand2, FolderKanban, User
+  Copy, RotateCcw, Check, Bold, Italic, Link, List, ListOrdered, Table, Minus, Heading1, Heading2, Code, Scissors, Undo, Redo,
+  Layers, GraduationCap, ChevronDown, Briefcase, ChevronsUp, ChevronsDown, Wand2, FolderKanban, User, ArrowUpDown
 } from 'lucide-react';
 import { FormEditor } from './form/FormEditor';
 import { SectionSorter } from './layout/SectionSorter';
@@ -254,11 +254,13 @@ export const Editor = React.memo(function Editor() {
       <div className="flex items-center justify-between px-2.5 sm:px-6 py-1.5 sm:py-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 gap-1.5 sm:gap-3 relative overflow-x-auto scrollbar-none flex-nowrap">
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 dark:bg-indigo-500 rounded-r"></div>
         
-        {/* Toggle Mode Segmented Control */}
+        {/* Toggle Mode Segmented Control: Form | Markdown */}
         <div className="relative flex bg-slate-100 dark:bg-slate-800/90 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-inner shrink-0">
           <button
+            type="button"
             onClick={() => setActiveMode('form')}
-            className={`relative flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0 z-10 ${
+            aria-label={settings.lang === 'en' ? 'Form editor' : '表单编辑模式'}
+            className={`relative flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               activeMode === 'form'
                 ? 'text-indigo-700 dark:text-indigo-300 font-extrabold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -271,13 +273,15 @@ export const Editor = React.memo(function Editor() {
                 transition={{ type: 'spring', stiffness: 500, damping: 35 }}
               />
             )}
-            <Layers className="w-3.5 h-3.5 shrink-0" />
-            <span>{settings.lang === 'en' ? 'Form' : '表单编辑'}</span>
+            <Layers className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            <span>{settings.lang === 'en' ? 'Form' : '表单'}</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveMode('markdown')}
-            className={`relative flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0 z-10 ${
+            aria-label={settings.lang === 'en' ? 'Markdown source editor' : 'Markdown 源码编辑模式'}
+            className={`relative flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               activeMode === 'markdown'
                 ? 'text-indigo-700 dark:text-indigo-300 font-extrabold'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -290,145 +294,130 @@ export const Editor = React.memo(function Editor() {
                 transition={{ type: 'spring', stiffness: 500, damping: 35 }}
               />
             )}
-            <Edit3 className="w-3.5 h-3.5 shrink-0" />
-            <span>{settings.lang === 'en' ? 'Markdown' : '源码编辑'}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveMode('layout')}
-            className={`relative flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0 z-10 ${
-              activeMode === 'layout'
-                ? 'text-indigo-700 dark:text-indigo-300 font-extrabold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            {activeMode === 'layout' && (
-              <motion.div
-                layoutId="editorActiveModeCapsule"
-                className="absolute inset-0 bg-white dark:bg-slate-700 rounded-lg shadow-xs border border-slate-200/60 dark:border-slate-600 z-[-1]"
-                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-              />
-            )}
-            <Sliders className="w-3.5 h-3.5 shrink-0" />
-            <span>{settings.lang === 'en' ? 'Order' : '板块排序'}</span>
+            <Code className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            <span>{settings.lang === 'en' ? 'Markdown' : '源码'}</span>
           </button>
         </div>
 
+        {/* Right Toolset: 排序 | 折叠 | 规范 | 分页线 | 复制 | 重置 */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           <Tooltip content={settings.lang === 'en' ? 'Undo' : '撤销'} shortcut="Ctrl+Z">
             <button 
+              type="button"
               onClick={onUndo}
               disabled={!canUndo}
-              className={`p-1.5 rounded-lg transition-colors shrink-0 ${canUndo ? 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 cursor-pointer' : 'text-slate-300 dark:text-slate-600 cursor-not-allowed'}`}
+              aria-label={settings.lang === 'en' ? 'Undo' : '撤销'}
+              className={`p-1.5 rounded-lg transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${canUndo ? 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 cursor-pointer' : 'text-slate-300 dark:text-slate-600 cursor-not-allowed'}`}
             >
-              <Undo className="w-3.5 h-3.5" />
+              <Undo className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </Tooltip>
 
           <Tooltip content={settings.lang === 'en' ? 'Redo' : '重做'} shortcut="Ctrl+Y">
             <button 
+              type="button"
               onClick={onRedo}
               disabled={!canRedo}
-              className={`p-1.5 rounded-lg transition-colors shrink-0 ${canRedo ? 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 cursor-pointer' : 'text-slate-300 dark:text-slate-600 cursor-not-allowed'}`}
+              aria-label={settings.lang === 'en' ? 'Redo' : '重做'}
+              className={`p-1.5 rounded-lg transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${canRedo ? 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 cursor-pointer' : 'text-slate-300 dark:text-slate-600 cursor-not-allowed'}`}
             >
-              <Redo className="w-3.5 h-3.5" />
+              <Redo className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </Tooltip>
 
-          <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5 sm:mx-1 shrink-0"></div>
+          <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
+
+          {/* 排序 (Section Order) */}
+          <Tooltip content={settings.lang === 'en' ? 'Reorder resume sections' : '调整简历模块顺序'}>
+            <button
+              type="button"
+              onClick={() => setActiveMode(activeMode === 'layout' ? 'form' : 'layout')}
+              aria-pressed={activeMode === 'layout'}
+              aria-label={settings.lang === 'en' ? 'Reorder sections' : '调整简历模块顺序'}
+              className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                activeMode === 'layout'
+                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-950/70 dark:border-indigo-800 dark:text-indigo-300'
+                  : 'bg-white dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+              }`}
+            >
+              <ArrowUpDown className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            </button>
+          </Tooltip>
+
+          {/* 折叠/展开 (Collapse / Expand all) */}
           {activeMode === 'form' && formExpandedState.hasSections && (
-            <>
-              <Tooltip
-                content={formExpandedState.isAllExpanded ? (settings.lang === 'en' ? 'Collapse all sections' : '一键折叠所有模块') : (settings.lang === 'en' ? 'Expand all sections' : '一键展开所有模块')}
+            <Tooltip
+              content={formExpandedState.isAllExpanded ? (settings.lang === 'en' ? 'Collapse all sections' : '一键折叠所有模块') : (settings.lang === 'en' ? 'Expand all sections' : '一键展开所有模块')}
+            >
+              <button 
+                type="button"
+                onClick={() => {
+                  document.dispatchEvent(new CustomEvent('toggle-all-sections', {
+                    detail: { expand: !formExpandedState.isAllExpanded }
+                  }));
+                }}
+                aria-label={formExpandedState.isAllExpanded ? (settings.lang === 'en' ? 'Collapse all sections' : '一键折叠所有模块') : (settings.lang === 'en' ? 'Expand all sections' : '一键展开所有模块')}
+                className="p-1.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
-                <button 
-                  onClick={() => {
-                    document.dispatchEvent(new CustomEvent('toggle-all-sections', {
-                      detail: { expand: !formExpandedState.isAllExpanded }
-                    }));
-                  }}
-                  className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 text-xs font-bold rounded-lg border transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
-                    formExpandedState.isAllExpanded 
-                      ? 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200' 
-                      : 'bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300'
-                  }`}
-                >
-                  {formExpandedState.isAllExpanded ? (
-                    <>
-                      <ChevronsUp className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
-                      <span className="hidden sm:inline">{settings.lang === 'en' ? 'Collapse All' : '全部折叠'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <ChevronsDown className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />
-                      <span className="hidden sm:inline">{settings.lang === 'en' ? 'Expand All' : '全部展开'}</span>
-                    </>
-                  )}
-                </button>
-              </Tooltip>
-              <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5 sm:mx-1 shrink-0"></div>
-            </>
+                {formExpandedState.isAllExpanded ? (
+                  <ChevronsUp className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                ) : (
+                  <ChevronsDown className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                )}
+              </button>
+            </Tooltip>
           )}
 
-          {/* 1-Click Auto Clean & Format (Smart Detection) */}
+          {/* 规范排版 (Auto Clean) */}
           <Tooltip
             content={
-              settings.lang === 'en' 
-                ? 'Standardize CJK/English spacing, trim extra lines' 
-                : '规范中英空格与去除多余空行'
+              cleanFeedback
+                ? cleanFeedback
+                : (settings.lang === 'en' ? 'Standardize CJK/English spacing, trim extra lines' : '规范中英空格与去除多余空行')
             }
             shortcut="Ctrl+Shift+F"
           >
             <button 
+              type="button"
               onClick={handleAutoClean}
-              className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 text-xs font-bold rounded-lg border transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 shadow-2xs ${
+              aria-label={settings.lang === 'en' ? 'Auto format and clean spacing' : '规范排版'}
+              className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 cleanFeedback
                   ? 'bg-emerald-500 text-white border-emerald-500 shadow-emerald-500/20'
                   : autoCleanResult.hasChanges
                     ? 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 shadow-indigo-500/10'
-                    : 'bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border-slate-200/80 dark:border-slate-700/80 hover:text-slate-700 dark:hover:text-slate-200'
+                    : 'bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-750'
               }`}
             >
               {cleanFeedback ? (
-                <Check className="w-3.5 h-3.5 shrink-0" />
+                <Check className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
               ) : (
-                <Wand2 className={`w-3.5 h-3.5 shrink-0 ${autoCleanResult.hasChanges ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`} />
+                <Wand2 className={`w-3.5 h-3.5 shrink-0 ${autoCleanResult.hasChanges ? 'text-indigo-600 dark:text-indigo-400' : ''}`} aria-hidden="true" />
               )}
-              <span className="hidden sm:inline">
-                {cleanFeedback 
-                  ? cleanFeedback 
-                  : autoCleanResult.hasChanges 
-                    ? (settings.lang === 'en' ? `Format (${autoCleanResult.fixesCount})` : `规整 (${autoCleanResult.fixesCount})`)
-                    : (settings.lang === 'en' ? 'Format' : '规范排版')}
-              </span>
             </button>
           </Tooltip>
 
-          <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5 sm:mx-1 shrink-0"></div>
-
+          {/* 复制 Markdown 源码 */}
           <Tooltip content={settings.lang === 'en' ? 'Copy Markdown source' : '复制 Markdown 源码'}>
             <button 
+              type="button"
               onClick={handleCopy}
-              className="flex items-center gap-1 px-2 sm:px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0"
+              aria-label={settings.lang === 'en' ? 'Copy Markdown source' : '复制 Markdown 源码'}
+              className="p-1.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> : <Copy className="w-3.5 h-3.5 shrink-0" />}
-              <span className="hidden sm:inline">
-                {copied ? (settings.lang === 'en' ? 'Copied!' : '已复制') : (settings.lang === 'en' ? 'Copy' : '复制')}
-              </span>
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" aria-hidden="true" /> : <Copy className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />}
             </button>
           </Tooltip>
 
-          <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5 sm:mx-1 shrink-0"></div>
-
+          {/* 重置模板 */}
           <Tooltip content={settings.lang === 'en' ? 'Reset to default template' : '重置为默认模板'}>
             <button 
+              type="button"
               onClick={onReset}
-              className="flex items-center gap-1 px-2 sm:px-2.5 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0"
+              aria-label={settings.lang === 'en' ? 'Reset to default template' : '重置为默认模板'}
+              className="p-1.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
-              <RotateCcw className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">
-                {settings.lang === 'en' ? 'Reset' : '重置'}
-              </span>
+              <RotateCcw className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
             </button>
           </Tooltip>
         </div>

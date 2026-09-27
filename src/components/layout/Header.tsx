@@ -3,7 +3,6 @@ import {
   ClipboardCheck, 
   Database, 
   Upload, 
-  Download, 
   Loader2, 
   Moon, 
   Sun, 
@@ -28,7 +27,7 @@ const ShareResumeModal = React.lazy(() => import('../share/ShareResumeModal').th
 
 interface HeaderProps {
   handleImportMarkdown: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleExportMarkdown: () => void;
+  handleExportMarkdown?: () => void;
   handleExportPDF: () => void;
   handleExportDirectPDF?: () => void;
   handleExportVectorPrint?: () => void;
@@ -36,7 +35,7 @@ interface HeaderProps {
 
 export function Header({
   handleImportMarkdown,
-  handleExportMarkdown,
+  handleExportMarkdown: _handleExportMarkdown,
   handleExportPDF,
   handleExportDirectPDF,
   handleExportVectorPrint,
@@ -385,7 +384,6 @@ export function Header({
             isEn={isEn}
             isInstallable={isInstallable}
             onImport={() => setIsRawTextModalOpen(true)}
-            onExportMarkdown={handleExportMarkdown}
             onOpenGuide={() => setIsHelpLegalOpen(true)}
             onInstall={() => {
               void handleInstallApp();
@@ -439,14 +437,6 @@ export function Header({
               >
                 <Upload className="w-4 h-4 text-indigo-500" />
                 <span>{isEn ? 'Import' : '导入'}</span>
-              </button>
-
-              <button
-                onClick={() => { handleExportMarkdown(); setIsMobileMenuOpen(false); }}
-                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
-              >
-                <Download className="w-4 h-4 text-slate-500" />
-                <span>{isEn ? 'Markdown' : 'Markdown'}</span>
               </button>
 
               <button

@@ -142,20 +142,20 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="fixed sm:absolute top-0 right-0 h-full w-full sm:w-[355px] max-w-full bg-white dark:bg-slate-900 sm:border-l border-slate-200/80 dark:border-slate-800 shadow-2xl z-50 sm:z-40 flex flex-col overflow-hidden transition-colors"
+            className="fixed sm:absolute top-0 right-0 h-full w-full sm:w-[380px] max-w-full bg-white dark:bg-slate-900 sm:border-l border-slate-200/80 dark:border-slate-800 shadow-2xl z-50 sm:z-40 flex flex-col overflow-hidden transition-colors"
           >
           {/* Header */}
-          <div className="flex items-start justify-between px-5 py-4 bg-slate-50 dark:bg-slate-850 border-b border-slate-200/80 dark:border-slate-800">
+          <div className="flex items-start justify-between px-5 py-3.5 bg-slate-50 dark:bg-slate-850 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
             <div className="flex items-start gap-2">
               <ClipboardCheck className="mt-0.5 w-4.5 h-4.5 text-indigo-600 dark:text-indigo-400" />
               <div>
                 <h2 id="resume-checker-title" className="text-sm font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                   {isEn ? 'Resume Check' : '简历检查'}
                 </h2>
-                <p id="resume-checker-description" className="mt-1 max-w-[250px] text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+                <p id="resume-checker-description" className="mt-0.5 max-w-[260px] text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
                   {isEn
                     ? 'Check resume structure, wording, and ATS readability with local analysis.'
-                    : '检查简历结构、表达和 ATS 可读性，分析过程全部在本地完成。'}
+                    : '本地分析简历结构、表达和 ATS 可读性'}
                 </p>
               </div>
             </div>
@@ -169,12 +169,15 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
           </div>
 
           {/* Sub Navigation Tabs */}
-          <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 relative">
+          <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 relative shrink-0">
             <button
               onClick={() => setActiveTab('diagnostics')}
-              className={`relative flex-1 py-3 text-xs font-bold transition-all cursor-pointer ${activeTab === 'diagnostics' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
+              className={`relative flex-1 py-3 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${activeTab === 'diagnostics' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
             >
-              <span>{isEn ? 'Check Results' : '检查结果'}</span>
+              <span>{isEn ? 'Details' : '检查详情'}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${analysis.issues.length > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300'}`}>
+                {analysis.issues.length}
+              </span>
               {activeTab === 'diagnostics' && (
                 <motion.div
                   layoutId="checkerActiveTabIndicator"
@@ -190,7 +193,7 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
               <SpellCheck className="w-3.5 h-3.5 text-indigo-500" />
               <span>{isEn ? 'Wording' : '用词优化'}</span>
               {matchedWeakWords.length > 0 && (
-                <span className="bg-rose-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold ml-1 scale-90">
+                <span className="bg-rose-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold scale-90">
                   {matchedWeakWords.length}
                 </span>
               )}
@@ -205,7 +208,7 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
           </div>
 
           {/* Body Content */}
-          <div className="flex-1 overflow-y-auto p-5 scrollbar-thin">
+          <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
             <AnimatePresence mode="wait" initial={false}>
               {activeTab === 'diagnostics' ? (
                 <motion.div 
@@ -214,9 +217,12 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                  className="space-y-8"
+                  className="space-y-6"
                 >
+                  {/* Full Spacious Score Display Card */}
                   <ScoreDisplay analysis={analysis} scoreBadge={scoreBadge} lang={lang} />
+                  
+                  {/* Diagnostic List */}
                   <DiagnosticList issues={analysis.issues} lang={lang} onFixAll={handleFixAll} />
                 </motion.div>
               ) : (

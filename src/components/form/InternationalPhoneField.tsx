@@ -22,15 +22,6 @@ function getSavedRegion(profileId: string): PhoneRegionCode {
   return saved[profileId] || '';
 }
 
-function getDefaultRegionFromMarket(market?: MarketRegion, lang: 'zh' | 'en' = 'zh'): PhoneRegionCode {
-  if (market === 'us') return 'US';
-  if (market === 'ca') return 'CA';
-  if (market === 'uk') return 'GB';
-  if (market === 'ie') return 'IE';
-  if (market === 'cn') return 'CN';
-  if (market === 'international') return lang === 'zh' ? 'CN' : 'US';
-  return lang === 'zh' ? 'CN' : 'US';
-}
 
 function saveRegion(profileId: string, nextRegion: PhoneRegionCode) {
   const saved = storage.get<Record<string, PhoneRegionCode>>(
@@ -58,12 +49,11 @@ export function InternationalPhoneField({
   lang,
   label,
   placeholder,
-  marketRegion,
 }: InternationalPhoneFieldProps) {
   const activeProfileId = useResumeStore((state) => state.activeProfileId);
   const detectedRegion = inferPhoneRegion(value);
   const [region, setRegion] = useState<PhoneRegionCode>(
-    detectedRegion || getSavedRegion(activeProfileId) || getDefaultRegionFromMarket(marketRegion, lang),
+    detectedRegion || getSavedRegion(activeProfileId),
   );
 
   useEffect(() => {
@@ -74,8 +64,8 @@ export function InternationalPhoneField({
       return;
     }
 
-    setRegion(getSavedRegion(activeProfileId) || getDefaultRegionFromMarket(marketRegion, lang));
-  }, [activeProfileId, marketRegion, lang]);
+    setRegion(getSavedRegion(activeProfileId));
+  }, [activeProfileId, value]);
 
   useEffect(() => {
     const detected = inferPhoneRegion(value);

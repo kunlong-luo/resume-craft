@@ -67,24 +67,6 @@ export function LayoutModeToggle() {
           </Tooltip>
         );
       })}
-      <div className="mx-0.5 h-4 w-px bg-slate-200 dark:bg-slate-700" />
-
-      <Tooltip content={isEn ? 'Show page break guide' : '显示分页辅助线'} side="bottom">
-        <button
-          type="button"
-          onClick={() => updateSetting('showPageBreakLine', !settings.showPageBreakLine)}
-          aria-pressed={settings.showPageBreakLine}
-          aria-label={isEn ? 'Toggle page break guide' : '切换分页辅助线'}
-          className={`relative flex items-center gap-1 rounded-md px-2 py-1 font-bold transition-colors cursor-pointer z-10 ${
-            settings.showPageBreakLine
-              ? 'bg-white text-rose-600 shadow-xs dark:bg-slate-700 dark:text-rose-400'
-              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <span className={`w-3 border-t border-dashed ${settings.showPageBreakLine ? 'border-rose-500' : 'border-slate-400'}`} />
-          <span className="hidden xl:inline">{isEn ? 'Page guide' : '分页线'}</span>
-        </button>
-      </Tooltip>
     </div>
   );
 }

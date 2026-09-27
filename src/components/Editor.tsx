@@ -110,6 +110,7 @@ export const Editor = React.memo(function Editor() {
     historyIndex,
     history,
     settings,
+    updateSetting,
   } = useResumeStore();
 
   const deferredValue = useDeferredValue(value);
@@ -396,6 +397,25 @@ export const Editor = React.memo(function Editor() {
               )}
             </button>
           </Tooltip>
+
+          {/* 分页辅助线 (Page Break Line) */}
+          <Tooltip content={settings.lang === 'en' ? 'Toggle page break guide line' : '显示/隐藏分页辅助线'}>
+            <button
+              type="button"
+              onClick={() => updateSetting('showPageBreakLine', !settings.showPageBreakLine)}
+              aria-pressed={settings.showPageBreakLine}
+              aria-label={settings.lang === 'en' ? 'Toggle page break guide' : '切换分页辅助线'}
+              className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                settings.showPageBreakLine
+                  ? 'bg-rose-50 border-rose-200 text-rose-600 dark:bg-rose-950/60 dark:border-rose-800 dark:text-rose-400'
+                  : 'bg-white dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+              }`}
+            >
+              <Scissors className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            </button>
+          </Tooltip>
+
+          <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
 
           {/* 复制 Markdown 源码 */}
           <Tooltip content={settings.lang === 'en' ? 'Copy Markdown source' : '复制 Markdown 源码'}>

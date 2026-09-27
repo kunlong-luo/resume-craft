@@ -67,7 +67,7 @@ export function FormSectionEditor({
   return (
     <div 
       id={`form-sec-${sec.id}`} 
-      className={`rounded-xl overflow-hidden relative group/section scroll-mt-20 transition-all duration-300 focus-within:z-20 ${
+      className={`rounded-xl overflow-hidden focus-within:overflow-visible relative group/section scroll-mt-20 transition-all duration-300 focus-within:z-20 ${
         isExpanded 
           ? `tactile-card shadow-[0_16px_36px_rgba(30,41,59,0.06),0_3px_10px_rgba(30,41,59,0.03)] ${theme.border} scale-[1.002] ring-1 ${theme.accentRing} mb-5` 
           : 'bg-slate-50/60 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800 shadow-[0_2px_6px_rgba(30,41,59,0.015)] opacity-85 hover:opacity-100 scale-[0.995] hover:scale-100 mb-3'

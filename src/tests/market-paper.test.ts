@@ -182,6 +182,7 @@ describe('Phase 1 Foundation: Paper Specs & Market Profiles', () => {
       lang: 'en',
       paperSize: 'a4',
       marketRegion: 'international',
+      dateStyle: 'month-short',
     };
 
     it('normalizes and preserves valid paperSize and marketRegion', () => {
@@ -190,12 +191,14 @@ describe('Phase 1 Foundation: Paper Specs & Market Profiles', () => {
           themeColor: 'blue',
           paperSize: 'letter',
           marketRegion: 'us',
+          dateStyle: 'month-long',
         },
         fallback
       );
 
       expect(normalized?.paperSize).toBe('letter');
       expect(normalized?.marketRegion).toBe('us');
+      expect(normalized?.dateStyle).toBe('month-long');
     });
 
     it('falls back to safe defaults when paperSize or marketRegion is missing or invalid', () => {
@@ -204,12 +207,14 @@ describe('Phase 1 Foundation: Paper Specs & Market Profiles', () => {
           themeColor: 'blue',
           paperSize: 'invalid-paper',
           marketRegion: 'invalid-region',
+          dateStyle: 'invalid-date-style',
         },
         fallback
       );
 
       expect(normalized?.paperSize).toBe('a4');
       expect(normalized?.marketRegion).toBe('international');
+      expect(normalized?.dateStyle).toBe('month-short');
     });
   });
 });

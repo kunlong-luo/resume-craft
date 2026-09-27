@@ -39,6 +39,18 @@
       }
     }
     </script>
+    <script>
+      (() => {
+        try {
+          const saved = localStorage.getItem('resume_theme_mode') || 'system';
+          const isDark = saved === 'dark' || (saved === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.startupTheme = isDark ? 'dark' : 'light';
+          document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+        } catch {
+          document.documentElement.dataset.startupTheme = 'light';
+        }
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234F46E5'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E" />
     <meta name="theme-color" content="#4F46E5" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -48,35 +60,135 @@
   </head>
   <body class="bg-[#070a13] text-slate-100">
     <div id="root">
-      <div style="min-height:100vh;display:flex;flex-direction:column;background:#070a13;color:#e2e8f0;font-family:sans-serif;">
-        <!-- Header Skeleton -->
-        <div style="height:56px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:#0d1527;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:28px;height:28px;border-radius:8px;background:rgba(79,70,229,0.3);animation:pulse 1.5s infinite;"></div>
-            <div style="width:120px;height:16px;border-radius:4px;background:rgba(255,255,255,0.15);animation:pulse 1.5s infinite;"></div>
+      <div class="startup-shell" aria-hidden="true">
+        <div class="startup-topbar">
+          <div class="startup-brand">
+            <div class="startup-logo">RC</div>
+            <div class="startup-brand-line startup-shimmer"></div>
+            <div class="startup-chip startup-shimmer"></div>
           </div>
-          <div style="display:flex;gap:12px;">
-            <div style="width:80px;height:32px;border-radius:8px;background:rgba(255,255,255,0.08);animation:pulse 1.5s infinite;"></div>
-            <div style="width:96px;height:32px;border-radius:8px;background:linear-gradient(90deg, #4F46E5, #2563EB);opacity:0.8;animation:pulse 1.5s infinite;"></div>
+          <div class="startup-actions">
+            <div class="startup-icon startup-shimmer"></div>
+            <div class="startup-button startup-shimmer"></div>
           </div>
         </div>
-        <!-- Main Split Skeleton -->
-        <div style="flex:1;display:flex;overflow:hidden;">
-          <div style="width:50%;border-right:1px solid rgba(255,255,255,0.08);padding:24px;display:flex;flex-direction:column;gap:16px;">
-            <div style="width:40%;height:20px;border-radius:4px;background:rgba(255,255,255,0.1);animation:pulse 1.5s infinite;"></div>
-            <div style="width:100%;height:120px;border-radius:8px;background:rgba(255,255,255,0.04);animation:pulse 1.5s infinite;"></div>
-            <div style="width:100%;height:200px;border-radius:8px;background:rgba(255,255,255,0.04);animation:pulse 1.5s infinite;"></div>
+        <div class="startup-toolbar">
+          <div class="startup-toolbar-pill startup-shimmer"></div>
+          <div class="startup-toolbar-pill startup-shimmer"></div>
+          <div class="startup-toolbar-pill startup-shimmer"></div>
+          <div class="startup-toolbar-pill startup-shimmer"></div>
+        </div>
+        <div class="startup-workspace">
+          <div class="startup-editor">
+            <div class="startup-section-title startup-shimmer"></div>
+            <div class="startup-field startup-shimmer"></div>
+            <div class="startup-field startup-shimmer"></div>
+            <div class="startup-field startup-shimmer"></div>
+            <div class="startup-field startup-shimmer"></div>
           </div>
-          <div style="width:50%;background:#030508;display:flex;align-items:center;justify-content:center;padding:24px;">
-            <div style="width:380px;height:538px;border-radius:8px;background:#ffffff;opacity:0.06;box-shadow:0 10px 30px rgba(0,0,0,0.5);animation:pulse 1.5s infinite;"></div>
+          <div class="startup-preview">
+            <div class="startup-paper">
+              <div class="startup-paper-line w60 startup-shimmer"></div>
+              <div class="startup-paper-line w86 startup-shimmer"></div>
+              <div class="startup-paper-line w74 startup-shimmer"></div>
+              <div class="startup-paper-block startup-shimmer"></div>
+              <div class="startup-paper-line w82 startup-shimmer"></div>
+              <div class="startup-paper-line w68 startup-shimmer"></div>
+            </div>
           </div>
         </div>
       </div>
       <style>
-        @keyframes pulse {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 0.25; }
+        html, body, #root { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+        .startup-shell {
+          --startup-bg: #f8fafc;
+          --startup-panel: #ffffff;
+          --startup-soft: #f1f5f9;
+          --startup-border: rgba(148,163,184,.24);
+          --startup-skeleton: rgba(148,163,184,.18);
+          --startup-skeleton-hi: rgba(148,163,184,.34);
+          min-height: 100dvh;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          background: var(--startup-bg);
+          color: #0f172a;
+          font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
         }
+        html[data-startup-theme="dark"] .startup-shell {
+          --startup-bg: #070a13;
+          --startup-panel: #0f172a;
+          --startup-soft: #0b1220;
+          --startup-border: rgba(71,85,105,.38);
+          --startup-skeleton: rgba(100,116,139,.18);
+          --startup-skeleton-hi: rgba(148,163,184,.28);
+          color: #e2e8f0;
+        }
+        .startup-topbar {
+          height: 48px;
+          flex: 0 0 48px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 16px;
+          background: color-mix(in srgb, var(--startup-panel) 94%, transparent);
+          border-bottom: 1px solid var(--startup-border);
+        }
+        .startup-brand,.startup-actions { display:flex; align-items:center; gap:10px; }
+        .startup-logo {
+          width: 30px; height: 30px; border-radius: 10px;
+          display:flex; align-items:center; justify-content:center;
+          background: linear-gradient(135deg,#4f46e5,#7c3aed);
+          color:white; font-size:11px; font-weight:900;
+          box-shadow: 0 6px 16px rgba(79,70,229,.18);
+        }
+        .startup-brand-line { width: 96px; height: 12px; border-radius: 6px; }
+        .startup-chip { width: 68px; height: 24px; border-radius: 8px; }
+        .startup-icon { width: 30px; height: 30px; border-radius: 9px; }
+        .startup-button { width: 92px; height: 30px; border-radius: 10px; }
+        .startup-toolbar {
+          height: 42px;
+          flex: 0 0 42px;
+          display:flex; align-items:center; gap:8px; padding:0 16px;
+          background: var(--startup-panel);
+          border-bottom:1px solid var(--startup-border);
+        }
+        .startup-toolbar-pill { width:72px; height:24px; border-radius:8px; }
+        .startup-workspace { flex:1; min-height:0; display:flex; overflow:hidden; }
+        .startup-editor {
+          width:50%; min-width:0; box-sizing:border-box; padding:22px;
+          background:var(--startup-panel); border-right:1px solid var(--startup-border);
+        }
+        .startup-section-title { width:34%; height:14px; border-radius:6px; margin-bottom:22px; }
+        .startup-field { width:100%; height:38px; border-radius:10px; margin-bottom:12px; }
+        .startup-preview {
+          width:50%; min-width:0; overflow:hidden; padding:24px;
+          display:flex; align-items:flex-start; justify-content:center;
+          background:var(--startup-soft);
+        }
+        .startup-paper {
+          width:min(76%, 430px); aspect-ratio:210/297; box-sizing:border-box;
+          padding:9% 8%; border-radius:3px; background:white;
+          box-shadow:0 18px 50px rgba(15,23,42,.10),0 0 0 1px rgba(15,23,42,.05);
+        }
+        html[data-startup-theme="dark"] .startup-paper { box-shadow:0 18px 60px rgba(0,0,0,.35); }
+        .startup-paper-line { height:8px; border-radius:4px; margin-bottom:10px; }
+        .startup-paper-block { height:24%; border-radius:6px; margin:20px 0; }
+        .w60 { width:60%; }.w68 { width:68%; }.w74 { width:74%; }.w82 { width:82%; }.w86 { width:86%; }
+        .startup-shimmer {
+          background:linear-gradient(90deg,var(--startup-skeleton) 25%,var(--startup-skeleton-hi) 50%,var(--startup-skeleton) 75%);
+          background-size:200% 100%; animation:startup-shimmer 1.35s ease-in-out infinite;
+        }
+        @keyframes startup-shimmer { from { background-position:200% 0; } to { background-position:-200% 0; } }
+        @media (max-width: 767px) {
+          .startup-topbar { height:48px; flex-basis:48px; padding:0 12px; }
+          .startup-toolbar { padding:0 12px; overflow:hidden; }
+          .startup-brand-line { width:72px; }
+          .startup-chip { display:none; }
+          .startup-editor { width:100%; padding:18px 14px 72px; border-right:0; }
+          .startup-preview { display:none; }
+        }
+        @media (prefers-reduced-motion: reduce) { .startup-shimmer { animation:none; } }
       </style>
     </div>
     <script type="module" src="/src/main.tsx"></script>

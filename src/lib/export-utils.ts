@@ -520,7 +520,7 @@ export function adaptMarkdownToTargetMarket(
   const isEn = targetLang === 'en' || targetMarket !== 'cn';
 
   // 1. Normalize dates according to target market
-  const dateResult = normalizeAllDatesInMarkdown(currentMd, profile.defaultDateStyle, isEn);
+  const dateResult = normalizeAllDatesInMarkdown(currentMd, profile.dateStyle, isEn);
   if (dateResult.convertedCount > 0) {
     currentMd = dateResult.markdown;
     fixes.push(`已自动将 ${dateResult.convertedCount} 处日期转换为目标市场标准`);
@@ -531,7 +531,7 @@ export function adaptMarkdownToTargetMarket(
     const sanitizeResult = sanitizeSensitiveFieldsForMarket(currentMd);
     if (sanitizeResult.sanitizedFieldsCount > 0) {
       currentMd = sanitizeResult.markdown;
-      fixes.push(`已依据 ${profile.name} 招聘规范优化个人敏感字段`);
+      fixes.push(`已依据 ${isEn ? profile.labelEn : profile.labelZh} 招聘规范优化个人敏感字段`);
     }
   }
 

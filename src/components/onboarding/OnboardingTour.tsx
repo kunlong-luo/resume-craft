@@ -23,7 +23,7 @@ const steps = [
 ] as const;
 
 export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
-  const { settings, handleMarkdownChange, handleSettingsChange, setCurrentTemplateId } = useResumeStore();
+  const { settings, handleMarkdownChange, updateSettings, setCurrentTemplateId } = useResumeStore();
   const isEn = settings.lang === 'en';
   const [step, setStep] = useState(0);
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
@@ -159,7 +159,7 @@ export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
       setCurrentTemplateId(templateId);
       handleMarkdownChange(template.content, true);
       if (template.targetMarket) {
-        handleSettingsChange({
+        updateSettings({
           marketRegion: template.targetMarket,
           paperSize: template.defaultPaperSize || settings.paperSize,
           dateStyle: template.dateStyle || settings.dateStyle,

@@ -171,7 +171,7 @@ export function TemplateCenterModal({
     currentTemplateId,
     setCurrentTemplateId,
     handleMarkdownChange,
-    handleSettingsChange,
+    updateSettings,
   } = useResumeStore();
   const { confirm } = useConfirm();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -267,7 +267,7 @@ export function TemplateCenterModal({
     handleMarkdownChange(selectedTemplate.content, true);
 
     if (selectedTemplate.targetMarket) {
-      handleSettingsChange({
+      updateSettings({
         marketRegion: selectedTemplate.targetMarket,
         paperSize: selectedTemplate.defaultPaperSize || settings.paperSize,
         dateStyle: selectedTemplate.dateStyle || settings.dateStyle,

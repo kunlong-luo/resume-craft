@@ -33,7 +33,7 @@ export function PdfExportMenu({
 
   const market = settings.marketRegion || 'cn';
   const marketProfile = getMarketProfile(market);
-  const paperSpec = getPaperSpec(settings.paperSize || marketProfile.defaultPaper);
+  const paperSpec = getPaperSpec(settings.paperSize || marketProfile.defaultPaperSize);
 
   const defaultFileName = getMarketDefaultFileName({
     markdown,
@@ -173,10 +173,10 @@ export function PdfExportMenu({
           <div className="mb-2 flex items-center justify-between rounded-xl bg-indigo-50/70 px-2.5 py-1.5 dark:bg-indigo-950/40">
             <span className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
               <Globe className="h-3.5 w-3.5 text-indigo-500" />
-              {marketProfile.flag} {marketProfile.name}
+              {isEn ? marketProfile.labelEn : marketProfile.labelZh}
             </span>
             <span className="rounded-md bg-white/80 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 shadow-xs dark:bg-slate-800 dark:text-slate-300">
-              {paperSpec.nameZh} ({paperSpec.widthMm}×{paperSpec.heightMm}mm)
+              {isEn ? paperSpec.labelEn : paperSpec.labelZh} ({paperSpec.widthMm}×{paperSpec.heightMm}mm)
             </span>
           </div>
 

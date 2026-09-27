@@ -31,6 +31,7 @@ export interface ResumeSettings {
   lang?: Language;
   paperSize?: PaperSize;
   marketRegion?: MarketRegion;
+  dateStyle?: DateStyle;
   isPrivacyMasked?: boolean;
 }
 

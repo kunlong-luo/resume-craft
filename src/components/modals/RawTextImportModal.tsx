@@ -469,7 +469,7 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
                               </p>
                               {selectedFile.detectedMarket && (
                                 <span className="rounded-full bg-indigo-100/80 px-2 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                                  {getMarketProfile(selectedFile.detectedMarket as any).flag} {getMarketProfile(selectedFile.detectedMarket as any).name}
+                                  {isEn ? getMarketProfile(selectedFile.detectedMarket as any).labelEn : getMarketProfile(selectedFile.detectedMarket as any).labelZh}
                                 </span>
                               )}
                             </div>
@@ -623,13 +623,13 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
                   <div className="min-w-0">
                     <span className="block text-xs font-bold text-slate-800 dark:text-slate-200">
                       {isEn
-                        ? `Auto-adapt to ${currentMarketProfile.name} Standards`
-                        : `自动规范化适配当前目标市场 (${currentMarketProfile.name})`}
+                        ? `Auto-adapt to ${currentMarketProfile.labelEn} Standards`
+                        : `自动规范化适配当前目标市场 (${currentMarketProfile.labelZh})`}
                     </span>
                     <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
                       {isEn
-                        ? `Standardizes dates (${currentMarketProfile.defaultDateStyle}), section titles, and EEO sanitization`
-                        : `自动将日期转为目标国规范 (${currentMarketProfile.defaultDateStyle}) 并进行招聘合规优化`}
+                        ? `Standardizes dates (${currentMarketProfile.dateStyle}), section titles, and EEO sanitization`
+                        : `自动将日期转为目标国规范 (${currentMarketProfile.dateStyle}) 并进行招聘合规优化`}
                     </span>
                   </div>
                 </div>

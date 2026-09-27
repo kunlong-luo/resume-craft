@@ -22,7 +22,7 @@ describe('Phase 5: Market-Aware ATS Diagnostics and Auto-Fixing Engine', () => {
 `;
 
       const analysisUs = analyzeResume(resumeWithSensitiveInfo, mockUpdateMarkdown, 'en', 'us');
-      const marketIssue = analysisUs.issues.find(i => i.category === 'market' && i.title.includes('Equal Opportunity'));
+      const marketIssue = analysisUs.issues.find(i => i.category === 'market' && i.title.includes('Market Guidance'));
 
       expect(marketIssue).toBeDefined();
       expect(marketIssue?.type).toBe('warning');
@@ -48,6 +48,62 @@ describe('Phase 5: Market-Aware ATS Diagnostics and Auto-Fixing Engine', () => {
       const analysisCn = analyzeResume(resumeCn, mockUpdateMarkdown, 'zh', 'cn');
       const sensitiveIssue = analysisCn.issues.find(i => i.category === 'market' && i.title.includes('合规风控'));
       expect(sensitiveIssue).toBeUndefined();
+    });
+  });
+
+  describe('Checker claim calibration', () => {
+    it('frames market guidance as a convention rather than an automatic legal outcome', () => {
+      const resume = `# Alex Taylor
+26 years old | Married
+alex@example.com | +1 206 555 0123
+
+## Experience
+### Example Corp | Engineer | Jan 2024 – Present
+- Led platform reliability work and improved uptime by 30%.
+`;
+
+      const analysis = analyzeResume(resume, mockUpdateMarkdown, 'en', 'us');
+      const issue = analysis.issues.find(i => i.category === 'market' && i.type === 'warning');
+
+      expect(issue?.title).toContain('Market Guidance');
+      expect(issue?.desc).toContain('commonly omitted');
+      expect(issue?.desc).not.toMatch(/automatically disqualified|strictly avoid/i);
+    });
+
+    it('describes ATS checks as risk reduction instead of guaranteed parsing', () => {
+      const resume = `# Alex Taylor
+alex@example.com | +1 206 555 0123
+
+## Experience
+### Example Corp | Engineer | Jan 2024 – Present
+- Led platform reliability work and improved uptime by 30%.
+`;
+
+      const analysis = analyzeResume(resume, mockUpdateMarkdown, 'en', 'us');
+      const issue = analysis.issues.find(i => i.category === 'ats' && i.type === 'success');
+
+      expect(issue?.title).toContain('No obvious structural risks');
+      expect(issue?.desc).toContain('varies across ATS');
+      expect(issue?.desc).not.toMatch(/without any errors|guarantee|perfect/i);
+    });
+
+    it('does not infer one-page fit from character count alone', () => {
+      const resume = `# Alex Taylor
+alex@example.com | +1 206 555 0123
+
+## Experience
+### Example Corp | Engineer | Jan 2024 – Present
+- Led platform reliability work and improved uptime by 30%.
+`;
+
+      const analysis = analyzeResume(resume, mockUpdateMarkdown, 'en', 'us');
+      const issue = analysis.issues.find(
+        i => i.category === 'formatting' && i.title.includes('Layout Control'),
+      );
+
+      expect(issue?.title).toContain('Moderate content length');
+      expect(issue?.desc).toContain('live preview');
+      expect(issue?.desc).not.toMatch(/fits perfectly|recruiters highly favor/i);
     });
   });
 

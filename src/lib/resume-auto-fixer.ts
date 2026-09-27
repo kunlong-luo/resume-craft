@@ -74,7 +74,7 @@ export function sanitizeSensitiveFieldsForMarket(
     // Keep resume body structure byte-for-byte; sensitive personal metadata is
     // expected in the header/contact area rather than bullets or sections.
     if (/^\s*(?:#{1,6}\s|[-*+]\s|>|\d+\.\s)/.test(originalLine)) {
-      return originalLine.replace(/!\[.*?\]\(.*?\)|<img[^>]*>/gi, (match) => {
+      return originalLine.replace(/!\[.*?\]\(.*?\)|<img[^>]*>/gi, () => {
         count++;
         return '';
       });

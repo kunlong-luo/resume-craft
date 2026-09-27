@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, FilePlus2, FileText, MousePointer2, Sparkles, Upload, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FilePlus2, FileText, MousePointer2, Sliders, Upload, X } from 'lucide-react';
 import { BLANK_MARKDOWN, STARTER_MARKDOWN, STARTER_MARKDOWN_EN, TEMPLATES } from '../../data';
 import { storage, STORAGE_KEYS } from '../../lib/storage';
 import { useResumeStore } from '../../store/useResumeStore';
@@ -23,7 +23,7 @@ const steps = [
 ] as const;
 
 export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
-  const { settings, handleMarkdownChange, setCurrentTemplateId } = useResumeStore();
+  const { settings, handleMarkdownChange, handleSettingsChange, setCurrentTemplateId } = useResumeStore();
   const isEn = settings.lang === 'en';
   const [step, setStep] = useState(0);
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
@@ -153,11 +153,19 @@ export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
     storage.getString(STORAGE_KEYS.ONBOARDING_COMPLETE) !== '1';
 
   const applyExample = () => {
-    const templateId = isEn ? 'english' : 'ai_backend';
+    const templateId = isEn ? 'us_swe' : 'ai_backend';
     const template = TEMPLATES.find((item) => item.id === templateId);
     if (template) {
       setCurrentTemplateId(templateId);
       handleMarkdownChange(template.content, true);
+      if (template.targetMarket) {
+        handleSettingsChange({
+          marketRegion: template.targetMarket,
+          paperSize: template.defaultPaperSize || settings.paperSize,
+          dateStyle: template.dateStyle || settings.dateStyle,
+          lang: template.suggestedLang || settings.lang,
+        });
+      }
     }
     complete();
   };
@@ -261,7 +269,7 @@ export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
               {step === 0 ? (
                 <MousePointer2 className="w-4.5 h-4.5" />
               ) : step === 1 ? (
-                <Sparkles className="w-4.5 h-4.5" />
+                <Sliders className="w-4.5 h-4.5" />
               ) : (
                 <FileText className="w-4.5 h-4.5" />
               )}

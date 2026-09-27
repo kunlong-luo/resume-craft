@@ -1,6 +1,7 @@
 import type { ResumeTemplate } from '../data';
+import { MarketRegion, PaperSize, DateStyle } from '../types';
 
-export type TemplateGroup = 'engineering' | 'product' | 'graduate' | 'global';
+export type TemplateGroup = 'engineering' | 'product' | 'graduate' | 'global' | 'us' | 'uk' | 'cn';
 
 export interface TemplatePresentation {
   name: string;
@@ -10,6 +11,10 @@ export interface TemplatePresentation {
   language: string;
   group: TemplateGroup;
   experience: string;
+  targetMarket?: MarketRegion;
+  defaultPaperSize?: PaperSize;
+  dateStyle?: DateStyle;
+  marketBadge?: string;
 }
 
 type TemplatePresentationPair = {
@@ -20,22 +25,30 @@ type TemplatePresentationPair = {
 const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
   ai_backend: {
     zh: {
-      name: 'AI 后端工程师',
+      name: 'AI 后端架构师',
       category: '研发开发',
       description: '突出高并发后端、AI Agent、RAG 与分布式系统项目成果。',
-      tags: ['AI / LLM', '后端架构', '资深社招'],
+      tags: ['AI / LLM', '后端架构', '高并发'],
       language: '中文',
       group: 'engineering',
       experience: '资深 / 社招',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 中文标准 · A4',
     },
     en: {
-      name: 'AI Backend Developer',
+      name: 'AI Backend Architect',
       category: 'Engineering',
       description: 'Highlights backend architecture, AI agents, RAG, and distributed systems impact.',
       tags: ['AI / LLM', 'Backend', 'Experienced'],
       language: 'Chinese',
       group: 'engineering',
       experience: 'Experienced',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 CN Standard · A4',
     },
   },
   frontend: {
@@ -47,6 +60,10 @@ const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
       language: '中文',
       group: 'engineering',
       experience: '社招',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 中文标准 · A4',
     },
     en: {
       name: 'AI Frontend Developer',
@@ -56,17 +73,25 @@ const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
       language: 'Chinese',
       group: 'engineering',
       experience: 'Experienced',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 CN Standard · A4',
     },
   },
   pm_lead: {
     zh: {
       name: '技术产品经理 / 研发总监',
       category: '产品管理',
-      description: '兼顾技术理解、产品规划、团队协作与业务结果的管理型模板。',
+      description: '兼顾技术理解、产品规划、团队协作与商业化结果的管理型模板。',
       tags: ['产品战略', '技术管理', '团队协作'],
       language: '中文',
       group: 'product',
       experience: '管理 / 资深',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 中文标准 · A4',
     },
     en: {
       name: 'Technical PM / Engineering Director',
@@ -76,6 +101,10 @@ const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
       language: 'Chinese',
       group: 'product',
       experience: 'Leadership',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 CN Standard · A4',
     },
   },
   operations: {
@@ -87,6 +116,10 @@ const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
       language: '中文',
       group: 'product',
       experience: '社招',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 中文标准 · A4',
     },
     en: {
       name: 'Product Operations / Growth',
@@ -96,6 +129,10 @@ const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
       language: 'Chinese',
       group: 'product',
       experience: 'Experienced',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 CN Standard · A4',
     },
   },
   campus: {
@@ -103,10 +140,14 @@ const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
       name: '应届生 / 校园研发',
       category: '应届生求职',
       description: '突出教育背景、实习、项目、竞赛和可迁移技术能力。',
-      tags: ['应届生', '实习', '项目经历'],
+      tags: ['应届生', '实习', '竞赛获奖'],
       language: '中文',
       group: 'graduate',
       experience: '应届 / 实习',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 中文标准 · A4',
     },
     en: {
       name: 'Graduate / Campus Engineering',
@@ -116,26 +157,122 @@ const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
       language: 'Chinese',
       group: 'graduate',
       experience: 'Graduate',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 CN Standard · A4',
+    },
+  },
+  us_swe: {
+    zh: {
+      name: '美版软件工程师 (US Resume)',
+      category: '海外求职',
+      description: '严格遵循美国招聘与反歧视标准，Letter 纸张，Mar 2024 日期，强 STAR 动词。',
+      tags: ['US Resume', 'Letter Size', 'ATS Friendly'],
+      language: 'English',
+      group: 'us',
+      experience: 'Senior / Staff',
+      targetMarket: 'us',
+      defaultPaperSize: 'letter',
+      dateStyle: 'month-short',
+      marketBadge: '🇺🇸 US · Letter · ATS',
+    },
+    en: {
+      name: 'US Software Engineer (Resume)',
+      category: 'Global',
+      description: 'Standard US tech resume adhering to EEO laws, Letter format, and STAR metrics.',
+      tags: ['US Resume', 'Letter Size', 'ATS Friendly'],
+      language: 'English',
+      group: 'us',
+      experience: 'Senior / Staff',
+      targetMarket: 'us',
+      defaultPaperSize: 'letter',
+      dateStyle: 'month-short',
+      marketBadge: '🇺🇸 US · Letter · ATS',
+    },
+  },
+  uk_cv: {
+    zh: {
+      name: '英版技术经理 / 全栈 (UK CV)',
+      category: '海外求职',
+      description: '标准英国 Curriculum Vitae 结构，A4 尺寸，包含 Professional Profile 与荣誉学位。',
+      tags: ['UK CV', 'A4 Size', 'Lead / Staff'],
+      language: 'English',
+      group: 'uk',
+      experience: 'Lead / Senior',
+      targetMarket: 'uk',
+      defaultPaperSize: 'a4',
+      dateStyle: 'month-long',
+      marketBadge: '🇬🇧 UK CV · A4',
+    },
+    en: {
+      name: 'UK Tech Lead & Full-Stack (CV)',
+      category: 'Global',
+      description: 'Standard British CV format with Professional Profile, UK date style, and honours degree.',
+      tags: ['UK CV', 'A4 Size', 'Lead / Staff'],
+      language: 'English',
+      group: 'uk',
+      experience: 'Lead / Senior',
+      targetMarket: 'uk',
+      defaultPaperSize: 'a4',
+      dateStyle: 'month-long',
+      marketBadge: '🇬🇧 UK CV · A4',
+    },
+  },
+  ca_tech: {
+    zh: {
+      name: '加拿大云原生与数据工程师 (Resume)',
+      category: '海外求职',
+      description: '契合加拿大科技公司标准，Letter 纸张，强调 DevOps 与分布式数据管道成果。',
+      tags: ['Canada', 'Cloud Platform', 'Letter Size'],
+      language: 'English',
+      group: 'global',
+      experience: 'Experienced',
+      targetMarket: 'ca',
+      defaultPaperSize: 'letter',
+      dateStyle: 'month-short',
+      marketBadge: '🇨🇦 Canada · Letter',
+    },
+    en: {
+      name: 'Canadian Cloud & Data Engineer',
+      category: 'Global',
+      description: 'Canadian tech resume with Letter page size, FinOps, and data engineering achievements.',
+      tags: ['Canada', 'Cloud Platform', 'Letter Size'],
+      language: 'English',
+      group: 'global',
+      experience: 'Experienced',
+      targetMarket: 'ca',
+      defaultPaperSize: 'letter',
+      dateStyle: 'month-short',
+      marketBadge: '🇨🇦 Canada · Letter',
     },
   },
   english: {
     zh: {
-      name: '英文简历 / Global CV',
+      name: '国际通用远程全栈架构师',
       category: '海外求职',
-      description: '英文标准简历结构，强调 impact、技术领导力与国际化表达。',
-      tags: ['English CV', 'Global', 'Impact'],
+      description: '国际通用英文简历，强调跨国分布式团队协作与高并发 AI 网关落地。',
+      tags: ['Remote', 'Global Standard', 'AI Stack'],
       language: 'English',
       group: 'global',
-      experience: '海外 / 社招',
+      experience: 'Principal / Lead',
+      targetMarket: 'international',
+      defaultPaperSize: 'a4',
+      dateStyle: 'month-short',
+      marketBadge: '🌐 Global · Remote',
     },
     en: {
-      name: 'English CV / Global Standard',
+      name: 'Global Full-Stack & Remote (Resume)',
       category: 'Global',
-      description: 'A global English CV emphasizing measurable impact, technical leadership, and clarity.',
-      tags: ['English CV', 'Global', 'Impact'],
+      description: 'International English CV emphasizing global remote leadership and AI infrastructure.',
+      tags: ['Remote', 'Global Standard', 'AI Stack'],
       language: 'English',
       group: 'global',
-      experience: 'Global',
+      experience: 'Principal / Lead',
+      targetMarket: 'international',
+      defaultPaperSize: 'a4',
+      dateStyle: 'month-short',
+      marketBadge: '🌐 Global · Remote',
     },
   },
 };
@@ -158,6 +295,10 @@ export function getTemplatePresentation(
     language: lang === 'en' ? 'Mixed' : '混合',
     group: 'engineering',
     experience: lang === 'en' ? 'General' : '通用',
+    targetMarket: template.targetMarket,
+    defaultPaperSize: template.defaultPaperSize,
+    dateStyle: template.dateStyle,
+    marketBadge: template.targetMarket?.toUpperCase(),
   };
 }
 

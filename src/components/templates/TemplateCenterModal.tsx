@@ -7,7 +7,7 @@ import {
   Globe2,
   GraduationCap,
   LayoutGrid,
-  Sparkles,
+  Layers,
   X,
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
@@ -39,6 +39,24 @@ const FILTERS: Array<{
     labelZh: '全部',
     labelEn: 'All',
     icon: <LayoutGrid className="h-3.5 w-3.5" />,
+  },
+  {
+    value: 'us',
+    labelZh: '🇺🇸 美版 Resume',
+    labelEn: '🇺🇸 US Resume',
+    icon: <Globe2 className="h-3.5 w-3.5" />,
+  },
+  {
+    value: 'uk',
+    labelZh: '🇬🇧 英版 CV',
+    labelEn: '🇬🇧 UK CV',
+    icon: <Globe2 className="h-3.5 w-3.5" />,
+  },
+  {
+    value: 'cn',
+    labelZh: '🇨🇳 中文标准',
+    labelEn: '🇨🇳 CN Standard',
+    icon: <BriefcaseBusiness className="h-3.5 w-3.5" />,
   },
   {
     value: 'engineering',
@@ -153,6 +171,7 @@ export function TemplateCenterModal({
     currentTemplateId,
     setCurrentTemplateId,
     handleMarkdownChange,
+    handleSettingsChange,
   } = useResumeStore();
   const { confirm } = useConfirm();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -174,7 +193,7 @@ export function TemplateCenterModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    const fallbackId = isEn ? 'english' : 'ai_backend';
+    const fallbackId = isEn ? 'us_swe' : 'ai_backend';
     setSelectedId(
       TEMPLATES.some((template) => template.id === currentTemplateId)
         ? currentTemplateId
@@ -229,10 +248,14 @@ export function TemplateCenterModal({
       message: isEn
         ? 'Using "' +
           selectedPresentation.name +
-          '" replaces the active resume content. Your Layout and Style settings stay unchanged, and you can still undo afterward.'
+          '" replaces the active resume content. Target paper size (' +
+          (selectedTemplate.defaultPaperSize?.toUpperCase() || 'A4') +
+          ') and market standards will be synchronized.'
         : '使用「' +
           selectedPresentation.name +
-          '」会替换当前简历内容，但你设置的「排版」和「样式」会保持不变；应用后仍可撤销。',
+          '」会替换当前简历内容，并自动同步目标市场格式与纸张规格（' +
+          (selectedTemplate.defaultPaperSize?.toUpperCase() || 'A4') +
+          '）。应用后仍可撤销。',
       confirmText: isEn ? 'Use content template' : '使用内容模板',
       cancelText: isEn ? 'Cancel' : '取消',
       type: 'warning',
@@ -242,6 +265,16 @@ export function TemplateCenterModal({
 
     setCurrentTemplateId(selectedTemplate.id);
     handleMarkdownChange(selectedTemplate.content, true);
+
+    if (selectedTemplate.targetMarket) {
+      handleSettingsChange({
+        marketRegion: selectedTemplate.targetMarket,
+        paperSize: selectedTemplate.defaultPaperSize || settings.paperSize,
+        dateStyle: selectedTemplate.dateStyle || settings.dateStyle,
+        lang: selectedTemplate.suggestedLang || settings.lang,
+      });
+    }
+
     onClose();
   };
 
@@ -373,6 +406,11 @@ export function TemplateCenterModal({
                         {presentation.description}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1">
+                        {presentation.marketBadge && (
+                          <span className="rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 text-[8px] font-black">
+                            {presentation.marketBadge}
+                          </span>
+                        )}
                         <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[8px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                           {presentation.language}
                         </span>
@@ -393,6 +431,11 @@ export function TemplateCenterModal({
 
               <div className="mt-5">
                 <div className="flex flex-wrap items-center gap-2">
+                  {selectedPresentation.marketBadge && (
+                    <span className="rounded-full bg-indigo-600 px-2.5 py-1 text-[10px] font-black text-white shadow-xs">
+                      {selectedPresentation.marketBadge}
+                    </span>
+                  )}
                   <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-[10px] font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
                     {selectedPresentation.category}
                   </span>
@@ -424,7 +467,7 @@ export function TemplateCenterModal({
 
                 <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
                   <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                    <Layers className="h-3.5 w-3.5 text-indigo-500" />
                     {isEn ? 'Included sections' : '包含的内容结构'}
                   </div>
                   <div className="mt-2 text-xs font-bold text-slate-800 dark:text-slate-200">

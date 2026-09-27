@@ -3,7 +3,7 @@ import { parseMarkdownToForm } from './markdown-parser';
 import { findPhoneCandidate } from './phone-utils';
 import { getMarketProfile } from './market-profile';
 import { normalizeAllDatesInMarkdown, sanitizeSensitiveFieldsForMarket } from './resume-auto-fixer';
-import { MarketRegion } from '../types';
+import { DateStyle, MarketRegion } from '../types';
 
 export interface IssueItem {
   type: 'error' | 'warning' | 'success';
@@ -28,13 +28,15 @@ export function analyzeResume(
   markdown: string,
   onUpdateMarkdown: (newMarkdown: string, immediate?: boolean) => void,
   lang?: string,
-  marketRegion?: MarketRegion
+  marketRegion?: MarketRegion,
+  dateStyle?: DateStyle
 ): AnalysisResult {
   const issues: IssueItem[] = [];
   let score = 100;
   const isEn = lang === 'en';
   const effectiveMarket = marketRegion || (isEn ? 'us' : 'cn');
   const marketProfile = getMarketProfile(effectiveMarket);
+  const targetDateStyle = dateStyle || targetDateStyle;
 
   // 1. Check Name (H1)
   const hasH1 = markdown.trim().split('\n').some(line => line.startsWith('# '));
@@ -142,12 +144,12 @@ export function analyzeResume(
       issues.push({
         type: 'warning',
         category: 'market',
-        title: isEn 
-          ? `Equal Opportunity: Sensitive personal info detected (${detectedItems.join(', ')})` 
-          : `合规风控：检测到敏感个人信息 (${detectedItems.join('、')})`,
-        desc: isEn 
-          ? `In ${marketProfile.labelEn} hiring processes, employers strictly avoid personal details (photos, age, marital status, nationality) to adhere to Equal Employment Opportunity laws. Resumes containing photos or age may be automatically disqualified to avoid bias liability.`
-          : `在 ${marketProfile.labelZh} 招聘流程中，企业严格遵循反就业歧视法（EEO）。简历中若包含照片、年龄、婚姻或国籍，招聘方为规避用工歧视法律风险，常会直接过滤。建议一键脱敏。`,
+        title: isEn
+          ? `Market Guidance: Personal details to review (${detectedItems.join(', ')})`
+          : `市场建议：检测到通常可省略的个人信息 (${detectedItems.join('、')})`,
+        desc: isEn
+          ? `For ${marketProfile.labelEn} resumes, details such as photos, age, marital status, and nationality are commonly omitted so the document stays focused on qualifications. Consider removing them unless they are relevant or specifically requested.`
+          : `面向 ${marketProfile.labelZh} 求职时，照片、年龄、婚姻、国籍等个人信息通常可以省略，让简历更聚焦于专业资历。若岗位没有明确要求，可考虑移除。`,
         fixable: true,
         onFix: () => {
           const sanitized = sanitizeSensitiveFieldsForMarket(markdown);
@@ -158,16 +160,16 @@ export function analyzeResume(
       issues.push({
         type: 'success',
         category: 'market',
-        title: isEn ? 'Equal Opportunity: Free of biased personal details' : '合规风控：完全符合欧美反就业歧视规范',
-        desc: isEn 
-          ? `No photo, age, or marital status was found, matching the ${marketProfile.labelEn} standard.`
-          : `未包含照片、年龄、婚育等敏感字段，完全契合 ${marketProfile.labelZh} 招聘市场的反歧视合规要求。`
+        title: isEn ? 'Market Guidance: No discouraged personal details detected' : '市场建议：未发现通常可省略的个人信息',
+        desc: isEn
+          ? `No photo, age, or marital-status fields were detected. This is consistent with common ${marketProfile.labelEn} resume conventions.`
+          : `未检测到照片、年龄、婚育等字段，符合 ${marketProfile.labelZh} 简历中常见的精简做法。`
       });
     }
   }
 
   // 4. Market Date Style Consistency Check
-  const dateCheckResult = normalizeAllDatesInMarkdown(markdown, marketProfile.dateStyle, isEn);
+  const dateCheckResult = normalizeAllDatesInMarkdown(markdown, targetDateStyle, isEn);
   if (dateCheckResult.convertedCount > 0) {
     score -= 5;
     issues.push({
@@ -177,8 +179,8 @@ export function analyzeResume(
         ? `Market Date Format: ${dateCheckResult.convertedCount} date range(s) can be normalized` 
         : `日期格式：发现 ${dateCheckResult.convertedCount} 处可统一为${marketProfile.labelZh}标准`,
       desc: isEn 
-        ? `Target market (${marketProfile.labelEn}) standard date format is "${marketProfile.dateStyle}". Click Auto Fix to convert all dates across your resume automatically.`
-        : `当前目标市场（${marketProfile.labelZh}）推荐采用「${marketProfile.dateStyle}」日期风格。点击智能修正可一键将简历内经历与教育时间全部统一。`,
+        ? `Target market (${marketProfile.labelEn}) standard date format is "${targetDateStyle}". Click Auto Fix to convert all dates across your resume automatically.`
+        : `当前目标市场（${marketProfile.labelZh}）推荐采用「${targetDateStyle}」日期风格。点击智能修正可一键将简历内经历与教育时间全部统一。`,
       fixable: true,
       onFix: () => {
         onUpdateMarkdown(dateCheckResult.markdown, true);
@@ -188,7 +190,7 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'market',
-      title: isEn ? `Market Date Format: Standardized (${marketProfile.dateStyle})` : `日期格式：完全符合${marketProfile.labelZh}标准`,
+      title: isEn ? `Market Date Format: Standardized (${targetDateStyle})` : `日期格式：完全符合${marketProfile.labelZh}标准`,
       desc: isEn 
         ? `All dates conform to the ${marketProfile.labelEn} date format standard.`
         : `简历中的所有时间区间均已完全符合 ${marketProfile.labelZh} 推荐规范。`
@@ -322,9 +324,9 @@ export function analyzeResume(
         type: 'success',
         category: 'formatting',
         title: isEn ? 'Layout Control: Manual pagebreak used' : '排版控制：已使用分页符',
-        desc: isEn 
-          ? 'Your resume is long, but you have wisely used the <!-- pagebreak --> tag to control pagination, avoiding automatic cutoffs.'
-          : '简历字数较多，但您已经明智地使用了 <!-- pagebreak --> 标签来控制打印分页，避免了打印时产生跨页截断。'
+        desc: isEn
+          ? 'Your resume is relatively long and includes a manual page break. Confirm the final page split in Preview before exporting.'
+          : '简历内容较长，并已使用手动分页符。导出前建议在预览中确认最终分页位置。'
       });
     } else {
       score -= 10;
@@ -332,9 +334,9 @@ export function analyzeResume(
         type: 'warning',
         category: 'formatting',
         title: isEn ? 'Layout Warning: Pagebreak recommended' : '排版警告：建议插入分页符',
-        desc: isEn 
-          ? 'Your resume has a high word count, which may cause unintended page clipping when printing to PDF. It is highly recommended to click the scissor icon in the toolbar to insert "<!-- pagebreak -->" after an appropriate section.'
-          : '当前简历总字数较多，如果直接打印为 PDF 可能会产生无章法的自动截断。建议在一页纸写不下的合适段落之后，点击编辑工具栏的剪刀按钮插入「<!-- pagebreak -->」进行优雅的手动分页。',
+        desc: isEn
+          ? 'Your resume has a high content count. Review the measured page count in Preview; if a section splits awkwardly, a manual "<!-- pagebreak -->" can help control the break.'
+          : '当前简历内容较多。建议先在预览中查看实际页数；如果章节跨页位置不理想，可使用「<!-- pagebreak -->」手动控制分页。',
         fixable: true,
         onFix: () => {
           const linesArr = markdown.split('\n');
@@ -358,43 +360,52 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'formatting',
-      title: isEn ? 'Layout Control: Optimal length (One page version)' : '排版控制：字数适中 (一页精简版)',
-      desc: isEn 
-        ? 'The length is moderate and fits perfectly onto a single page, which recruiters highly favor.'
-        : '简历长度适宜，通常可以完美放入一页 A4/Letter 纸内，符合绝大多数招聘官的阅读习惯。'
+      title: isEn ? 'Layout Control: Moderate content length' : '排版控制：内容长度适中',
+      desc: isEn
+        ? 'The content length does not trigger the long-resume heuristic. Confirm the actual page count in Preview before exporting.'
+        : '当前内容长度未触发长简历提醒。导出前仍建议以预览中的实际页数为准。'
     });
   }
 
-  // 9. Subjective Pronoun Audit
-  const pronounRegex = /[我他她它你][们]?|自己/g;
+  // 9. First-person pronoun audit
+  const pronounRegex = isEn
+    ? /\b(?:I|[Ww]e|[Mm]e|[Mm]yself|[Oo]urselves)\b/g
+    : /我(?:们)?|自己/g;
   const pronounMatches = markdown.match(pronounRegex) || [];
   const pronounCount = pronounMatches.length;
+  const hasFixableEnglishPronoun = /^(\s*[-*+]\s+)(?:I|[Ww]e)\s+/m.test(markdown);
 
   if (pronounCount > 0) {
     score -= Math.min(15, pronounCount * 3);
     issues.push({
       type: 'warning',
       category: 'content',
-      title: isEn ? `Subjective Pronouns: Detected ${pronounCount} pronoun(s) (I/We)` : `主观人称：检测到 ${pronounCount} 处主观代词 (我/自己)`,
-      desc: isEn 
-        ? 'Resumes should be written in an objective, professional third-person style. Avoid words like "I", "me", "myself" or "we", and begin statements directly with action verbs.'
-        : '简历应采用第三人称客观视角叙述。请尽量避免使用“我”、“自己”、“我们”等主观代词，直接以“负责...”、“主导...”等动词开头。',
-      fixable: true,
+      title: isEn ? `First-person Pronouns: Detected ${pronounCount} instance(s)` : `主观人称：检测到 ${pronounCount} 处第一人称表达`,
+      desc: isEn
+        ? 'Resume bullets are usually more concise when they begin directly with an action verb instead of first-person pronouns such as "I" or "we".'
+        : '简历条目通常直接以行动词开头更简洁，可减少“我”“我们”“自己”等第一人称表达。',
+      fixable: isEn ? hasFixableEnglishPronoun : true,
       onFix: () => {
         let fixed = markdown;
-        fixed = fixed.replace(/^-\s*我负责了/gm, '- 负责');
-        fixed = fixed.replace(/^-\s*我负责/gm, '- 负责');
-        fixed = fixed.replace(/^-\s*我自己主导了/gm, '- 主导');
-        fixed = fixed.replace(/^-\s*我自己主导/gm, '- 主导');
-        fixed = fixed.replace(/^-\s*我主导了/gm, '- 主导');
-        fixed = fixed.replace(/^-\s*我主导/gm, '- 主导');
-        fixed = fixed.replace(/^-\s*我完成了/gm, '- 完成');
-        fixed = fixed.replace(/^-\s*我完成/gm, '- 完成');
-        fixed = fixed.replace(/^-\s*我参与了/gm, '- 参与');
-        fixed = fixed.replace(/^-\s*我参与/gm, '- 参与');
-        fixed = fixed.replace(/^-\s*我/gm, '- ');
-        fixed = fixed.replace(/^-\s*自己/gm, '- ');
-        fixed = fixed.replace(/^-\s*我们/gm, '- ');
+
+        if (isEn) {
+          fixed = fixed.replace(/^(\s*[-*+]\s+)(?:I|[Ww]e)\s+/gm, '$1');
+        } else {
+          fixed = fixed.replace(/^-\s*我负责了/gm, '- 负责');
+          fixed = fixed.replace(/^-\s*我负责/gm, '- 负责');
+          fixed = fixed.replace(/^-\s*我自己主导了/gm, '- 主导');
+          fixed = fixed.replace(/^-\s*我自己主导/gm, '- 主导');
+          fixed = fixed.replace(/^-\s*我主导了/gm, '- 主导');
+          fixed = fixed.replace(/^-\s*我主导/gm, '- 主导');
+          fixed = fixed.replace(/^-\s*我完成了/gm, '- 完成');
+          fixed = fixed.replace(/^-\s*我完成/gm, '- 完成');
+          fixed = fixed.replace(/^-\s*我参与了/gm, '- 参与');
+          fixed = fixed.replace(/^-\s*我参与/gm, '- 参与');
+          fixed = fixed.replace(/^-\s*我/gm, '- ');
+          fixed = fixed.replace(/^-\s*自己/gm, '- ');
+          fixed = fixed.replace(/^-\s*我们/gm, '- ');
+        }
+
         onUpdateMarkdown(fixed, true);
       }
     });
@@ -402,10 +413,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'content',
-      title: isEn ? 'Subjective Pronouns: Perfectly objective' : '主观人称：符合客观书写规范',
-      desc: isEn 
-        ? 'No subjective personal pronouns (I/We) were found, adhering perfectly to resume writing standards.'
-        : '未包含主观的人称代词（我/自己），通篇采用客观的第三人称或动词开头，非常符合招聘规范。'
+      title: isEn ? 'First-person Pronouns: None detected' : '主观人称：未检测到第一人称表达',
+      desc: isEn
+        ? 'No first-person pronouns were detected in the resume text.'
+        : '未检测到“我”“我们”“自己”等第一人称表达。'
     });
   }
 
@@ -465,10 +476,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'ats',
-      title: isEn ? 'ATS Friendliness: Perfect machine parsing compatibility' : 'ATS 友好度：完美通过机器预审',
-      desc: isEn 
-        ? 'Your resume contains no emojis or complex multi-column tables, ensuring that ATS screening systems can parse your content cleanly without any errors.'
-        : '简历中没有生僻彩色图标或多栏复杂表格，这能确保大厂 ATS 简历初筛系统百分百正常解析您的工作经历和关键词。'
+      title: isEn ? 'ATS Friendliness: No obvious parsing risks detected' : 'ATS 友好度：未发现明显解析风险',
+      desc: isEn
+        ? 'No emojis or Markdown tables were detected. This reduces common machine-readability risks, though behavior still varies across ATS products.'
+        : '未检测到表情符号或 Markdown 表格，可减少常见的机器解析风险；不同 ATS 产品的实际解析结果仍可能存在差异。'
     });
   }
 

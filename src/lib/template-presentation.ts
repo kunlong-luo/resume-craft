@@ -167,7 +167,7 @@ const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
     zh: {
       name: '美版软件工程师 (US Resume)',
       category: '海外求职',
-      description: '严格遵循美国招聘与反歧视标准，Letter 纸张，Mar 2024 日期，强 STAR 动词。',
+      description: '面向美国技术岗位的常见简历结构，采用 Letter 纸张、英文月份日期与结果导向表达。',
       tags: ['US Resume', 'Letter Size', 'ATS Friendly'],
       language: 'English',
       group: 'us',
@@ -180,7 +180,7 @@ const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
     en: {
       name: 'US Software Engineer (Resume)',
       category: 'Global',
-      description: 'Standard US tech resume adhering to EEO laws, Letter format, and STAR metrics.',
+      description: 'US-oriented tech resume using Letter format, concise achievement-focused bullets, and common US resume conventions.',
       tags: ['US Resume', 'Letter Size', 'ATS Friendly'],
       language: 'English',
       group: 'us',
@@ -279,7 +279,7 @@ const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
     zh: {
       name: '国际通用远程全栈架构师',
       category: '海外求职',
-      description: '国际通用英文简历，强调跨国分布式团队协作与高并发 AI 网关落地。',
+      description: '国际通用英文 Resume，强调跨国远程协作与高并发 AI 基础设施经验。',
       tags: ['Remote', 'Global Standard', 'AI Stack'],
       language: 'English',
       group: 'global',
@@ -292,7 +292,7 @@ const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
     en: {
       name: 'Global Full-Stack & Remote (Resume)',
       category: 'Global',
-      description: 'International English CV emphasizing global remote leadership and AI infrastructure.',
+      description: 'International resume emphasizing global remote leadership and AI infrastructure.',
       tags: ['Remote', 'Global Standard', 'AI Stack'],
       language: 'English',
       group: 'global',

@@ -11,10 +11,56 @@ interface ScoreDisplayProps {
     text: string;
   };
   lang?: string;
+  compact?: boolean;
 }
 
-export function ScoreDisplay({ analysis, scoreBadge, lang }: ScoreDisplayProps) {
+export function ScoreDisplay({ analysis, scoreBadge, lang, compact }: ScoreDisplayProps) {
   const isEn = lang === 'en';
+
+  if (compact) {
+    const scoreColorClass =
+      analysis.score >= 90
+        ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800'
+        : analysis.score >= 75
+          ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-200 dark:border-indigo-800'
+          : 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800';
+
+    return (
+      <div className="flex items-center justify-between gap-3 bg-white dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800 rounded-xl px-3.5 py-2.5 shadow-2xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border font-black text-lg ${scoreColorClass}`}>
+            {analysis.score}
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${scoreBadge.color}`}>
+                {scoreBadge.label}
+              </span>
+              {analysis.marketLabel && (
+                <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  <Globe2 className="w-3 h-3 text-indigo-500" />
+                  <span className="truncate">{analysis.marketLabel}</span>
+                </span>
+              )}
+            </div>
+            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-1 truncate">
+              {isEn ? 'Resume Competitiveness' : '简历竞争力评估'}
+            </p>
+          </div>
+        </div>
+
+        <div className="text-right shrink-0">
+          <span className="text-xs font-black text-slate-800 dark:text-slate-200 block">
+            {analysis.metricCount} {isEn ? 'metrics' : '项成果'}
+          </span>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+            {isEn ? 'Quantified' : '量化表达'}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Score Ring Display */}

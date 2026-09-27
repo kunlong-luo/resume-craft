@@ -235,6 +235,7 @@ export function LayoutDrawer({
             <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
               <button
                 type="button"
+                aria-pressed={(settings.paperSize || 'a4') === 'a4'}
                 onClick={() => updateSetting('paperSize', 'a4')}
                 className={`rounded-lg px-2 py-1.5 text-[10px] font-bold transition ${
                   (settings.paperSize || 'a4') === 'a4'
@@ -246,6 +247,7 @@ export function LayoutDrawer({
               </button>
               <button
                 type="button"
+                aria-pressed={settings.paperSize === 'letter'}
                 onClick={() => updateSetting('paperSize', 'letter')}
                 className={`rounded-lg px-2 py-1.5 text-[10px] font-bold transition ${
                   settings.paperSize === 'letter'

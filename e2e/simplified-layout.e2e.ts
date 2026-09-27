@@ -63,8 +63,7 @@ test.describe('simplified workspace actions', () => {
   test('keeps page break guide with view controls', async ({ page }) => {
     await page.goto('/');
 
-    const toolbar = page.locator('#resume-main-toolbar');
-    const pageGuide = toolbar.getByRole('button', {
+    const pageGuide = page.getByRole('button', {
       name: 'Toggle page break guide',
     });
 

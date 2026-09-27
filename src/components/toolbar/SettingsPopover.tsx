@@ -35,9 +35,19 @@ export function SettingsPopover({
       const trigger = triggerRef.current;
       if (!trigger) return;
       const rect = trigger.getBoundingClientRect();
+      const panelWidth = window.innerWidth >= 640 ? 384 : 352;
+      const viewportPadding = 10;
+      const maxRight = Math.max(
+        viewportPadding,
+        window.innerWidth - Math.min(panelWidth, window.innerWidth - viewportPadding * 2) - viewportPadding,
+      );
+
       setCoords({
         top: rect.bottom + 8,
-        right: Math.max(10, window.innerWidth - rect.right),
+        right: Math.min(
+          Math.max(viewportPadding, window.innerWidth - rect.right),
+          maxRight,
+        ),
       });
     };
 

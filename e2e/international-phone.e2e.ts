@@ -11,6 +11,25 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('international contact phone', () => {
+  test('does not guess a country from language or target market', async ({ page }) => {
+    await page.goto('/');
+
+    const country = page.getByLabel('Country or region');
+    await expect(country).toBeVisible();
+    await expect(country).toHaveValue('');
+
+    await page.evaluate(() => {
+      const settings = JSON.parse(window.localStorage.getItem('resume-settings') || '{}');
+      window.localStorage.setItem(
+        'resume-settings',
+        JSON.stringify({ ...settings, marketRegion: 'us', lang: 'en' }),
+      );
+    });
+    await page.reload();
+
+    await expect(page.getByLabel('Country or region')).toHaveValue('');
+  });
+
   test('normalizes a local UK number and resume check recognizes it', async ({
     page,
   }) => {

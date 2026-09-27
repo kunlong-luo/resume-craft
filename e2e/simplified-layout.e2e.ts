@@ -60,6 +60,51 @@ test.describe('simplified workspace actions', () => {
     ).toHaveAttribute('aria-pressed', 'true');
   });
 
+  test('switches target market defaults without changing the UI language', async ({ page }) => {
+    await page.goto('/');
+
+    const toolbar = page.locator('#resume-main-toolbar');
+    await toolbar.getByRole('button', { name: /Open layout settings|打开排版设置/ }).click();
+
+    const layoutDialog = page.getByRole('dialog', { name: 'Layout' });
+    const marketTrigger = layoutDialog.getByRole('button', { name: /Target market/ });
+    const preview = page.locator('#resume-print-content');
+
+    await marketTrigger.click();
+    await page.getByRole('option', { name: 'United States', exact: true }).click();
+
+    await expect(preview).toHaveAttribute('data-paper-size', 'letter');
+    await expect.poll(() =>
+      page.evaluate(() => {
+        const raw = window.localStorage.getItem('resume-settings');
+        return raw ? JSON.parse(raw) : null;
+      }),
+    ).toMatchObject({
+      lang: 'en',
+      marketRegion: 'us',
+      paperSize: 'letter',
+      dateStyle: 'month-short',
+    });
+
+    await marketTrigger.click();
+    await page.getByRole('option', { name: 'United Kingdom', exact: true }).click();
+
+    await expect(preview).toHaveAttribute('data-paper-size', 'a4');
+    await expect.poll(() =>
+      page.evaluate(() => {
+        const raw = window.localStorage.getItem('resume-settings');
+        return raw ? JSON.parse(raw) : null;
+      }),
+    ).toMatchObject({
+      lang: 'en',
+      marketRegion: 'uk',
+      paperSize: 'a4',
+      dateStyle: 'month-long',
+    });
+
+    await expect(layoutDialog.getByText('Page layout', { exact: true })).toBeVisible();
+  });
+
   test('switches the live preview between A4 and US Letter dimensions', async ({ page }) => {
     await page.goto('/');
 

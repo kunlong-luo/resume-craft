@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Copy, RotateCcw, Check } from 'lucide-react';
 import { storage, STORAGE_KEYS } from '../../lib/storage';
+import { trackAnalyticsEvent } from '../../lib/analytics';
 
 interface Props {
   children: ReactNode;
@@ -27,6 +28,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error caught by ErrorBoundary:', error, errorInfo);
+    trackAnalyticsEvent('runtime_error');
     this.setState({ errorInfo });
   }
 

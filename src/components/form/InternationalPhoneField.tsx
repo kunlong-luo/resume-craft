@@ -12,8 +12,6 @@ import {
   type PhoneRegionCode,
 } from '../../lib/phone-utils';
 
-import { MarketRegion } from '../../types';
-
 function getSavedRegion(profileId: string): PhoneRegionCode {
   const saved = storage.get<Record<string, PhoneRegionCode>>(
     STORAGE_KEYS.PHONE_REGIONS,
@@ -39,7 +37,6 @@ interface InternationalPhoneFieldProps {
   lang: 'zh' | 'en';
   label: string;
   placeholder: string;
-  marketRegion?: MarketRegion;
 }
 
 export function InternationalPhoneField({

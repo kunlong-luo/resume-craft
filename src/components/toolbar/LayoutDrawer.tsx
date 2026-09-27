@@ -1,10 +1,12 @@
 import React from 'react';
 import { BookOpen, Columns, FileText, SlidersHorizontal } from 'lucide-react';
-import { FontFamily, FontSize, PaperMargin, TemplateLayout } from '../../types';
+import { FontFamily, FontSize, MarketRegion, PaperMargin, TemplateLayout } from '../../types';
 import { useResumeStore } from '../../store/useResumeStore';
+import { CustomSelect } from '../ui/CustomSelect';
 import { CustomSlider } from '../ui/CustomSlider';
 import { SettingsPopover } from './SettingsPopover';
 import { TOOLBAR_TRANSLATIONS } from './toolbar-presets';
+import { getMarketProfile } from '../../lib/market-profile';
 
 interface LayoutDrawerProps {
   isOpen: boolean;
@@ -17,7 +19,7 @@ export function LayoutDrawer({
   onClose,
   triggerRef,
 }: LayoutDrawerProps) {
-  const { settings, updateSetting } = useResumeStore();
+  const { settings, updateSetting, updateSettings } = useResumeStore();
   const isEn = settings.lang === 'en';
   const t = isEn ? TOOLBAR_TRANSLATIONS.en : TOOLBAR_TRANSLATIONS.zh;
 
@@ -59,6 +61,25 @@ export function LayoutDrawer({
     { value: 'mono', label: isEn ? 'Mono' : '等宽' },
   ];
 
+  const marketOptions = [
+    { value: 'us', label: isEn ? 'United States' : '美国' },
+    { value: 'ca', label: isEn ? 'Canada' : '加拿大' },
+    { value: 'uk', label: isEn ? 'United Kingdom' : '英国' },
+    { value: 'ie', label: isEn ? 'Ireland' : '爱尔兰' },
+    { value: 'international', label: isEn ? 'Global / Remote' : '国际通用' },
+    { value: 'cn', label: isEn ? 'China' : '中国大陆' },
+  ];
+
+  const handleMarketChange = (value: string) => {
+    const marketRegion = value as MarketRegion;
+    const marketProfile = getMarketProfile(marketRegion);
+    updateSettings({
+      marketRegion,
+      paperSize: marketProfile.defaultPaperSize,
+      dateStyle: marketProfile.dateStyle,
+    });
+  };
+
   const spacingMode =
     settings.lineHeight <= 1.45 && settings.blockGap <= 0.7
       ? 'compact'
@@ -81,6 +102,25 @@ export function LayoutDrawer({
     >
       <div className="space-y-5">
         <section>
+          <div className="mb-2 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
+            {isEn ? 'Target market' : '目标市场'}
+          </div>
+          <CustomSelect
+            value={settings.marketRegion || 'international'}
+            onChange={handleMarketChange}
+            options={marketOptions}
+            className="w-full"
+            triggerClassName="w-full h-9"
+            size="md"
+          />
+          <p className="mt-1.5 text-[9px] leading-relaxed text-slate-400 dark:text-slate-500">
+            {isEn
+              ? 'Changing market applies its recommended paper size and date style. You can override paper size below.'
+              : '切换市场会同步推荐纸张与日期格式；纸张仍可在下方单独调整。'}
+          </p>
+        </section>
+
+        <section className="border-t border-slate-100 pt-4 dark:border-slate-800">
           <div className="mb-2 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
             {isEn ? 'Page layout' : '版面结构'}
           </div>
@@ -168,7 +208,7 @@ export function LayoutDrawer({
             <div className="mb-1.5 flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
               <span>{isEn ? 'Paper size' : '纸张规格'}</span>
               <span className="text-[9px] font-normal text-slate-400">
-                {settings.paperSize === 'letter' ? '215.9 × 279.4 mm (US / CA)' : '210 × 297 mm (Global / UK)'}
+                {settings.paperSize === 'letter' ? '215.9 × 279.4 mm · US Letter' : '210 × 297 mm · A4'}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">

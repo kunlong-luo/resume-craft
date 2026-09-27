@@ -36,7 +36,7 @@ export function analyzeResume(
   const isEn = lang === 'en';
   const effectiveMarket = marketRegion || (isEn ? 'us' : 'cn');
   const marketProfile = getMarketProfile(effectiveMarket);
-  const targetDateStyle = dateStyle || targetDateStyle;
+  const targetDateStyle = dateStyle || marketProfile.dateStyle;
 
   // 1. Check Name (H1)
   const hasH1 = markdown.trim().split('\n').some(line => line.startsWith('# '));
@@ -179,7 +179,7 @@ export function analyzeResume(
         ? `Market Date Format: ${dateCheckResult.convertedCount} date range(s) can be normalized` 
         : `日期格式：发现 ${dateCheckResult.convertedCount} 处可统一为${marketProfile.labelZh}标准`,
       desc: isEn 
-        ? `Target market (${marketProfile.labelEn}) standard date format is "${targetDateStyle}". Click Auto Fix to convert all dates across your resume automatically.`
+        ? `Target market (${marketProfile.labelEn}) recommended date format is "${targetDateStyle}". Click Auto Fix to normalize the detected date ranges.`
         : `当前目标市场（${marketProfile.labelZh}）推荐采用「${targetDateStyle}」日期风格。点击智能修正可一键将简历内经历与教育时间全部统一。`,
       fixable: true,
       onFix: () => {
@@ -192,7 +192,7 @@ export function analyzeResume(
       category: 'market',
       title: isEn ? `Market Date Format: Standardized (${targetDateStyle})` : `日期格式：完全符合${marketProfile.labelZh}标准`,
       desc: isEn 
-        ? `All dates conform to the ${marketProfile.labelEn} date format standard.`
+        ? `All detected date ranges already use the selected ${targetDateStyle} style for ${marketProfile.labelEn}.`
         : `简历中的所有时间区间均已完全符合 ${marketProfile.labelZh} 推荐规范。`
     });
   }

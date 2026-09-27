@@ -143,11 +143,11 @@ export function analyzeResume(
         type: 'warning',
         category: 'market',
         title: isEn 
-          ? `Equal Opportunity: Sensitive personal info detected (${detectedItems.join(', ')})` 
-          : `合规风控：检测到敏感个人信息 (${detectedItems.join('、')})`,
+          ? `Market Guidance: Personal details to review (${detectedItems.join(', ')})`
+          : `市场建议：检测到可酌情省略的个人信息 (${detectedItems.join('、')})`,
         desc: isEn 
-          ? `In ${marketProfile.labelEn} hiring processes, employers strictly avoid personal details (photos, age, marital status, nationality) to adhere to Equal Employment Opportunity laws. Resumes containing photos or age may be automatically disqualified to avoid bias liability.`
-          : `在 ${marketProfile.labelZh} 招聘流程中，企业严格遵循反就业歧视法（EEO）。简历中若包含照片、年龄、婚姻或国籍，招聘方为规避用工歧视法律风险，常会直接过滤。建议一键脱敏。`,
+          ? `For ${marketProfile.labelEn} applications, details such as photos, age, marital status, or nationality are commonly omitted unless relevant or specifically requested. Removing unnecessary personal details can keep the resume focused on qualifications.`
+          : `面向 ${marketProfile.labelZh} 市场投递时，照片、年龄、婚姻状况、国籍等信息通常可按岗位和当地惯例决定是否保留。若非必要，省略这些信息可让简历更聚焦专业资历。`,
         fixable: true,
         onFix: () => {
           const sanitized = sanitizeSensitiveFieldsForMarket(markdown);
@@ -158,10 +158,10 @@ export function analyzeResume(
       issues.push({
         type: 'success',
         category: 'market',
-        title: isEn ? 'Equal Opportunity: Free of biased personal details' : '合规风控：完全符合欧美反就业歧视规范',
+        title: isEn ? 'Market Guidance: No commonly omitted personal details detected' : '市场建议：未发现常见可省略个人信息',
         desc: isEn 
-          ? `No photo, age, or marital status was found, matching the ${marketProfile.labelEn} standard.`
-          : `未包含照片、年龄、婚育等敏感字段，完全契合 ${marketProfile.labelZh} 招聘市场的反歧视合规要求。`
+          ? `No photo, age, or marital-status fields were detected. This aligns with common ${marketProfile.labelEn} resume conventions, though requirements can vary by employer and role.`
+          : `未检测到照片、年龄或婚姻状况等字段，这与 ${marketProfile.labelZh} 市场的常见简历惯例一致；具体要求仍可能因岗位和雇主而异。`
       });
     }
   }
@@ -177,8 +177,8 @@ export function analyzeResume(
         ? `Market Date Format: ${dateCheckResult.convertedCount} date range(s) can be normalized` 
         : `日期格式：发现 ${dateCheckResult.convertedCount} 处可统一为${marketProfile.labelZh}标准`,
       desc: isEn 
-        ? `Target market (${marketProfile.labelEn}) standard date format is "${marketProfile.dateStyle}". Click Auto Fix to convert all dates across your resume automatically.`
-        : `当前目标市场（${marketProfile.labelZh}）推荐采用「${marketProfile.dateStyle}」日期风格。点击智能修正可一键将简历内经历与教育时间全部统一。`,
+        ? `A common date style for ${marketProfile.labelEn} resumes is "${marketProfile.dateStyle}". Auto Fix can normalize recognized date ranges to that style.`
+        : `面向 ${marketProfile.labelZh} 市场时，可考虑采用「${marketProfile.dateStyle}」日期风格。智能修正可将已识别的日期区间统一为该格式。`,
       fixable: true,
       onFix: () => {
         onUpdateMarkdown(dateCheckResult.markdown, true);
@@ -188,10 +188,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'market',
-      title: isEn ? `Market Date Format: Standardized (${marketProfile.dateStyle})` : `日期格式：完全符合${marketProfile.labelZh}标准`,
+      title: isEn ? `Market Date Format: Recommended style in use (${marketProfile.dateStyle})` : `日期格式：已采用推荐风格（${marketProfile.dateStyle}）`,
       desc: isEn 
-        ? `All dates conform to the ${marketProfile.labelEn} date format standard.`
-        : `简历中的所有时间区间均已完全符合 ${marketProfile.labelZh} 推荐规范。`
+        ? `Recognized date ranges already use the recommended ${marketProfile.labelEn} style.`
+        : `已识别的时间区间目前采用 ${marketProfile.labelZh} 市场的推荐日期风格。`
     });
   }
 
@@ -323,8 +323,8 @@ export function analyzeResume(
         category: 'formatting',
         title: isEn ? 'Layout Control: Manual pagebreak used' : '排版控制：已使用分页符',
         desc: isEn 
-          ? 'Your resume is long, but you have wisely used the <!-- pagebreak --> tag to control pagination, avoiding automatic cutoffs.'
-          : '简历字数较多，但您已经明智地使用了 <!-- pagebreak --> 标签来控制打印分页，避免了打印时产生跨页截断。'
+          ? 'A manual page break is present, giving you more control over where longer content splits in print.'
+          : '已设置手动分页符，可更主动地控制较长内容在打印时的分页位置。'
       });
     } else {
       score -= 10;
@@ -333,8 +333,8 @@ export function analyzeResume(
         category: 'formatting',
         title: isEn ? 'Layout Warning: Pagebreak recommended' : '排版警告：建议插入分页符',
         desc: isEn 
-          ? 'Your resume has a high word count, which may cause unintended page clipping when printing to PDF. It is highly recommended to click the scissor icon in the toolbar to insert "<!-- pagebreak -->" after an appropriate section.'
-          : '当前简历总字数较多，如果直接打印为 PDF 可能会产生无章法的自动截断。建议在一页纸写不下的合适段落之后，点击编辑工具栏的剪刀按钮插入「<!-- pagebreak -->」进行优雅的手动分页。',
+          ? 'Text length suggests this resume may span multiple pages. Check the live preview first, and add a manual page break only if automatic splitting lands awkwardly.'
+          : '当前文本长度可能会占用多页。建议先查看实时预览；只有在自动分页位置不理想时，再使用分页符进行调整。',
         fixable: true,
         onFix: () => {
           const linesArr = markdown.split('\n');
@@ -358,10 +358,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'formatting',
-      title: isEn ? 'Layout Control: Optimal length (One page version)' : '排版控制：字数适中 (一页精简版)',
+      title: isEn ? 'Layout Control: Moderate content length' : '排版控制：文本长度适中',
       desc: isEn 
-        ? 'The length is moderate and fits perfectly onto a single page, which recruiters highly favor.'
-        : '简历长度适宜，通常可以完美放入一页 A4/Letter 纸内，符合绝大多数招聘官的阅读习惯。'
+        ? 'Text length is moderate. Confirm the actual page count in the live preview before exporting.'
+        : '当前文本长度较适中。导出前请以实时预览中的实际页数和分页位置为准。'
     });
   }
 
@@ -459,13 +459,13 @@ export function analyzeResume(
     let descParts: string[] = [];
     if (hasEmojis) {
       descParts.push(isEn 
-        ? 'Emojis or non-standard graphics detected. Applicant Tracking Systems (ATS) may misinterpret them as scrambled characters; suggest using standard list points "-".'
-        : '检测到简历中含有彩色表情符号或生僻图形。大厂 ATS（申请人跟踪系统）机器读取时可能将其识别为乱码或导致周围文本解析错误，建议仅使用常规列表圆点「-」或「·」作为前缀。');
+        ? 'Emojis or non-standard graphics detected. Some ATS parsers may handle them inconsistently; standard text bullets are generally safer.'
+        : '检测到表情符号或非标准图形。部分 ATS 解析器对这类字符的处理可能不一致，使用标准文本列表通常更稳妥。');
     }
     if (hasTables) {
       descParts.push(isEn 
-        ? 'Markdown tables detected. ATS systems often mangle tables, making them unreadable or causing lines to get ignored. Rebuilding them as standard items is suggested.'
-        : '检测到含有 Markdown 复杂表格排版。ATS 在解析表格内的文字时，经常会出现多行文字横向串行、错乱或文字被自动忽略的问题，建议将表格重构为标准的项目经历条目描述。');
+        ? 'Markdown tables detected. Some ATS parsers may read table content out of order, so standard sections and bullets are usually more portable.'
+        : '检测到 Markdown 表格。部分 ATS 解析器可能无法稳定保持表格阅读顺序，因此标准章节与列表通常具有更好的兼容性。');
     }
     issues.push({
       type: 'warning',
@@ -477,10 +477,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'ats',
-      title: isEn ? 'ATS Friendliness: Perfect machine parsing compatibility' : 'ATS 友好度：完美通过机器预审',
+      title: isEn ? 'ATS Readability: No obvious structural risks detected' : 'ATS 可读性：未发现明显结构风险',
       desc: isEn 
-        ? 'Your resume contains no emojis or complex multi-column tables, ensuring that ATS screening systems can parse your content cleanly without any errors.'
-        : '简历中没有生僻彩色图标或多栏复杂表格，这能确保大厂 ATS 简历初筛系统百分百正常解析您的工作经历和关键词。'
+        ? 'No emojis or complex Markdown tables were detected. That reduces common parsing risks, but behavior still varies across ATS products and employer configurations.'
+        : '未检测到表情符号或复杂 Markdown 表格，可减少常见的机器解析风险；不同 ATS 产品和雇主配置仍可能存在差异。'
     });
   }
 

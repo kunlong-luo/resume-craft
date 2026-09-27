@@ -284,7 +284,6 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
               lang={activeLang}
               label={t.phoneLabel}
               placeholder={t.phonePlaceholder}
-              marketRegion={marketRegion}
             />
 
             {/* 电子邮箱 */}

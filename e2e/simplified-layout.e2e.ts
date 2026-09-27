@@ -66,7 +66,7 @@ test.describe('simplified workspace actions', () => {
         'resume-settings',
         JSON.stringify({ lang: 'en', marketRegion: 'us' }),
       );
-      window.localStorage.removeItem('resume-profiles-v1');
+      window.localStorage.removeItem('resume-profiles');
       window.localStorage.removeItem('resume-active-profile-id');
     });
 

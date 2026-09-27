@@ -11,7 +11,7 @@ import { createMarkdownComponents } from './PreviewRenderers';
 import { HeightGuard } from './HeightGuard';
 import { ResumeHeader } from './ResumeHeader';
 import { ZoomControls } from './ZoomControls';
-import { useA4Measurement } from '../../hooks/useA4Measurement';
+import { usePaperMeasurement } from '../../hooks/usePaperMeasurement';
 import { getPaperMarginMm } from '../../lib/page-layout';
 import { getPaperSpec } from '../../lib/paper';
 import { trackAnalyticsEvent } from '../../lib/analytics';
@@ -56,7 +56,7 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
     setZoomMode,
     calculatedZoom,
     metrics
-  } = useA4Measurement(
+  } = usePaperMeasurement(
     elementRef,
     targetPageLimit,
     setMeasuredPageCount,

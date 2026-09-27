@@ -356,7 +356,7 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
       <div 
         ref={wrapperRef}
         id="resume-preview-wrapper" 
-        className="flex-1 overflow-y-auto p-2 sm:p-6 md:p-8 bg-slate-100/70 dark:bg-[#090d16] w-full flex justify-center items-start relative scrollbar-thin"
+        className="flex-1 overflow-y-auto p-2 sm:p-6 md:p-8 bg-slate-100/70 dark:bg-[#090d16] w-full flex justify-center items-start relative preview-scrollbar"
       >
         <div 
           style={{

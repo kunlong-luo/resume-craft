@@ -56,6 +56,7 @@ describe('privacy-friendly analytics', () => {
       'share_created',
       'pwa_install',
       'feedback_opened',
+      'runtime_error',
     ]);
 
     expect(isAllowedAnalyticsEvent('share_created')).toBe(true);

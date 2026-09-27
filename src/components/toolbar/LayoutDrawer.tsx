@@ -1,6 +1,6 @@
 import React from 'react';
 import { BookOpen, Columns, FileText, SlidersHorizontal } from 'lucide-react';
-import { FontFamily, FontSize, MarketRegion, PaperMargin, TemplateLayout } from '../../types';
+import { DateStyle, FontFamily, FontSize, MarketRegion, PaperMargin, TemplateLayout } from '../../types';
 import { useResumeStore } from '../../store/useResumeStore';
 import { CustomSlider } from '../ui/CustomSlider';
 import { SettingsPopover } from './SettingsPopover';
@@ -259,6 +259,17 @@ export function LayoutDrawer({
               </button>
             </div>
           </div>
+
+          <SegmentedSetting
+            label={isEn ? 'Date style' : '日期风格'}
+            value={(settings.dateStyle || getMarketProfile(currentMarket).dateStyle) as DateStyle}
+            options={[
+              ['cn-dot', '2024.03'],
+              ['month-short', 'Mar 2024'],
+              ['month-long', 'March 2024'],
+            ] as Array<[DateStyle, string]>}
+            onChange={(value) => updateSetting('dateStyle', value)}
+          />
         </section>
 
         <section className="space-y-3 border-t border-slate-100 pt-4 dark:border-slate-800">

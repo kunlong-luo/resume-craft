@@ -146,8 +146,8 @@ export function analyzeResume(
           ? `Equal Opportunity: Sensitive personal info detected (${detectedItems.join(', ')})` 
           : `合规风控：检测到敏感个人信息 (${detectedItems.join('、')})`,
         desc: isEn 
-          ? `In ${marketProfile.labelEn} hiring processes, employers strictly avoid personal details (photos, age, marital status, nationality) to adhere to Equal Employment Opportunity laws. Resumes containing photos or age may be automatically disqualified to avoid bias liability.`
-          : `在 ${marketProfile.labelZh} 招聘流程中，企业严格遵循反就业歧视法（EEO）。简历中若包含照片、年龄、婚姻或国籍，招聘方为规避用工歧视法律风险，常会直接过滤。建议一键脱敏。`,
+          ? `For ${marketProfile.labelEn} applications, photos, age/DOB, marital status, and similar personal details are commonly omitted so the resume stays focused on professional qualifications and avoids unnecessary bias signals.`
+          : `面向 ${marketProfile.labelZh} 市场时，通常建议省略照片、年龄、婚姻或国籍等与岗位能力无关的个人信息，让简历更聚焦专业资历，并减少不必要的偏见因素。`,
         fixable: true,
         onFix: () => {
           const sanitized = sanitizeSensitiveFieldsForMarket(markdown);
@@ -158,10 +158,10 @@ export function analyzeResume(
       issues.push({
         type: 'success',
         category: 'market',
-        title: isEn ? 'Equal Opportunity: Free of biased personal details' : '合规风控：完全符合欧美反就业歧视规范',
+        title: isEn ? 'Market Guidance: No sensitive personal details detected' : '市场建议：未检测到敏感个人信息',
         desc: isEn 
-          ? `No photo, age, or marital status was found, matching the ${marketProfile.labelEn} standard.`
-          : `未包含照片、年龄、婚育等敏感字段，完全契合 ${marketProfile.labelZh} 招聘市场的反歧视合规要求。`
+          ? `No photo, age/DOB, or marital status was found. This aligns with common resume guidance for ${marketProfile.labelEn} applications.`
+          : `未检测到照片、年龄、婚育等敏感字段，符合 ${marketProfile.labelZh} 市场常见的简历信息取舍建议。`
       });
     }
   }
@@ -188,10 +188,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'market',
-      title: isEn ? `Market Date Format: Standardized (${marketProfile.dateStyle})` : `日期格式：完全符合${marketProfile.labelZh}标准`,
+      title: isEn ? `Market Date Format: Consistent (${marketProfile.dateStyle})` : `日期格式：与${marketProfile.labelZh}推荐风格一致`,
       desc: isEn 
-        ? `All dates conform to the ${marketProfile.labelEn} date format standard.`
-        : `简历中的所有时间区间均已完全符合 ${marketProfile.labelZh} 推荐规范。`
+        ? `All detected date ranges are consistent with the recommended ${marketProfile.labelEn} style.`
+        : `检测到的时间区间均与 ${marketProfile.labelZh} 市场推荐日期风格一致。`
     });
   }
 
@@ -360,8 +360,8 @@ export function analyzeResume(
       category: 'formatting',
       title: isEn ? 'Layout Control: Optimal length (One page version)' : '排版控制：字数适中 (一页精简版)',
       desc: isEn 
-        ? 'The length is moderate and fits perfectly onto a single page, which recruiters highly favor.'
-        : '简历长度适宜，通常可以完美放入一页 A4/Letter 纸内，符合绝大多数招聘官的阅读习惯。'
+        ? 'The content length appears moderate. Verify the measured page count in preview, because actual pagination depends on paper size, typography, and spacing.'
+        : '当前内容长度看起来适中，但实际页数仍应以预览测量结果为准，因为纸张、字号和间距都会影响分页。'
     });
   }
 
@@ -477,10 +477,10 @@ export function analyzeResume(
     issues.push({
       type: 'success',
       category: 'ats',
-      title: isEn ? 'ATS Friendliness: Perfect machine parsing compatibility' : 'ATS 友好度：完美通过机器预审',
+      title: isEn ? 'ATS Friendliness: No obvious readability risks detected' : 'ATS 友好度：未发现明显可读性风险',
       desc: isEn 
-        ? 'Your resume contains no emojis or complex multi-column tables, ensuring that ATS screening systems can parse your content cleanly without any errors.'
-        : '简历中没有生僻彩色图标或多栏复杂表格，这能确保大厂 ATS 简历初筛系统百分百正常解析您的工作经历和关键词。'
+        ? 'No emojis or complex Markdown tables were detected, so this local check found no obvious ATS readability risks. Actual parsing can still vary by system.'
+        : '未检测到生僻彩色图标或复杂 Markdown 表格，因此本地规则暂未发现明显 ATS 可读性风险；不同系统的实际解析结果仍可能存在差异。'
     });
   }
 

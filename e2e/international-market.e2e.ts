@@ -113,6 +113,7 @@ test.describe('international market flows', () => {
     });
 
     await layout.getByRole('button', { name: /US Letter/ }).click();
+    await layout.getByRole('button', { name: 'March 2024', exact: true }).click();
     await layout.getByRole('button', { name: 'UK', exact: true }).click();
 
     await expect.poll(() =>
@@ -172,6 +173,24 @@ test.describe('international market flows', () => {
     await layout.getByRole('button', { name: 'Close Layout' }).click();
 
     await expect(page.getByText('WeChat', { exact: true })).toBeVisible();
+  });
+
+  test('manual date style override survives target market changes', async ({ page }) => {
+    await page.goto('/');
+
+    const layout = await openLayout(page);
+    await layout.getByRole('button', { name: 'March 2024', exact: true }).click();
+    await layout.getByRole('button', { name: 'US', exact: true }).click();
+
+    await expect.poll(() =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}')),
+    ).toMatchObject({
+      marketRegion: 'us',
+      dateStyle: 'month-long',
+    });
+
+    await expect(layout.getByRole('button', { name: 'March 2024', exact: true }))
+      .toHaveAttribute('aria-pressed', 'true');
   });
 
   test('resume checker uses guidance wording instead of ATS or legal guarantees', async ({ page }) => {

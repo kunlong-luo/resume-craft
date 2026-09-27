@@ -224,7 +224,7 @@ export function MonthRangePicker({
         <div
           role="dialog"
           aria-label={isEn ? 'Select period' : '选择起止时间'}
-          className="absolute bottom-full right-0 mb-2 w-80 max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-1.5rem)] overflow-y-auto sm:bottom-auto sm:top-full sm:mb-0 sm:mt-2 sm:w-[410px] sm:max-h-[85vh] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-[0_20px_48px_rgba(30,41,59,0.14)] dark:shadow-[0_20px_48px_rgba(0,0,0,0.5)] rounded-2xl p-3.5 sm:p-4.5 z-50 flex flex-col gap-3.5 sm:gap-4 animate-in fade-in slide-in-from-top-2 duration-200 scrollbar-thin">
+          className="absolute bottom-full right-0 mb-2 w-80 max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-1.5rem)] overflow-y-auto sm:bottom-auto sm:top-full sm:mb-0 sm:mt-2 sm:w-[410px] sm:max-h-[85vh] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-[0_20px_48px_rgba(30,41,59,0.14)] dark:shadow-[0_20px_48px_rgba(0,0,0,0.5)] rounded-2xl p-3.5 sm:p-4.5 z-[200] flex flex-col gap-3.5 sm:gap-4 animate-in fade-in slide-in-from-top-2 duration-200 scrollbar-thin">
           
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">

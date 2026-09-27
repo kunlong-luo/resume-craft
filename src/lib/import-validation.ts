@@ -12,6 +12,7 @@ import type {
   ThemeMode,
   PaperSize,
   MarketRegion,
+  DateStyle,
 } from '../types';
 
 type UnknownRecord = Record<string, unknown>;
@@ -49,6 +50,7 @@ const LANGUAGES = ['zh', 'en'] as const satisfies readonly Language[];
 const THEME_MODES = ['light', 'dark', 'system'] as const satisfies readonly ThemeMode[];
 const PAPER_SIZES = ['a4', 'letter'] as const satisfies readonly PaperSize[];
 const MARKET_REGIONS = ['cn', 'us', 'ca', 'uk', 'ie', 'international'] as const satisfies readonly MarketRegion[];
+const DATE_STYLES = ['cn-dot', 'month-short', 'month-long'] as const satisfies readonly DateStyle[];
 
 const MAX_MARKDOWN_LENGTH = 2_000_000;
 const MAX_PROFILE_TEXT_LENGTH = 240;
@@ -163,6 +165,9 @@ export function normalizeImportedSettings(
 
   const marketRegion = isOneOf(value.marketRegion, MARKET_REGIONS) ? value.marketRegion : fallback.marketRegion;
   if (marketRegion !== undefined) normalized.marketRegion = marketRegion;
+
+  const dateStyle = isOneOf(value.dateStyle, DATE_STYLES) ? value.dateStyle : fallback.dateStyle;
+  if (dateStyle !== undefined) normalized.dateStyle = dateStyle;
 
   const isPrivacyMasked =
     typeof value.isPrivacyMasked === 'boolean'

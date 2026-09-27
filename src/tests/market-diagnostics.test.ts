@@ -111,7 +111,8 @@ alex@example.com | +1 206 555 0123
 
       issue?.onFix?.();
 
-      const fixed = mockUpdateMarkdown.mock.calls.at(-1)?.[0] as string;
+      const lastCall = mockUpdateMarkdown.mock.calls[mockUpdateMarkdown.mock.calls.length - 1];
+      const fixed = lastCall?.[0] as string;
       expect(fixed).toContain('- led the migration to a new platform.');
       expect(fixed).toContain('- reduced build time by 30%.');
       expect(fixed).not.toContain('- I ');

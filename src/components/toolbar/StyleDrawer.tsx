@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Check, Palette, Sparkles } from 'lucide-react';
+import { Check, Palette, Wand2 } from 'lucide-react';
 import { H2Style, ResumeSettings } from '../../types';
 import { useResumeStore } from '../../store/useResumeStore';
 import { CustomColorPicker } from '../ui/CustomColorPicker';
@@ -65,7 +65,7 @@ export function StyleDrawer({
       <div className="space-y-5">
         <section>
           <div className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
-            <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+            <Wand2 className="h-3.5 w-3.5 text-indigo-500" />
             {isEn ? 'Visual themes' : '视觉主题'}
           </div>
           <div className="grid grid-cols-2 gap-2">

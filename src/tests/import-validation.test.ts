@@ -22,6 +22,9 @@ const fallbackSettings: ResumeSettings = {
   showPageBreakLine: true,
   templateLayout: 'single',
   lang: 'zh',
+  paperSize: 'a4',
+  marketRegion: 'cn',
+  dateStyle: 'cn-dot',
   isPrivacyMasked: false,
 };
 
@@ -58,6 +61,36 @@ describe('import validation', () => {
     expect(normalized?.blockGap).toBe(0);
     expect(normalized?.letterSpacing).toBe(2);
     expect(normalized?.customColor).toBe('#4F46E5');
+  });
+
+  it('preserves market, paper, and explicit date style across imports', () => {
+    const normalized = normalizeImportedSettings(
+      {
+        themeColor: 'teal',
+        paperSize: 'letter',
+        marketRegion: 'us',
+        dateStyle: 'month-long',
+      },
+      fallbackSettings,
+    );
+
+    expect(normalized).toMatchObject({
+      themeColor: 'teal',
+      paperSize: 'letter',
+      marketRegion: 'us',
+      dateStyle: 'month-long',
+    });
+  });
+
+  it('rejects invalid date styles and falls back safely', () => {
+    const normalized = normalizeImportedSettings(
+      {
+        dateStyle: 'quarter-year',
+      },
+      fallbackSettings,
+    );
+
+    expect(normalized?.dateStyle).toBe('cn-dot');
   });
 
   it('accepts an older partial settings object using safe fallbacks', () => {
@@ -97,6 +130,9 @@ describe('import validation', () => {
         settings: {
           fontSize: 'relaxed',
           margin: 'compact',
+          paperSize: 'letter',
+          marketRegion: 'uk',
+          dateStyle: 'month-long',
         },
         exportedAt: '2026-09-25',
       },
@@ -106,6 +142,9 @@ describe('import validation', () => {
     expect(backup?.markdown).toBe('# Resume');
     expect(backup?.settings.fontSize).toBe('relaxed');
     expect(backup?.settings.margin).toBe('compact');
+    expect(backup?.settings.paperSize).toBe('letter');
+    expect(backup?.settings.marketRegion).toBe('uk');
+    expect(backup?.settings.dateStyle).toBe('month-long');
   });
 
   it('rejects malformed profiles and duplicate ids', () => {

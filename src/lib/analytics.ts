@@ -7,6 +7,7 @@ export const ANALYTICS_EVENTS = [
   'share_created',
   'pwa_install',
   'feedback_opened',
+  'runtime_error',
 ] as const;
 
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];

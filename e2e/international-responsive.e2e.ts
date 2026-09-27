@@ -51,6 +51,9 @@ test.describe('international responsive UX', () => {
         name: /Choose a content template|选择内容模板/,
       });
       await expectInsideViewport(templateDialog, viewport.width, viewport.height);
+      await expect.poll(() =>
+        page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+      ).toBe(true);
       await page.keyboard.press('Escape');
       await expect(templateDialog).toBeHidden();
 
@@ -64,6 +67,10 @@ test.describe('international responsive UX', () => {
       await expect(layoutDialog.getByText('Target market', { exact: true })).toBeVisible();
       await expect(layoutDialog.getByRole('button', { name: 'International', exact: true })).toBeVisible();
       await expect(layoutDialog.getByRole('button', { name: /US Letter/ })).toBeVisible();
+
+      await expect.poll(() =>
+        page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+      ).toBe(true);
     });
   }
 

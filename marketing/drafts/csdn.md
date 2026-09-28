@@ -1,7 +1,5 @@
 # Resume Craft v2.1.0 上手教程：从导入到 ATS 检查再到 PDF 导出
 
-> 草稿，未发布。基于 marketing/drafts/main.md 重写，偏教程和功能实践。
-
 GitHub：https://github.com/kunlong-luo/resume-craft
 在线体验：https://kunlong-luo.github.io/resume-craft/
 

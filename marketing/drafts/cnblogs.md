@@ -1,7 +1,5 @@
 # Resume Craft v2.1.0 完整复盘：一个本地优先 Markdown 简历工具的取舍
 
-> 草稿，未发布。基于 marketing/drafts/main.md 重写，偏完整技术复盘，六篇中最长。
-
 GitHub：https://github.com/kunlong-luo/resume-craft
 在线体验：https://kunlong-luo.github.io/resume-craft/
 v2.1.0：https://github.com/kunlong-luo/resume-craft/releases/tag/v2.1.0
@@ -11,7 +9,7 @@ v2.1.0：https://github.com/kunlong-luo/resume-craft/releases/tag/v2.1.0
 
 做 Resume Craft 的起因不复杂：开发者习惯 Markdown，但写简历时 Markdown 工具不管纸张，不管导出，不管市场差异；Word 管排版，但对齐分页耗时，换设备易变样。
 
-我们把问题收敛成一句话：用熟悉的方式写，所见即所得地控制纸张和导出结果。
+我把问题收敛成一句话：用熟悉的方式写，尽量所见即所得地控制纸张和导出结果。
 
 v2.1.0 聚焦国际求职：Target Market、A4 / US Letter 一致性、日期本地化、中英模板、分享安全边界说明、移动端布局、社交预览卡和 CI 门禁。
 

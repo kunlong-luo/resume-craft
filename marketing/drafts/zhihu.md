@@ -1,7 +1,5 @@
 # 程序员简历，用 Markdown 还是 Word？聊聊我的选择
 
-> 草稿，未发布。基于 marketing/drafts/main.md 重写，从知乎问题切入。
-
 GitHub：https://github.com/kunlong-luo/resume-craft
 在线体验：https://kunlong-luo.github.io/resume-craft/
 
@@ -13,7 +11,7 @@ GitHub：https://github.com/kunlong-luo/resume-craft
 - 如果你需要和 HR 反复用修订模式改，或公司要求特定 .docx 模板，那 Word 更合适；
 - 对开发者和技术求职者，真正麻烦的往往不是语法，而是纸张、分页、跨设备字体和 ATS 可读性。
 
-我最近在用的 Resume Craft v2.1.0，就是按第二种思路做的：Markdown 是源，但不用你操心纸张和导出。开源 MIT，无需注册。
+我最近做的 Resume Craft v2.1.0，就是按这个思路实现的：Markdown 是源，但尽量把纸张、分页和导出的麻烦交给工具处理。项目采用 MIT License，无需注册。
 
 ## 用 Markdown 写，会遇到哪些实际问题
 

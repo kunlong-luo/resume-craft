@@ -21,13 +21,11 @@ jobs:
           feed-url: https://kunlong-luo.github.io/resume-craft/sitemap.xml
           since: '7'
           since-unit: days
-          limit: '3'
+          limit: '1'
           failure-strategy: continue
           lastmod-required: error
           filter-urls: |
-            /templates/
-            /examples/
-            /guides/
+            /resume-craft/
           message: |
             {description}
             {url}

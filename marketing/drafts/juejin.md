@@ -1,7 +1,5 @@
 # 用 Markdown 写简历，难的不是语法，是纸张和导出——Resume Craft v2.1.0 实践
 
-> 草稿，未发布。基于 marketing/drafts/main.md 重写，偏开发者技术实践。
-
 GitHub：https://github.com/kunlong-luo/resume-craft
 在线体验：https://kunlong-luo.github.io/resume-craft/
 

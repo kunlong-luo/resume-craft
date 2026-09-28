@@ -1,7 +1,5 @@
 # 从约束出发做简历工具：Resume Craft v2.1.0 的工程实践
 
-> 草稿，未发布。基于 marketing/drafts/main.md 重写，偏工程实践和技术设计。
-
 GitHub：https://github.com/kunlong-luo/resume-craft
 在线体验：https://kunlong-luo.github.io/resume-craft/
 

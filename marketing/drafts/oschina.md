@@ -1,7 +1,5 @@
 # 开源项目介绍：Resume Craft v2.1.0，本地优先的 Markdown 简历编辑器
 
-> 草稿，未发布。基于 marketing/drafts/main.md 重写，偏开源项目介绍。
-
 GitHub：https://github.com/kunlong-luo/resume-craft
 在线体验：https://kunlong-luo.github.io/resume-craft/
 v2.1.0 Release：https://github.com/kunlong-luo/resume-craft/releases/tag/v2.1.0

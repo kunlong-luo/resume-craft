@@ -7,7 +7,7 @@
 <h3 align="center">Local-first Markdown Resume Builder</h3>
 
 <p align="center">
-  Build and tailor A4 resumes with Markdown, structured forms, ATS checks, and direct PDF export.
+  Build and tailor A4 or US Letter resumes with Markdown, structured forms, ATS checks, and direct PDF export.
 </p>
 
 <p align="center">
@@ -27,11 +27,24 @@
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License" /></a>
 </p>
 
-> **Resume Craft** is for job seekers and developers who want to spend less time fighting Word layouts. It combines Markdown, structured forms, and a live A4 preview in a local-first workflow that works without an account.
+> **Resume Craft** is for job seekers and developers who want to spend less time fighting Word layouts. It combines Markdown, structured forms, and a live A4 / US Letter preview in a local-first workflow that works without an account.
 >
-> **Markdown ↔ Form · Live A4 Preview · ATS Checks · Auto Fit · PDF Export · Local-first · PWA**
+> **Markdown ↔ Form · A4 / US Letter Preview · ATS Checks · Auto Fit · PDF Export · Local-first · PWA**
 >
 > Resume drafts and settings are primarily stored in the browser. ATS checks, layout tools, and PDF generation run on the client, while optional share links provide a lightweight way to send a resume to others.
+
+---
+
+## 🆕 What's New in v2.1.0
+
+- Adds Target Market presets for the United States, Canada, United Kingdom, Ireland, China, and International.
+- Adds A4 / US Letter support across preview, ATS printing, and market-aware defaults.
+- Adds multiple date display styles while preserving explicit user overrides.
+- Strengthens international templates, ATS / checker guidance, and responsive layouts.
+- Clarifies public-link vs password-protected sharing boundaries and adds a privacy-safe anonymous runtime error signal.
+- Adds a production 1200×630 social preview card and stronger release / cross-browser CI gates.
+
+See the full [v2.1.0 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.1.0).
 
 ---
 
@@ -67,9 +80,9 @@ When creating resumes, candidates frequently suffer from **Word layout nightmare
 * **Bi-Directional Sync**: Seamlessly edit in either the "Structured Form" or "Markdown Source" with real-time updates across the form, Markdown source, and live preview.
 * **Drag & Drop Reordering**: Native grip handles allow mouse drag-and-drop to reorder experiences or skills instantly, updating both Markdown text and live previews.
 
-### 2. ⚡ 1-Click Auto Fit & A4 Page Boundary Control
+### 2. ⚡ 1-Click Auto Fit & Paper Boundary Control
 * **Eliminate Page Spills**: Say goodbye to 1.1-page awkward overflows. The lightning button dynamically adjusts margins, line height, and section padding to fit everything onto a pristine 1-page document.
-* **Page Boundary Indicators**: Displays A4 physical page bounds and fold lines for layout accuracy.
+* **Paper Boundary Indicators**: Preview and print support A4 and US Letter, with page boundaries matched to the current market and paper settings.
 
 ### 3. ✨ Local PDF / File / Raw Text Import
 * **Local PDF extraction**: Select a PDF with a text layer and PDF.js extracts the text entirely in the browser; the file is not uploaded to a Resume Craft server.
@@ -87,8 +100,8 @@ When creating resumes, candidates frequently suffer from **Word layout nightmare
 ### 6. 🎨 Industry Color Palettes & Layout Customization
 * **Custom Styling**: Select from Indigo, Slate, Emerald, and Amber color palettes; customize single/two-column layouts, base font size (13/14/15px), line height, and header line accents.
 
-### 7. 🔤 System Font Stack & A4 Layout Consistency
-* **No external font requests**: The UI and resume canvas use system font stacks (for example PingFang SC, Microsoft YaHei, and Source Han Sans SC) instead of Google Fonts CDN. This removes a third-party request, reduces render blocking, and prevents font-network failures from affecting preview/PDF rendering. Small cross-platform metric differences can still occur.
+### 7. 🔤 System Font Stack & A4 / US Letter Layout Consistency
+* **Cross-platform consistency**: The UI and resume canvas use system font stacks (for example PingFang SC, Microsoft YaHei, and Source Han Sans SC) instead of Google Fonts CDN, and the preview scales from the selected A4 / US Letter paper size. Small cross-platform font-metric differences can still occur.
 
 ### 8. 💾 Multi-Profile Matrix & Diff Comparison
 * **Version Control**: Clone and maintain tailored resume branches for different roles (e.g., `Frontend Lead`, `Full-Stack Developer`).
@@ -103,8 +116,10 @@ When creating resumes, candidates frequently suffer from **Word layout nightmare
 ### 11. 🌙 Dark Mode with Canvas Isolation
 * **Eye Comfort**: Full tactile Dark Mode theme with styling isolation so resume previews always maintain pristine white paper with crisp dark text.
 
-### 12. 🌐 Full Bilingual Localization
+### 12. 🌐 Bilingual Localization & Target Market
 * **Instant Switch**: Toggle between English (`en`) and Chinese (`zh`) with full UI, template, and diagnostic translation.
+* **Target Market**: Choose United States, Canada, United Kingdom, Ireland, China, or International. While defaults are still in use, the market setting can recommend paper size and date style without overwriting manual choices.
+* **Localized paper and dates**: Supports A4 / US Letter plus date styles such as `2026.09`, `Sep 2026`, and `September 2026`.
 
 ### 13. ⚡ PWA & Local-First Storage
 * **Local First**: Installable as a desktop or mobile PWA. Resume drafts and settings are stored in browser-local storage, and the project does not provide an application backend for persisting resume content. New share links keep their payload in the URL fragment; only share them with trusted recipients.
@@ -200,12 +215,12 @@ Open your browser at [http://localhost:3000](http://localhost:3000) to start edi
 Resume Craft provides two export paths:
 
 1. **ATS PDF (default, recommended)**: click **ATS PDF** or press **Ctrl/Cmd + P**, then choose **Save as PDF** in the browser print flow. Where supported by the browser, this preserves searchable/selectable text and is the preferred path for job applications and ATS parsing.
-2. **Quick PDF (fallback)**: uses `html2canvas-pro + jsPDF` to rasterize the A4 canvas into an image-based PDF. It is useful for fast downloads, visual sharing, or environments where browser printing is blocked, but it is not the preferred ATS submission format.
+2. **Quick PDF (fallback)**: uses `html2canvas-pro + jsPDF` to rasterize the currently selected paper canvas into an image-based PDF. It is useful for fast downloads, visual sharing, or environments where browser printing is blocked, but it is not the preferred ATS submission format.
 
-While editing, use the **A4 Page Line** and **1-Click Auto Fit** tools to check page boundaries. For the browser print path (Chrome / Edge / Safari), recommended settings are:
+While editing, use the current A4 / US Letter paper boundaries and **1-Click Auto Fit** to check pagination. For the browser print path (Chrome / Edge / Safari), recommended settings are:
 
 * **Destination**: `Save as PDF` (recommended for ATS submissions)
-* **Paper Size**: `A4`
+* **Paper Size**: match the resume setting with `A4` or `Letter`
 * **Margins**: try **`None`** first and confirm against the preview
 * **Options**: enable **`Background graphics`** when needed
 * **Headers and Footers**: disable them

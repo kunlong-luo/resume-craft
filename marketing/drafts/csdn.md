@@ -7,7 +7,7 @@ GitHub：https://github.com/kunlong-luo/resume-craft
 
 ## 0. 准备
 
-- 浏览器：Chrome / Edge / Safari 均可，正式投递前用同一浏览器验证导出；
+- 浏览器：Chrome / Edge / Firefox / Safari 等现代浏览器均可，正式投递前建议用同一浏览器验证导出；
 - 材料：旧简历 PDF（带文本层最佳）或一段纯文本；
 - 注册：不需要。打开即用，草稿保存在浏览器 localStorage（非加密，注意设备安全）；
 - 技术栈（了解即可）：React + TypeScript + Vite + Tailwind CSS + Zustand，Markdown 用 react-markdown + remark-gfm，PDF 导入用 pdfjs-dist，导出是浏览器打印 + html2canvas-pro + jsPDF 双路径。
@@ -25,7 +25,7 @@ GitHub：https://github.com/kunlong-luo/resume-craft
 
 ## 2. 编辑：表单和 Markdown 联动
 
-- 左侧表单改姓名、职位，右侧 Markdown 同步变；直接改 Markdown，表单和预览也同步；
+- 编辑区可在表单和 Markdown 源码之间切换；修改后状态与预览同步；
 - 拖拽 Grip 可重排经历和技能顺序，不用剪切粘贴；
 - 二级标题板块支持整体上移下移；
 - 中英混排点一次“空格优化”：`熟练使用React开发` -> `熟练使用 React 开发`；
@@ -38,7 +38,7 @@ v2.1.0 新增 Target Market：美国、加拿大、英国、爱尔兰、中国�
 1. 先选目标市场；
 2. 用默认值时会自动推荐纸张（A4 / US Letter）和日期格式，也可手动覆盖；
 3. 日期样式可选 `2026.09`、`Sep 2026`、`September 2026` 等；
-4. 预览里确认分页边界；内容稍超页时点“一键压缩贴合”，自动微调边距行高间距。
+4. 预览里确认分页边界；内容稍超页时可点“一键压缩贴合”，让工具自动微调边距、行高和间距，尝试减少轻微溢出。
 
 界面和模板诊断支持中英切换，一键切换 zh/en。
 

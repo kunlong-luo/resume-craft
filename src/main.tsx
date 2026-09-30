@@ -26,7 +26,7 @@ if (typeof window !== 'undefined') {
 
 async function bootstrap() {
   // Complete and verify the v2.2 -> v2.3 copy before the store module initializes.
-  // Legacy localStorage remains available as a rollback source during this release.
+  // Verified legacy core keys are removed after migration; lightweight UI/bootstrap preferences remain in localStorage.
   try {
     await migrateLegacyStorageToIndexedDb();
     const [markdown, profiles, jdText] = await Promise.all([

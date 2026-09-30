@@ -43,6 +43,7 @@ export async function migrateLegacyStorageToIndexedDb(
 
   if (!hasLegacyData) {
     await repository.setMeta(STORAGE_MIGRATION_META_KEY, STORAGE_MIGRATION_VERSION);
+    removeMigratedLegacyKeys();
     return { status: 'no-legacy-data' };
   }
 

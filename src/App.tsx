@@ -289,6 +289,45 @@ export default function App() {
   const { updateSetting } = useResumeStore();
 
   useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return;
+
+    const sourceId =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `tab_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const channel = new BroadcastChannel('resume-craft:tabs:v1');
+    let warned = false;
+
+    const warnAboutAnotherTab = () => {
+      if (warned) return;
+      warned = true;
+      showToast?.({
+        title: settings.lang === 'en' ? 'Resume Craft is open in another tab' : '检测到另一个 Resume Craft 标签页',
+        message: settings.lang === 'en'
+          ? 'Avoid editing the same resume in multiple tabs at once. Local writes are serialized, but the latest edit can still replace older state.'
+          : '请避免在多个标签页同时编辑同一份简历。写入会串行处理，但较新的编辑仍可能覆盖较旧状态。',
+        type: 'info',
+        duration: 7000,
+      });
+    };
+
+    channel.onmessage = (event) => {
+      const message = event.data as { type?: string; sourceId?: string } | null;
+      if (!message || message.sourceId === sourceId) return;
+
+      if (message.type === 'hello') {
+        warnAboutAnotherTab();
+        channel.postMessage({ type: 'presence', sourceId });
+      } else if (message.type === 'presence') {
+        warnAboutAnotherTab();
+      }
+    };
+
+    channel.postMessage({ type: 'hello', sourceId });
+    return () => channel.close();
+  }, [settings.lang, showToast]);
+
+  useEffect(() => {
     const handleStorageHealth = (event: Event) => {
       const detail = (event as CustomEvent<StorageHealthDetail>).detail;
       if (!detail) return;

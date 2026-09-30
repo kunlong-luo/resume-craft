@@ -43,11 +43,11 @@ export function createResumePersistenceCoordinator(debounceMs = DEFAULT_DEBOUNCE
       .then(async () => {
         try {
           const writeSnapshot = async () => {
-            await Promise.all([
-              resumeRepository.saveActiveMarkdown(snapshot.markdown),
-              resumeRepository.replaceProfiles(snapshot.profiles),
-              resumeRepository.saveJdText(snapshot.jdText),
-            ]);
+            await resumeRepository.saveSnapshot({
+              markdown: snapshot.markdown,
+              profiles: snapshot.profiles,
+              jdText: snapshot.jdText,
+            });
           };
 
           if (typeof navigator !== 'undefined' && navigator.locks?.request) {

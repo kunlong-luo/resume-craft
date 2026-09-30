@@ -1,6 +1,6 @@
 import type { ResumeDraft, ResumeProfile } from '../types';
 import { storage, STORAGE_KEYS } from './storage';
-import { resumeRepository } from './resume-repository';
+import { resumeRepository, type ResumeRepository } from './resume-repository';
 
 export const STORAGE_MIGRATION_META_KEY = 'storage-migration-version';
 export const STORAGE_MIGRATION_VERSION = '1';
@@ -22,8 +22,10 @@ function removeMigratedLegacyKeys(): void {
   }
 }
 
-export async function migrateLegacyStorageToIndexedDb(): Promise<StorageMigrationResult> {
-  const completedVersion = await resumeRepository.getMeta(STORAGE_MIGRATION_META_KEY);
+export async function migrateLegacyStorageToIndexedDb(
+  repository: ResumeRepository = resumeRepository,
+): Promise<StorageMigrationResult> {
+  const completedVersion = await repository.getMeta(STORAGE_MIGRATION_META_KEY);
   if (completedVersion === STORAGE_MIGRATION_VERSION) {
     removeMigratedLegacyKeys();
     return { status: 'already-migrated' };
@@ -40,21 +42,21 @@ export async function migrateLegacyStorageToIndexedDb(): Promise<StorageMigratio
     jdText !== null;
 
   if (!hasLegacyData) {
-    await resumeRepository.setMeta(STORAGE_MIGRATION_META_KEY, STORAGE_MIGRATION_VERSION);
+    await repository.setMeta(STORAGE_MIGRATION_META_KEY, STORAGE_MIGRATION_VERSION);
     return { status: 'no-legacy-data' };
   }
 
   // Write first. Legacy localStorage remains untouched until all verification succeeds.
-  if (markdown !== null) await resumeRepository.saveActiveMarkdown(markdown);
-  if (profiles) await resumeRepository.replaceProfiles(profiles);
-  if (drafts) await resumeRepository.replaceDrafts(drafts);
-  if (jdText !== null) await resumeRepository.saveJdText(jdText);
+  if (markdown !== null) await repository.saveActiveMarkdown(markdown);
+  if (profiles) await repository.replaceProfiles(profiles);
+  if (drafts) await repository.replaceDrafts(drafts);
+  if (jdText !== null) await repository.saveJdText(jdText);
 
   const [storedMarkdown, storedProfiles, storedDrafts, storedJdText] = await Promise.all([
-    resumeRepository.getActiveMarkdown(),
-    resumeRepository.getProfiles(),
-    resumeRepository.getDrafts(),
-    resumeRepository.getJdText(),
+    repository.getActiveMarkdown(),
+    repository.getProfiles(),
+    repository.getDrafts(),
+    repository.getJdText(),
   ]);
 
   if (markdown !== null && storedMarkdown !== markdown) {
@@ -72,7 +74,7 @@ export async function migrateLegacyStorageToIndexedDb(): Promise<StorageMigratio
 
   // Mark complete only after verified writes, then remove only the core keys
   // that now have a verified IndexedDB copy. Lightweight UI preferences stay.
-  await resumeRepository.setMeta(STORAGE_MIGRATION_META_KEY, STORAGE_MIGRATION_VERSION);
+  await repository.setMeta(STORAGE_MIGRATION_META_KEY, STORAGE_MIGRATION_VERSION);
   removeMigratedLegacyKeys();
   return { status: 'migrated' };
 }

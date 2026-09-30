@@ -4,11 +4,19 @@ import { getResumeDatabase, type ResumeDraftRecord, type ResumeProfileRecord } f
 const ACTIVE_DOCUMENT_ID = 'active';
 const JD_DOCUMENT_ID = 'jd';
 
+export interface ResumeRepositorySnapshot {
+  markdown?: string | null;
+  profiles?: ResumeProfile[] | null;
+  drafts?: ResumeDraft[] | null;
+  jdText?: string | null;
+}
+
 export interface ResumeRepository {
   getActiveMarkdown(): Promise<string | null>;
   saveActiveMarkdown(markdown: string): Promise<void>;
   getJdText(): Promise<string | null>;
   saveJdText(text: string): Promise<void>;
+  saveSnapshot(snapshot: ResumeRepositorySnapshot): Promise<void>;
   getProfiles(): Promise<ResumeProfile[]>;
   replaceProfiles(profiles: ResumeProfile[]): Promise<void>;
   getDrafts(): Promise<ResumeDraft[]>;
@@ -46,6 +54,44 @@ export class IndexedDbResumeRepository implements ResumeRepository {
       id: JD_DOCUMENT_ID,
       markdown: text,
       updatedAt: new Date().toISOString(),
+    });
+  }
+
+  async saveSnapshot(snapshot: ResumeRepositorySnapshot): Promise<void> {
+    const db = getResumeDatabase();
+    const now = new Date().toISOString();
+    const profileRecords: ResumeProfileRecord[] | null =
+      snapshot.profiles == null
+        ? null
+        : snapshot.profiles.map((profile, sortIndex) => ({ ...profile, sortIndex }));
+    const draftRecords: ResumeDraftRecord[] | null =
+      snapshot.drafts == null
+        ? null
+        : snapshot.drafts.map((draft, sortIndex) => ({ ...draft, sortIndex }));
+
+    await db.transaction('rw', db.documents, db.profiles, db.drafts, async () => {
+      if (snapshot.markdown != null) {
+        await db.documents.put({
+          id: ACTIVE_DOCUMENT_ID,
+          markdown: snapshot.markdown,
+          updatedAt: now,
+        });
+      }
+      if (snapshot.jdText != null) {
+        await db.documents.put({
+          id: JD_DOCUMENT_ID,
+          markdown: snapshot.jdText,
+          updatedAt: now,
+        });
+      }
+      if (profileRecords) {
+        await db.profiles.clear();
+        if (profileRecords.length > 0) await db.profiles.bulkPut(profileRecords);
+      }
+      if (draftRecords) {
+        await db.drafts.clear();
+        if (draftRecords.length > 0) await db.drafts.bulkPut(draftRecords);
+      }
     });
   }
 

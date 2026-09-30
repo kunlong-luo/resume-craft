@@ -73,7 +73,7 @@ test.describe('keyboard accessibility', () => {
       .click();
 
     const dialog = page.getByRole('dialog', {
-      name: /User Guide|使用指南/,
+      name: /Help & Privacy|帮助与隐私/,
     });
     await expect(dialog).toBeVisible();
 

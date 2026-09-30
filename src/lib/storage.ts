@@ -18,6 +18,8 @@ export const STORAGE_KEYS = {
   PHONE_REGIONS: 'resume-phone-regions',
   ONBOARDING_FIRST_VISIT: 'resume-onboarding-first-visit',
   ONBOARDING_COMPLETE: 'resume-onboarding-v1-complete',
+  SPLIT_RATIO: 'resume-split-ratio',
+  SUPPORT_PROMPT: 'resume-craft.support-prompt.v1',
 } as const;
 
 export const STORAGE_HEALTH_EVENT = 'resume-craft:storage-health';
@@ -85,9 +87,7 @@ function reportWriteFailure(operation: StorageOperation, error: unknown, key?: S
 }
 
 export const storage = {
-  /**
-   * Get an item from localStorage with type safety and fallback
-   */
+  /** Get an item from localStorage with type safety and fallback. */
   get<T>(key: StorageKey, fallback: T): T {
     if (typeof window === 'undefined') return fallback;
     try {
@@ -96,7 +96,6 @@ export const storage = {
       try {
         return JSON.parse(item) as T;
       } catch {
-        // If it's a raw string (not JSON)
         return item as unknown as T;
       }
     } catch (error) {
@@ -105,9 +104,7 @@ export const storage = {
     }
   },
 
-  /**
-   * Get raw string from localStorage
-   */
+  /** Get raw string from localStorage. */
   getString(key: StorageKey, fallback: string = ''): string {
     if (typeof window === 'undefined') return fallback;
     try {
@@ -119,9 +116,7 @@ export const storage = {
     }
   },
 
-  /**
-   * Set an item in localStorage
-   */
+  /** Set an item in localStorage. */
   set<T>(key: StorageKey, value: T): boolean {
     if (typeof window === 'undefined') return false;
     try {
@@ -140,9 +135,7 @@ export const storage = {
     }
   },
 
-  /**
-   * Remove an item from localStorage
-   */
+  /** Remove an item from localStorage. */
   remove(key: StorageKey): boolean {
     if (typeof window === 'undefined') return false;
     try {
@@ -157,7 +150,8 @@ export const storage = {
   },
 
   /**
-   * Clear all resume-related keys
+   * Clear only Resume Craft-owned local data. Never call localStorage.clear(),
+   * because another app may share the same origin during development/self-hosting.
    */
   clearAllResumeData(): boolean {
     if (typeof window === 'undefined') return false;

@@ -326,7 +326,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   isExportingPDF: false,
   pdfExportProgress: null,
   atsKeywords: [],
-  jdText: '',
+  jdText: getResumeBootstrapSnapshot()?.jdText ?? storage.getString(STORAGE_KEYS.JD_TEXT, ''),
   measuredPageCount: null,
 
   // Multi-Profile States

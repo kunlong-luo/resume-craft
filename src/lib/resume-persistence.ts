@@ -42,11 +42,20 @@ export function createResumePersistenceCoordinator(debounceMs = DEFAULT_DEBOUNCE
       .catch(() => undefined)
       .then(async () => {
         try {
-          await Promise.all([
-            resumeRepository.saveActiveMarkdown(snapshot.markdown),
-            resumeRepository.replaceProfiles(snapshot.profiles),
-            resumeRepository.saveJdText(snapshot.jdText),
-          ]);
+          const writeSnapshot = async () => {
+            await Promise.all([
+              resumeRepository.saveActiveMarkdown(snapshot.markdown),
+              resumeRepository.replaceProfiles(snapshot.profiles),
+              resumeRepository.saveJdText(snapshot.jdText),
+            ]);
+          };
+
+          if (typeof navigator !== 'undefined' && navigator.locks?.request) {
+            await navigator.locks.request('resume-craft:indexeddb-write', writeSnapshot);
+          } else {
+            await writeSnapshot();
+          }
+
           if (hasWriteFailure) emitHealth('recovered');
           hasWriteFailure = false;
         } catch (error) {

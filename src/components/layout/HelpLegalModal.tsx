@@ -47,8 +47,8 @@ export function HelpLegalModal({ isOpen, onClose }: HelpLegalModalProps) {
 
   const clearLocalData = async () => {
     try {
-      // Delete the durable IndexedDB layer first. If that fails, keep the
-      // localStorage fallback intact so the user can retry without data loss.
+      // Delete the durable IndexedDB layer first. If that fails, leave the
+      // remaining Resume Craft preferences untouched so the user can retry.
       await deleteResumeDatabase();
       if (!storage.clearAllResumeData()) return;
       trackAnalyticsEvent('local_data_cleared');

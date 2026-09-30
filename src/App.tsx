@@ -372,10 +372,11 @@ export default function App() {
       // Cmd/Ctrl + S -> Manual Save trigger Toast
       if (isCmdOrCtrl && (e.key === 's' || e.key === 'S')) {
         e.preventDefault();
-        void Promise.all([
-          resumeRepository.saveActiveMarkdown(markdown),
-          resumeRepository.replaceProfiles(profiles),
-        ]).then(() => {
+        void resumeRepository.saveSnapshot({
+          markdown,
+          profiles,
+          jdText: useResumeStore.getState().jdText,
+        }).then(() => {
           const now = new Date();
           const pad = (num: number) => String(num).padStart(2, '0');
           setLastSaved(`${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`);

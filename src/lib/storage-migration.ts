@@ -47,11 +47,14 @@ export async function migrateLegacyStorageToIndexedDb(
     return { status: 'no-legacy-data' };
   }
 
-  // Write first. Legacy localStorage remains untouched until all verification succeeds.
-  if (markdown !== null) await repository.saveActiveMarkdown(markdown);
-  if (profiles) await repository.replaceProfiles(profiles);
-  if (drafts) await repository.replaceDrafts(drafts);
-  if (jdText !== null) await repository.saveJdText(jdText);
+  // Write the legacy core snapshot in one transaction. Legacy localStorage
+  // remains untouched until all verification succeeds.
+  await repository.saveSnapshot({
+    markdown,
+    profiles,
+    drafts,
+    jdText,
+  });
 
   const [storedMarkdown, storedProfiles, storedDrafts, storedJdText] = await Promise.all([
     repository.getActiveMarkdown(),

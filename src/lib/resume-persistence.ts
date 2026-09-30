@@ -12,7 +12,7 @@ const DEFAULT_DEBOUNCE_MS = 350;
 
 /**
  * Coalesces rapid editor updates into a single asynchronous IndexedDB write.
- * localStorage remains the v2.2 rollback source during the v2.3 rollout.
+ * Core resume data is persisted in IndexedDB; localStorage is reserved for lightweight UI/bootstrap preferences.
  */
 export function createResumePersistenceCoordinator(debounceMs = DEFAULT_DEBOUNCE_MS) {
   let timer: ReturnType<typeof setTimeout> | null = null;

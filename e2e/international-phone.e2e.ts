@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readActiveMarkdown } from './helpers/indexeddb';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -47,11 +48,7 @@ test.describe('international contact phone', () => {
 
     await expect(phone).toHaveValue('+44 20 7946 0958');
 
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.localStorage.getItem('resume-markdown') || ''),
-      )
-      .toContain('+44 20 7946 0958');
+    await expect.poll(() => readActiveMarkdown(page)).toContain('+44 20 7946 0958');
 
     await page.getByRole('button', { name: /^(Check|检查)$/ }).click();
 

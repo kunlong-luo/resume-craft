@@ -6,6 +6,7 @@ import { translateMarkdownContent } from '../lib/section-translator';
 import { migrateStoredMarkdown } from '../lib/markdown-migrations';
 import { getMarketProfile, isMarketRegion, resolveDefaultPaperSize } from '../lib/market-profile';
 import { isPaperSize } from '../lib/paper';
+import { getResumeBootstrapSnapshot } from '../lib/resume-bootstrap-state';
 
 interface ResumeState {
   // States
@@ -76,8 +77,9 @@ let isUndoRedoAction = false;
 
 // Helper to initialize markdown
 const getInitialMarkdown = (): string => {
-  const saved = storage.get<string | null>(STORAGE_KEYS.MARKDOWN, null);
-  const savedProfiles = storage.get<ResumeProfile[] | null>(STORAGE_KEYS.PROFILES, null);
+  const bootstrap = getResumeBootstrapSnapshot();
+  const saved = bootstrap?.markdown ?? storage.get<string | null>(STORAGE_KEYS.MARKDOWN, null);
+  const savedProfiles = bootstrap?.profiles ?? storage.get<ResumeProfile[] | null>(STORAGE_KEYS.PROFILES, null);
   const hasSavedMarkdown = saved !== null;
   const isFirstVisit = !hasSavedMarkdown && (!savedProfiles || savedProfiles.length === 0);
 
@@ -94,10 +96,6 @@ const getInitialMarkdown = (): string => {
       : 'en';
   const original = saved ?? (browserLanguage === 'zh' ? STARTER_MARKDOWN : STARTER_MARKDOWN_EN);
   const migrated = migrateStoredMarkdown(original);
-
-  if (migrated !== original) {
-    storage.set(STORAGE_KEYS.MARKDOWN, migrated);
-  }
 
   return migrated;
 };
@@ -197,7 +195,10 @@ const getInitialProfiles = (
   defaultMd: string,
   defaultSettings: ResumeSettings
 ): { profiles: ResumeProfile[]; activeId: string } => {
-  const savedProfiles = storage.get<ResumeProfile[] | null>(STORAGE_KEYS.PROFILES, null);
+  const bootstrapProfiles = getResumeBootstrapSnapshot()?.profiles;
+  const savedProfiles = bootstrapProfiles?.length
+    ? bootstrapProfiles
+    : storage.get<ResumeProfile[] | null>(STORAGE_KEYS.PROFILES, null);
   const savedActiveId = storage.getString(STORAGE_KEYS.ACTIVE_PROFILE_ID, '');
 
   if (savedProfiles && Array.isArray(savedProfiles) && savedProfiles.length > 0) {
@@ -232,9 +233,8 @@ const getInitialProfiles = (
       };
     });
 
-    if (shouldPersistMigration) {
-      storage.set(STORAGE_KEYS.PROFILES, migratedProfiles);
-    }
+    // Sanitized profiles are persisted asynchronously to IndexedDB after store bootstrap.
+    void shouldPersistMigration;
 
     const activeId = migratedProfiles.some(p => p.id === savedActiveId) ? savedActiveId : migratedProfiles[0].id;
     return { profiles: migratedProfiles, activeId };
@@ -256,7 +256,6 @@ const getInitialProfiles = (
 
   if (storage.getString(STORAGE_KEYS.ONBOARDING_FIRST_VISIT) === '1') {
     const firstVisitProfiles = [defaultProfile];
-    storage.set(STORAGE_KEYS.PROFILES, firstVisitProfiles);
     storage.set(STORAGE_KEYS.ACTIVE_PROFILE_ID, defaultProfile.id);
     return { profiles: firstVisitProfiles, activeId: defaultProfile.id };
   }
@@ -297,7 +296,6 @@ const getInitialProfiles = (
   };
 
   const initialProfiles = [defaultProfile, frontendProfile, englishProfile];
-  storage.set(STORAGE_KEYS.PROFILES, initialProfiles);
   storage.set(STORAGE_KEYS.ACTIVE_PROFILE_ID, defaultProfile.id);
 
   return { profiles: initialProfiles, activeId: defaultProfile.id };
@@ -328,7 +326,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   isExportingPDF: false,
   pdfExportProgress: null,
   atsKeywords: [],
-  jdText: '',
+  jdText: getResumeBootstrapSnapshot()?.jdText ?? storage.getString(STORAGE_KEYS.JD_TEXT, ''),
   measuredPageCount: null,
 
   // Multi-Profile States
@@ -344,8 +342,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, markdown, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
-    storage.set(STORAGE_KEYS.MARKDOWN, markdown);
     set({ markdown, profiles: updatedProfiles, measuredPageCount: null });
   },
   setSettings: (settings) => {
@@ -355,7 +351,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, settings, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     storage.set(STORAGE_KEYS.SETTINGS, settings);
     set({ settings, profiles: updatedProfiles, measuredPageCount: null });
   },
@@ -372,7 +367,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, customFileName, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     storage.set(STORAGE_KEYS.CUSTOM_FILE_NAME, customFileName);
     set({ customFileName, profiles: updatedProfiles });
   },
@@ -409,10 +403,9 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       return p;
     });
 
-    // 2. Persist target data to localStorage
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
+    // 2. Persist only lightweight bootstrap preferences to localStorage.
+    // Core markdown/profile content is persisted asynchronously to IndexedDB.
     storage.set(STORAGE_KEYS.ACTIVE_PROFILE_ID, target.id);
-    storage.set(STORAGE_KEYS.MARKDOWN, target.markdown);
     storage.set(STORAGE_KEYS.SETTINGS, target.settings);
     if (target.customFileName !== undefined) {
       storage.set(STORAGE_KEYS.CUSTOM_FILE_NAME, target.customFileName);
@@ -452,7 +445,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     };
 
     const updatedProfiles = [...profiles, newProfile];
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     set({ profiles: updatedProfiles });
 
     // Switch to new profile
@@ -479,7 +471,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     };
 
     const updatedProfiles = [...profiles, newProfile];
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     set({ profiles: updatedProfiles });
 
     get().switchProfile(id);
@@ -499,7 +490,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       }
       return p;
     });
-    storage.set(STORAGE_KEYS.PROFILES, updated);
     set({ profiles: updated });
   },
 
@@ -510,12 +500,10 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     }
 
     const updated = profiles.filter(p => p.id !== profileId);
-    storage.set(STORAGE_KEYS.PROFILES, updated);
 
     if (activeProfileId === profileId) {
       const nextActive = updated[0];
       storage.set(STORAGE_KEYS.ACTIVE_PROFILE_ID, nextActive.id);
-      storage.set(STORAGE_KEYS.MARKDOWN, nextActive.markdown);
       storage.set(STORAGE_KEYS.SETTINGS, nextActive.settings);
       if (nextActive.customFileName !== undefined) {
         storage.set(STORAGE_KEYS.CUSTOM_FILE_NAME, nextActive.customFileName);
@@ -540,9 +528,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     if (!Array.isArray(importedProfiles) || importedProfiles.length === 0) return;
 
     const nextActive = importedProfiles[0];
-    storage.set(STORAGE_KEYS.PROFILES, importedProfiles);
     storage.set(STORAGE_KEYS.ACTIVE_PROFILE_ID, nextActive.id);
-    storage.set(STORAGE_KEYS.MARKDOWN, nextActive.markdown);
     storage.set(STORAGE_KEYS.SETTINGS, nextActive.settings);
 
     if (nextActive.customFileName !== undefined) {
@@ -577,9 +563,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, markdown: newVal, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
-    storage.set(STORAGE_KEYS.MARKDOWN, newVal);
-
     if (typingTimer) clearTimeout(typingTimer);
     if (saveStatusTimer) clearTimeout(saveStatusTimer);
 
@@ -670,7 +653,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     let nextMarkdown = get().markdown;
     if (key === 'lang' && value !== prevLang && (value === 'zh' || value === 'en')) {
       nextMarkdown = translateMarkdownContent(nextMarkdown, value);
-      storage.set(STORAGE_KEYS.MARKDOWN, nextMarkdown);
     }
 
     const { profiles, activeProfileId } = get();
@@ -679,7 +661,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, settings: newSettings, markdown: nextMarkdown, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     set({ settings: newSettings, markdown: nextMarkdown, profiles: updatedProfiles, measuredPageCount: null });
   },
 
@@ -694,7 +675,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     let nextMarkdown = get().markdown;
     if (partialSettings.lang && partialSettings.lang !== prevLang && (partialSettings.lang === 'zh' || partialSettings.lang === 'en')) {
       nextMarkdown = translateMarkdownContent(nextMarkdown, partialSettings.lang);
-      storage.set(STORAGE_KEYS.MARKDOWN, nextMarkdown);
     }
 
     const { profiles, activeProfileId } = get();
@@ -703,8 +683,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, settings: newSettings, markdown: nextMarkdown, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     set({ settings: newSettings, markdown: nextMarkdown, profiles: updatedProfiles, measuredPageCount: null });
   }
 }));
-

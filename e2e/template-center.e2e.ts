@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readActiveMarkdown } from './helpers/indexeddb';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -82,9 +83,8 @@ test.describe('template center', () => {
   test('previews a template without changing the active resume', async ({ page }) => {
     await page.goto('/');
 
-    const originalMarkdown = await page.evaluate(
-      () => window.localStorage.getItem('resume-markdown'),
-    );
+    await expect.poll(() => readActiveMarkdown(page)).not.toBeNull();
+    const originalMarkdown = await readActiveMarkdown(page);
 
     await page
       .getByRole('button', { name: /Browse resume templates|浏览与切换简历模板/ })
@@ -107,11 +107,7 @@ test.describe('template center', () => {
       }),
     ).toBeVisible();
 
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.localStorage.getItem('resume-markdown')),
-      )
-      .toBe(originalMarkdown);
+    await expect.poll(() => readActiveMarkdown(page)).toBe(originalMarkdown);
   });
 
   test('applies a selected template only after confirmation', async ({ page }) => {
@@ -148,11 +144,7 @@ test.describe('template center', () => {
 
     await expect(dialog).toBeHidden();
 
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.localStorage.getItem('resume-markdown') || ''),
-      )
-      .toContain('林智远');
+    await expect.poll(() => readActiveMarkdown(page)).toContain('林智远');
   });
 
   test('applies content without changing layout or style', async ({ page }) => {

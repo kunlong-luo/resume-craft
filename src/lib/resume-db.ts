@@ -32,21 +32,35 @@ export class ResumeCraftDatabase extends Dexie {
 
   constructor() {
     super(RESUME_DB_NAME);
-    // v1 existed during v2.3 development with a boolean draft index.
-    // Keep it declared so existing development databases upgrade cleanly.
+    // v1 existed briefly during v2.3 development. Keep its real schema
+    // declared so preview/test databases can upgrade without a schema mismatch.
     this.version(1).stores({
       documents: 'id, updatedAt',
-      profiles: 'id, sortIndex, updatedAt, createdAt',
-      drafts: 'id, sortIndex, timestamp, isAutoSave',
+      profiles: 'id, updatedAt, createdAt',
+      drafts: 'id, timestamp, isAutoSave',
       meta: 'key, updatedAt',
     });
 
-    this.version(RESUME_DB_VERSION).stores({
-      documents: 'id, updatedAt',
-      profiles: 'id, sortIndex, updatedAt, createdAt',
-      drafts: 'id, sortIndex, timestamp',
-      meta: 'key, updatedAt',
-    });
+    this.version(RESUME_DB_VERSION)
+      .stores({
+        documents: 'id, updatedAt',
+        profiles: 'id, sortIndex, updatedAt, createdAt',
+        drafts: 'id, sortIndex, timestamp',
+        meta: 'key, updatedAt',
+      })
+      .upgrade(async (tx) => {
+        let profileIndex = 0;
+        await tx.table<ResumeProfileRecord, string>('profiles').toCollection().modify((profile) => {
+          if (!Number.isFinite(profile.sortIndex)) profile.sortIndex = profileIndex;
+          profileIndex += 1;
+        });
+
+        let draftIndex = 0;
+        await tx.table<ResumeDraftRecord, string>('drafts').toCollection().modify((draft) => {
+          if (!Number.isFinite(draft.sortIndex)) draft.sortIndex = draftIndex;
+          draftIndex += 1;
+        });
+      });
   }
 }
 

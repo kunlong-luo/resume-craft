@@ -18,12 +18,15 @@ export function createResumePersistenceCoordinator(debounceMs = DEFAULT_DEBOUNCE
   let writeChain: Promise<void> = Promise.resolve();
 
   const persist = (snapshot: PersistedResumeSnapshot) => {
-    writeChain = writeChain.then(async () => {
-      await Promise.all([
-        resumeRepository.saveActiveMarkdown(snapshot.markdown),
-        resumeRepository.replaceProfiles(snapshot.profiles),
-      ]);
-    });
+    // A failed write must not poison every later autosave attempt.
+    writeChain = writeChain
+      .catch(() => undefined)
+      .then(async () => {
+        await Promise.all([
+          resumeRepository.saveActiveMarkdown(snapshot.markdown),
+          resumeRepository.replaceProfiles(snapshot.profiles),
+        ]);
+      });
     return writeChain;
   };
 

@@ -33,7 +33,7 @@ export class ResumeCraftDatabase extends Dexie {
   constructor() {
     super(RESUME_DB_NAME);
     this.version(RESUME_DB_VERSION).stores({
-      documents: 'id, sortIndex, updatedAt',
+      documents: 'id, updatedAt',
       profiles: 'id, sortIndex, updatedAt, createdAt',
       drafts: 'id, sortIndex, timestamp, isAutoSave',
       meta: 'key, updatedAt',

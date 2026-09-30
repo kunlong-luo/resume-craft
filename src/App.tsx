@@ -13,6 +13,7 @@ import { Tooltip } from './components/ui/Tooltip';
 import { markSupportPrompt, shouldPromptForSupport } from './lib/support-prompt';
 import { trackAnalyticsEvent } from './lib/analytics';
 import { storage, STORAGE_HEALTH_EVENT, STORAGE_KEYS, type StorageHealthDetail } from './lib/storage';
+import { resumeRepository } from './lib/resume-repository';
 
 // Performance optimization: Lazy load heavy secondary modals and non-critical tools
 const ResumeChecker = lazy(() => import('./components/resume-checker/ResumeChecker').then(m => ({ default: m.ResumeChecker })));
@@ -51,6 +52,7 @@ export default function App() {
   const {
     markdown,
     settings,
+    profiles,
     setLastSaved,
     isHelpLegalOpen,
     setIsHelpLegalOpen,
@@ -225,29 +227,33 @@ export default function App() {
   }, []);
 
 
-  // Automated periodic autosave (every 3 minutes)
+  // Automated periodic autosave (every 3 minutes) through the IndexedDB repository.
   useEffect(() => {
     const interval = setInterval(() => {
-      try {
-        const currentDrafts = storage.get<any[]>(STORAGE_KEYS.DRAFTS, []);
-        const hasDuplicate = currentDrafts.some((d: any) => d.markdown === markdown);
-        if (hasDuplicate) return;
+      void (async () => {
+        try {
+          const currentDrafts = await resumeRepository.getDrafts();
+          const hasDuplicate = currentDrafts.some((draft) => draft.markdown === markdown);
+          if (hasDuplicate) return;
 
-        const isEn = settings.lang === 'en';
-        const newAutoDraft = {
-          id: `draft_auto_${Date.now()}`,
-          title: new Date().toLocaleTimeString(isEn ? 'en-US' : 'zh-CN', { hour12: false }),
-          markdown,
-          settings,
-          timestamp: new Date().toLocaleString(isEn ? 'en-US' : 'zh-CN', { hour12: false }),
-          isAutoSave: true
-        };
+          const isEn = settings.lang === 'en';
+          const newAutoDraft = {
+            id: `draft_auto_${Date.now()}`,
+            title: new Date().toLocaleTimeString(isEn ? 'en-US' : 'zh-CN', { hour12: false }),
+            markdown,
+            settings,
+            timestamp: new Date().toLocaleString(isEn ? 'en-US' : 'zh-CN', { hour12: false }),
+            isAutoSave: true,
+          };
 
-        const otherDrafts = currentDrafts.filter((d: any) => !d.isAutoSave);
-        const autoDrafts = currentDrafts.filter((d: any) => d.isAutoSave);
-        const updatedAutoDrafts = [newAutoDraft, ...autoDrafts].slice(0, 5);
-        storage.set(STORAGE_KEYS.DRAFTS, [...updatedAutoDrafts, ...otherDrafts]);
-      } catch (e) {}
+          const otherDrafts = currentDrafts.filter((draft) => !draft.isAutoSave);
+          const autoDrafts = currentDrafts.filter((draft) => draft.isAutoSave);
+          const updatedAutoDrafts = [newAutoDraft, ...autoDrafts].slice(0, 5);
+          await resumeRepository.replaceDrafts([...updatedAutoDrafts, ...otherDrafts]);
+        } catch (error) {
+          console.error('[autosave] Failed to save draft to IndexedDB:', error);
+        }
+      })();
     }, 180000);
 
     return () => clearInterval(interval);
@@ -327,20 +333,33 @@ export default function App() {
       // Cmd/Ctrl + S -> Manual Save trigger Toast
       if (isCmdOrCtrl && (e.key === 's' || e.key === 'S')) {
         e.preventDefault();
-        const saved = storage.set(STORAGE_KEYS.MARKDOWN, markdown);
-        if (saved) {
+        void Promise.all([
+          resumeRepository.saveActiveMarkdown(markdown),
+          resumeRepository.replaceProfiles(profiles),
+        ]).then(() => {
           const now = new Date();
           const pad = (num: number) => String(num).padStart(2, '0');
           setLastSaved(`${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`);
           showToast?.({
             title: settings.lang === 'en' ? 'Resume saved locally' : '简历草稿已手动保存',
             message: settings.lang === 'en'
-              ? 'The current resume content was written to browser storage.'
-              : '核心内容已写入浏览器本地存储。',
+              ? 'The current resume content was saved to local browser storage.'
+              : '核心简历数据已保存到浏览器本地。',
             type: 'success',
             duration: 2500,
           });
-        }
+        }).catch((error) => {
+          console.error('[manual-save] Failed to save resume to IndexedDB:', error);
+          setStorageHealth('error');
+          showToast?.({
+            title: settings.lang === 'en' ? 'Local save failed' : '本地保存失败',
+            message: settings.lang === 'en'
+              ? 'The browser rejected the local save. Export a backup before closing this page.'
+              : '浏览器拒绝本地保存。关闭页面前请先导出备份。',
+            type: 'error',
+            duration: 8000,
+          });
+        });
       }
 
       // Cmd/Ctrl + P -> Intercept default browser print and use the ATS-friendly PDF path
@@ -365,7 +384,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [markdown, settings, setLastSaved, showToast, handleExportVectorPrint, updateSetting]);
+  }, [markdown, profiles, settings, setLastSaved, setStorageHealth, showToast, handleExportVectorPrint, updateSetting]);
 
   return (
     <div className={`flex flex-col h-[100dvh] overflow-hidden bg-[#f8fafc] dark:bg-[#070a13] text-slate-900 dark:text-slate-100 relative transition-colors duration-200 ${isDragging ? 'select-none cursor-col-resize' : ''}`}>

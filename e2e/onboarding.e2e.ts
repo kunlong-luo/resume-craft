@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readActiveMarkdown } from './helpers/indexeddb';
 
 test.describe('first-run onboarding', () => {
   test('guides a first-time user through three steps and loads the example only by choice', async ({
@@ -49,11 +50,7 @@ test.describe('first-run onboarding', () => {
       )
       .toBe('1');
 
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.localStorage.getItem('resume-markdown') || ''),
-      )
-      .toMatch(/钟晨杰|Alex Chen/);
+    await expect.poll(() => readActiveMarkdown(page)).toMatch(/钟晨杰|Alex Chen/);
 
     await page.reload();
 
@@ -175,11 +172,7 @@ test.describe('first-run onboarding', () => {
       page.getByText(/Replace your current resume\?|要替换当前简历吗？/),
     ).toBeVisible();
 
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.localStorage.getItem('resume-markdown')),
-      )
-      .toBe('# Existing Resume\n\nKeep this content.');
+    await expect.poll(() => readActiveMarkdown(page)).toBe('# Existing Resume\n\nKeep this content.');
 
     await page
       .getByRole('button', {
@@ -193,11 +186,7 @@ test.describe('first-run onboarding', () => {
       }),
     ).toBeVisible();
 
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.localStorage.getItem('resume-markdown')),
-      )
-      .toBe('# Existing Resume\n\nKeep this content.');
+    await expect.poll(() => readActiveMarkdown(page)).toBe('# Existing Resume\n\nKeep this content.');
   });
 
   test('can start completely blank and preserve the blank resume across reload', async ({
@@ -220,19 +209,11 @@ test.describe('first-run onboarding', () => {
       }),
     ).toBeHidden();
 
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.localStorage.getItem('resume-markdown')),
-      )
-      .toBe('');
+    await expect.poll(() => readActiveMarkdown(page)).toBe('');
 
     await page.reload();
 
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.localStorage.getItem('resume-markdown')),
-      )
-      .toBe('');
+    await expect.poll(() => readActiveMarkdown(page)).toBe('');
 
     await expect(
       page.getByRole('dialog', {

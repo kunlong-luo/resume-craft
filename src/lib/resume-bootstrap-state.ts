@@ -3,6 +3,7 @@ import type { ResumeProfile } from '../types';
 export interface ResumeBootstrapSnapshot {
   markdown: string | null;
   profiles: ResumeProfile[];
+  jdText: string | null;
 }
 
 let bootstrapSnapshot: ResumeBootstrapSnapshot | null = null;

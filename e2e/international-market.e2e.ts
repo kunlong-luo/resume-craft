@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readActiveMarkdown } from './helpers/indexeddb';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -144,9 +145,7 @@ test.describe('international market flows', () => {
       'data-paper-size',
       'letter',
     );
-    await expect.poll(() =>
-      page.evaluate(() => window.localStorage.getItem('resume-markdown') || ''),
-    ).toContain('## Education');
+    await expect.poll(() => readActiveMarkdown(page)).toContain('## Education');
 
     await expect.poll(() =>
       page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}')),

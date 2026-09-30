@@ -35,16 +35,16 @@
 
 ---
 
-## 🆕 v2.1.0 更新
+## 🆕 v2.3.0 更新
 
-- 新增 Target Market：美国、加拿大、英国、爱尔兰、中国与 International。
-- 支持 A4 / US Letter，并让预览、ATS 打印与目标市场设置保持一致。
-- 增加多种日期展示样式，同时保留用户手动覆盖，不强制改写已有设置。
-- 强化国际化模板、ATS / Checker 文案与移动端布局。
-- 明确公开分享与密码保护分享的安全边界，并增加隐私安全的匿名运行时错误信号。
-- 新增 1200×630 社交预览卡，并强化发布与跨浏览器 CI 流程。
+- 将核心简历数据从同步 `localStorage` 迁移到 Dexie + IndexedDB：包括当前 Markdown、Profiles、Draft / 自动备份和 JD 文本。
+- Zustand 继续负责运行时编辑状态，主题、语言、缩放、布局、Onboarding 等轻量偏好继续保留在 `localStorage`。
+- v2.2 → v2.3 首次启动会先写入 IndexedDB、回读校验，确认成功后才删除旧核心存储键。
+- 编辑持久化改为异步防抖与串行写入，减少大 JSON 同步写入对编辑热路径的影响。
+- 增加多标签页提示、Web Locks 写入串行化，以及 IndexedDB + Resume Craft 自有 localStorage 的安全清空流程。
+- 新增迁移、清空数据、Repository 与跨浏览器 E2E 覆盖，并补齐开发期 IndexedDB v1 → v2 兼容升级。
 
-完整发布记录见 [v2.1.0 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.1.0)。
+完整发布记录见 [v2.3.0 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.3.0)。
 
 ---
 
@@ -122,7 +122,7 @@
 * **日期与纸张本地化**：支持 A4 / US Letter，以及 `2026.09`、`Sep 2026`、`September 2026` 等日期样式，便于按地区习惯调整简历。
 
 ### 13. ⚡ PWA 离线运行与本地优先数据存储
-* **本地优先**：支持安装至桌面与移动端。编辑中的简历与设置保存在浏览器本地存储中，项目本身不提供用于保存简历内容的应用后端。新分享链接使用 URL fragment 保存载荷，仍应只分享给可信接收者。
+* **本地优先**：支持安装至桌面与移动端。核心简历内容、Profiles、Draft / 自动备份与 JD 文本持久化在当前浏览器的 IndexedDB 中；主题、语言、缩放等轻量偏好保留在 localStorage。项目本身不提供用于保存简历内容的应用后端。新分享链接使用 URL fragment 保存载荷，仍应只分享给可信接收者。
 
 ---
 
@@ -171,7 +171,8 @@
 | **前端框架** | [React 19](https://react.dev/) + [TypeScript 7](https://www.typescriptlang.org/) | 极致性能与强类型安全 |
 | **构建工具** | [Vite 8](https://vite.dev/) | 毫秒级 HMR 与极速生产打包 |
 | **样式引擎** | [Tailwind CSS v4](https://tailwindcss.com/) | 新一代 CSS 变量与极简原子化样式 |
-| **状态管理** | [Zustand 5](https://github.com/pmndrs/zustand) | 轻量响应式状态，支持 LocalStorage 持久化 |
+| **状态管理** | [Zustand 5](https://github.com/pmndrs/zustand) | 轻量响应式运行时状态 |
+| **本地持久化** | [Dexie 4](https://dexie.org/) + IndexedDB | 核心简历、Profiles、Draft / 自动备份与 JD 数据持久化 |
 | **动效系统** | [Motion 13](https://github.com/framer/motion) | 流畅弹窗、拖拽重排与平滑展开动画 |
 | **Markdown** | `react-markdown` + `remark-gfm` | 标准 GFM 语法高能解析 |
 | **PDF 导入 / 导出** | `pdfjs-dist` + 浏览器原生打印 + `html2canvas-pro` + `jspdf` | 本地文本提取与机器可读性检查；ATS 友好打印 / Save as PDF + 图片型快速 PDF 双路径 |
@@ -232,7 +233,7 @@ Resume Craft 提供两条导出路径：
 
 <details>
 <summary><b>Q1: 我的个人简历数据会被上传到后端服务器吗？</b></summary>
-<b>答：</b>编辑器本身没有用于保存简历内容的应用后端；当前草稿与设置主要保存在浏览器 `localStorage` 中，并非加密存储。请把浏览器账户、设备和本地备份视为敏感数据环境。
+<b>答：</b>编辑器本身没有用于保存简历内容的应用后端。v2.3 起，核心简历、Profiles、Draft / 自动备份与 JD 文本保存在当前浏览器的 IndexedDB 中，轻量偏好保存在 localStorage；这些本地存储默认都不是加密保险箱。请把浏览器账户、设备和本地备份视为敏感数据环境。
 </details>
 
 <details>
@@ -251,7 +252,7 @@ Resume Craft 提供两条导出路径：
 
 Resume Craft 采用本地优先架构，但“本地优先”不等于“所有数据都经过加密”。
 
-- 编辑中的简历、设置和档案主要保存在浏览器 `localStorage` 中。
+- 核心简历、Profiles、Draft / 自动备份与 JD 文本保存在当前浏览器的 IndexedDB 中；主题、语言、布局等轻量偏好保存在 `localStorage`。
 - 项目本身不提供用于持久化简历内容的应用后端。
 - 字体使用本机系统字体栈，不从 Google Fonts 等第三方字体 CDN 加载。
 - 产品使用 Simple Analytics 统计少量匿名聚合指标（开始编辑、导出、ATS 匹配、Auto Fit、分享、PWA 安装与反馈入口）；事件只有固定事件名，不附带 metadata。尊重 Do Not Track，开启 DNT 时不会加载统计脚本；不发送简历、JD、联系方式、文件名、分享参数或访问口令，也不启用会话回放/指纹识别。

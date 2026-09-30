@@ -30,7 +30,7 @@ test.describe('task-oriented user guide', () => {
     ]) {
       await expect(guide.getByText(step, { exact: true })).toBeVisible();
     }
-    await expect(guide).toContainText('v2.2.0');
+    await expect(guide).toContainText('v2.3.0');
   });
 
   test('keeps a permanent replay entry for onboarding', async ({ page }) => {

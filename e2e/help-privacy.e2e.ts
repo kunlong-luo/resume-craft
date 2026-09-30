@@ -18,7 +18,7 @@ async function openHelp(page: import('@playwright/test').Page) {
 test('help shows the package version and replay entry', async ({ page }) => {
   await page.goto('/');
   const dialog = await openHelp(page);
-  await expect(dialog).toContainText('v2.1.0');
+  await expect(dialog).toContainText('v2.2.0');
   await expect(dialog.getByRole('button', { name: 'Replay the interface tour' })).toBeVisible();
 });
 

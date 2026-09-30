@@ -7,7 +7,7 @@ import { DraftsTab } from './DraftsTab';
 import { BackupTab } from './BackupTab';
 import { useConfirm } from '../../context/ConfirmContext';
 import { useResumeStore } from '../../store/useResumeStore';
-import { storage, STORAGE_KEYS } from '../../lib/storage';
+import { resumeRepository } from '../../lib/resume-repository';
 import { normalizeResumeBackup } from '../../lib/import-validation';
 import { useDialogFocus } from '../../hooks/useDialogFocus';
 
@@ -45,36 +45,36 @@ export function BackupDraftModal() {
 
   useEffect(() => {
     if (isOpen) {
-      loadDrafts();
+      void loadDrafts();
     }
   }, [isOpen]);
 
-  const loadDrafts = () => {
+  const loadDrafts = async () => {
     try {
-      const parsed = storage.get<ResumeDraft[]>(STORAGE_KEYS.DRAFTS, []);
-      if (Array.isArray(parsed)) {
-        const sanitized = parsed.map((d: any) => {
-          if (d && d.isAutoSave && d.title && d.title.includes('自动备份 - ')) {
-            return {
-              ...d,
-              title: d.title.replace('自动备份 - ', '')
-            };
-          }
-          return d;
-        });
-        setDrafts(sanitized);
-      } else {
-        setDrafts([]);
-      }
-    } catch (e) {
-      console.error('Error loading drafts', e);
+      const parsed = await resumeRepository.getDrafts();
+      const sanitized = parsed.map((draft) => {
+        if (draft.isAutoSave && draft.title?.includes('自动备份 - ')) {
+          return {
+            ...draft,
+            title: draft.title.replace('自动备份 - ', ''),
+          };
+        }
+        return draft;
+      });
+      setDrafts(sanitized);
+    } catch (error) {
+      console.error('Error loading drafts from IndexedDB', error);
       setDrafts([]);
     }
   };
 
   const saveDraftsList = (updatedDrafts: ResumeDraft[]) => {
-    storage.set(STORAGE_KEYS.DRAFTS, updatedDrafts);
     setDrafts(updatedDrafts);
+    void resumeRepository.replaceDrafts(updatedDrafts).catch((error) => {
+      console.error('Error saving drafts to IndexedDB', error);
+      setErrorMessage(settings.lang === 'en' ? 'Failed to save local draft.' : '本地草稿保存失败。');
+      setTimeout(() => setErrorMessage(''), 3000);
+    });
   };
 
   const showToast = (msg: string, isError = false) => {

@@ -342,8 +342,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, markdown, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
-    storage.set(STORAGE_KEYS.MARKDOWN, markdown);
     set({ markdown, profiles: updatedProfiles, measuredPageCount: null });
   },
   setSettings: (settings) => {
@@ -353,7 +351,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, settings, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     storage.set(STORAGE_KEYS.SETTINGS, settings);
     set({ settings, profiles: updatedProfiles, measuredPageCount: null });
   },
@@ -370,7 +367,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, customFileName, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     storage.set(STORAGE_KEYS.CUSTOM_FILE_NAME, customFileName);
     set({ customFileName, profiles: updatedProfiles });
   },
@@ -407,10 +403,9 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       return p;
     });
 
-    // 2. Persist target data to localStorage
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
+    // 2. Persist only lightweight bootstrap preferences to localStorage.
+    // Core markdown/profile content is persisted asynchronously to IndexedDB.
     storage.set(STORAGE_KEYS.ACTIVE_PROFILE_ID, target.id);
-    storage.set(STORAGE_KEYS.MARKDOWN, target.markdown);
     storage.set(STORAGE_KEYS.SETTINGS, target.settings);
     if (target.customFileName !== undefined) {
       storage.set(STORAGE_KEYS.CUSTOM_FILE_NAME, target.customFileName);
@@ -450,7 +445,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     };
 
     const updatedProfiles = [...profiles, newProfile];
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     set({ profiles: updatedProfiles });
 
     // Switch to new profile
@@ -477,7 +471,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     };
 
     const updatedProfiles = [...profiles, newProfile];
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     set({ profiles: updatedProfiles });
 
     get().switchProfile(id);
@@ -497,7 +490,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       }
       return p;
     });
-    storage.set(STORAGE_KEYS.PROFILES, updated);
     set({ profiles: updated });
   },
 
@@ -508,12 +500,10 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     }
 
     const updated = profiles.filter(p => p.id !== profileId);
-    storage.set(STORAGE_KEYS.PROFILES, updated);
 
     if (activeProfileId === profileId) {
       const nextActive = updated[0];
       storage.set(STORAGE_KEYS.ACTIVE_PROFILE_ID, nextActive.id);
-      storage.set(STORAGE_KEYS.MARKDOWN, nextActive.markdown);
       storage.set(STORAGE_KEYS.SETTINGS, nextActive.settings);
       if (nextActive.customFileName !== undefined) {
         storage.set(STORAGE_KEYS.CUSTOM_FILE_NAME, nextActive.customFileName);
@@ -538,9 +528,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     if (!Array.isArray(importedProfiles) || importedProfiles.length === 0) return;
 
     const nextActive = importedProfiles[0];
-    storage.set(STORAGE_KEYS.PROFILES, importedProfiles);
     storage.set(STORAGE_KEYS.ACTIVE_PROFILE_ID, nextActive.id);
-    storage.set(STORAGE_KEYS.MARKDOWN, nextActive.markdown);
     storage.set(STORAGE_KEYS.SETTINGS, nextActive.settings);
 
     if (nextActive.customFileName !== undefined) {
@@ -575,9 +563,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, markdown: newVal, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
-    storage.set(STORAGE_KEYS.MARKDOWN, newVal);
-
     if (typingTimer) clearTimeout(typingTimer);
     if (saveStatusTimer) clearTimeout(saveStatusTimer);
 
@@ -668,7 +653,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     let nextMarkdown = get().markdown;
     if (key === 'lang' && value !== prevLang && (value === 'zh' || value === 'en')) {
       nextMarkdown = translateMarkdownContent(nextMarkdown, value);
-      storage.set(STORAGE_KEYS.MARKDOWN, nextMarkdown);
     }
 
     const { profiles, activeProfileId } = get();
@@ -677,7 +661,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, settings: newSettings, markdown: nextMarkdown, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     set({ settings: newSettings, markdown: nextMarkdown, profiles: updatedProfiles, measuredPageCount: null });
   },
 
@@ -692,7 +675,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     let nextMarkdown = get().markdown;
     if (partialSettings.lang && partialSettings.lang !== prevLang && (partialSettings.lang === 'zh' || partialSettings.lang === 'en')) {
       nextMarkdown = translateMarkdownContent(nextMarkdown, partialSettings.lang);
-      storage.set(STORAGE_KEYS.MARKDOWN, nextMarkdown);
     }
 
     const { profiles, activeProfileId } = get();
@@ -701,7 +683,6 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, settings: newSettings, markdown: nextMarkdown, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.PROFILES, updatedProfiles);
     set({ settings: newSettings, markdown: nextMarkdown, profiles: updatedProfiles, measuredPageCount: null });
   }
 }));

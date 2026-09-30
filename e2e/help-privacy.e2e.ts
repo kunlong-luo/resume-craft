@@ -1,34 +1,40 @@
 import { expect, test } from '@playwright/test';
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem('resume-onboarding-v1-complete', '1');
+    window.localStorage.setItem('resume-settings', JSON.stringify({ lang: 'en' }));
+  });
+});
+
 async function openHelp(page: import('@playwright/test').Page) {
-  const helpButton = page.getByRole('button', { name: /帮助|help/i }).first();
-  await helpButton.click();
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByRole('button', { name: 'More actions' }).click();
+  await page.getByRole('button', { name: 'Help' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Help & Privacy' });
+  await expect(dialog).toBeVisible();
+  return dialog;
 }
 
-test('help shows current version and can replay onboarding', async ({ page }) => {
-  await page.goto('./');
-  await openHelp(page);
-
-  await expect(page.getByRole('dialog')).toContainText('v2.1.0');
-  const replay = page.getByRole('button', { name: /重新观看新手教程|replay the interface tour/i });
-  await expect(replay).toBeVisible();
+test('help shows the package version and replay entry', async ({ page }) => {
+  await page.goto('/');
+  const dialog = await openHelp(page);
+  await expect(dialog).toContainText('v2.1.0');
+  await expect(dialog.getByRole('button', { name: 'Replay the interface tour' })).toBeVisible();
 });
 
 test('clear local data is scoped and requires confirmation', async ({ page }) => {
-  await page.goto('./');
+  await page.goto('/');
   await page.evaluate(() => {
     localStorage.setItem('resume-markdown', '# Sensitive resume');
     localStorage.setItem('resume-craft.support-prompt.v1', '{"nextPromptAt":1,"exportCount":2}');
     localStorage.setItem('another-app:key', 'keep-me');
   });
 
-  await openHelp(page);
-  await page.getByRole('button', { name: /隐私与数据|privacy/i }).click();
-  await page.getByRole('button', { name: /清空本地数据|clear local data/i }).click();
-
-  await expect(page.getByText(/确定删除全部 Resume Craft 本地数据|delete all local Resume Craft data/i)).toBeVisible();
-  await page.getByRole('button', { name: /永久删除|delete permanently/i }).click();
+  const dialog = await openHelp(page);
+  await dialog.getByRole('button', { name: 'Privacy' }).click();
+  await dialog.getByRole('button', { name: 'Clear local data…' }).click();
+  await expect(dialog.getByText('Delete all local Resume Craft data?')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Delete permanently' }).click();
   await page.waitForLoadState('domcontentloaded');
 
   const values = await page.evaluate(() => ({

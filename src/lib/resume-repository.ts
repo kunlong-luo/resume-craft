@@ -30,6 +30,26 @@ function stripSortIndex<T extends { sortIndex: number }>(record: T): Omit<T, 'so
   return value;
 }
 
+export function toProfileRecords(profiles: ResumeProfile[]): ResumeProfileRecord[] {
+  return profiles.map((profile, sortIndex) => ({ ...profile, sortIndex }));
+}
+
+export function fromProfileRecords(records: ResumeProfileRecord[]): ResumeProfile[] {
+  return [...records]
+    .sort((a, b) => a.sortIndex - b.sortIndex)
+    .map((record) => stripSortIndex(record) as ResumeProfile);
+}
+
+export function toDraftRecords(drafts: ResumeDraft[]): ResumeDraftRecord[] {
+  return drafts.map((draft, sortIndex) => ({ ...draft, sortIndex }));
+}
+
+export function fromDraftRecords(records: ResumeDraftRecord[]): ResumeDraft[] {
+  return [...records]
+    .sort((a, b) => a.sortIndex - b.sortIndex)
+    .map((record) => stripSortIndex(record) as ResumeDraft);
+}
+
 export class IndexedDbResumeRepository implements ResumeRepository {
   async getActiveMarkdown(): Promise<string | null> {
     const record = await getResumeDatabase().documents.get(ACTIVE_DOCUMENT_ID);
@@ -63,11 +83,11 @@ export class IndexedDbResumeRepository implements ResumeRepository {
     const profileRecords: ResumeProfileRecord[] | null =
       snapshot.profiles == null
         ? null
-        : snapshot.profiles.map((profile, sortIndex) => ({ ...profile, sortIndex }));
+        : toProfileRecords(snapshot.profiles);
     const draftRecords: ResumeDraftRecord[] | null =
       snapshot.drafts == null
         ? null
-        : snapshot.drafts.map((draft, sortIndex) => ({ ...draft, sortIndex }));
+        : toDraftRecords(snapshot.drafts);
 
     await db.transaction('rw', db.documents, db.profiles, db.drafts, async () => {
       if (snapshot.markdown != null) {
@@ -97,12 +117,12 @@ export class IndexedDbResumeRepository implements ResumeRepository {
 
   async getProfiles(): Promise<ResumeProfile[]> {
     const records = await getResumeDatabase().profiles.orderBy('sortIndex').toArray();
-    return records.map((record) => stripSortIndex(record) as ResumeProfile);
+    return fromProfileRecords(records);
   }
 
   async replaceProfiles(profiles: ResumeProfile[]): Promise<void> {
     const db = getResumeDatabase();
-    const records: ResumeProfileRecord[] = profiles.map((profile, sortIndex) => ({ ...profile, sortIndex }));
+    const records = toProfileRecords(profiles);
     await db.transaction('rw', db.profiles, async () => {
       await db.profiles.clear();
       if (records.length > 0) await db.profiles.bulkPut(records);
@@ -111,12 +131,12 @@ export class IndexedDbResumeRepository implements ResumeRepository {
 
   async getDrafts(): Promise<ResumeDraft[]> {
     const records = await getResumeDatabase().drafts.orderBy('sortIndex').toArray();
-    return records.map((record) => stripSortIndex(record) as ResumeDraft);
+    return fromDraftRecords(records);
   }
 
   async replaceDrafts(drafts: ResumeDraft[]): Promise<void> {
     const db = getResumeDatabase();
-    const records: ResumeDraftRecord[] = drafts.map((draft, sortIndex) => ({ ...draft, sortIndex }));
+    const records = toDraftRecords(drafts);
     await db.transaction('rw', db.drafts, async () => {
       await db.drafts.clear();
       if (records.length > 0) await db.drafts.bulkPut(records);

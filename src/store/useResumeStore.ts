@@ -6,6 +6,7 @@ import { translateMarkdownContent } from '../lib/section-translator';
 import { migrateStoredMarkdown } from '../lib/markdown-migrations';
 import { getMarketProfile, isMarketRegion, resolveDefaultPaperSize } from '../lib/market-profile';
 import { isPaperSize } from '../lib/paper';
+import { getResumeBootstrapSnapshot } from '../lib/resume-bootstrap-state';
 
 interface ResumeState {
   // States
@@ -76,8 +77,9 @@ let isUndoRedoAction = false;
 
 // Helper to initialize markdown
 const getInitialMarkdown = (): string => {
-  const saved = storage.get<string | null>(STORAGE_KEYS.MARKDOWN, null);
-  const savedProfiles = storage.get<ResumeProfile[] | null>(STORAGE_KEYS.PROFILES, null);
+  const bootstrap = getResumeBootstrapSnapshot();
+  const saved = bootstrap?.markdown ?? storage.get<string | null>(STORAGE_KEYS.MARKDOWN, null);
+  const savedProfiles = bootstrap?.profiles ?? storage.get<ResumeProfile[] | null>(STORAGE_KEYS.PROFILES, null);
   const hasSavedMarkdown = saved !== null;
   const isFirstVisit = !hasSavedMarkdown && (!savedProfiles || savedProfiles.length === 0);
 
@@ -94,10 +96,6 @@ const getInitialMarkdown = (): string => {
       : 'en';
   const original = saved ?? (browserLanguage === 'zh' ? STARTER_MARKDOWN : STARTER_MARKDOWN_EN);
   const migrated = migrateStoredMarkdown(original);
-
-  if (migrated !== original) {
-    storage.set(STORAGE_KEYS.MARKDOWN, migrated);
-  }
 
   return migrated;
 };
@@ -197,7 +195,10 @@ const getInitialProfiles = (
   defaultMd: string,
   defaultSettings: ResumeSettings
 ): { profiles: ResumeProfile[]; activeId: string } => {
-  const savedProfiles = storage.get<ResumeProfile[] | null>(STORAGE_KEYS.PROFILES, null);
+  const bootstrapProfiles = getResumeBootstrapSnapshot()?.profiles;
+  const savedProfiles = bootstrapProfiles?.length
+    ? bootstrapProfiles
+    : storage.get<ResumeProfile[] | null>(STORAGE_KEYS.PROFILES, null);
   const savedActiveId = storage.getString(STORAGE_KEYS.ACTIVE_PROFILE_ID, '');
 
   if (savedProfiles && Array.isArray(savedProfiles) && savedProfiles.length > 0) {
@@ -232,9 +233,8 @@ const getInitialProfiles = (
       };
     });
 
-    if (shouldPersistMigration) {
-      storage.set(STORAGE_KEYS.PROFILES, migratedProfiles);
-    }
+    // Sanitized profiles are persisted asynchronously to IndexedDB after store bootstrap.
+    void shouldPersistMigration;
 
     const activeId = migratedProfiles.some(p => p.id === savedActiveId) ? savedActiveId : migratedProfiles[0].id;
     return { profiles: migratedProfiles, activeId };
@@ -256,7 +256,6 @@ const getInitialProfiles = (
 
   if (storage.getString(STORAGE_KEYS.ONBOARDING_FIRST_VISIT) === '1') {
     const firstVisitProfiles = [defaultProfile];
-    storage.set(STORAGE_KEYS.PROFILES, firstVisitProfiles);
     storage.set(STORAGE_KEYS.ACTIVE_PROFILE_ID, defaultProfile.id);
     return { profiles: firstVisitProfiles, activeId: defaultProfile.id };
   }
@@ -297,7 +296,6 @@ const getInitialProfiles = (
   };
 
   const initialProfiles = [defaultProfile, frontendProfile, englishProfile];
-  storage.set(STORAGE_KEYS.PROFILES, initialProfiles);
   storage.set(STORAGE_KEYS.ACTIVE_PROFILE_ID, defaultProfile.id);
 
   return { profiles: initialProfiles, activeId: defaultProfile.id };
@@ -707,4 +705,3 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     set({ settings: newSettings, markdown: nextMarkdown, profiles: updatedProfiles, measuredPageCount: null });
   }
 }));
-

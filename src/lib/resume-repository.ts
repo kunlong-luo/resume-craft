@@ -1,5 +1,5 @@
 import type { ResumeDraft, ResumeProfile } from '../types';
-import { getResumeDatabase } from './resume-db';
+import { getResumeDatabase, type ResumeDraftRecord, type ResumeProfileRecord } from './resume-db';
 
 const ACTIVE_DOCUMENT_ID = 'active';
 
@@ -12,6 +12,11 @@ export interface ResumeRepository {
   replaceDrafts(drafts: ResumeDraft[]): Promise<void>;
   getMeta(key: string): Promise<string | null>;
   setMeta(key: string, value: string): Promise<void>;
+}
+
+function stripSortIndex<T extends { sortIndex: number }>(record: T): Omit<T, 'sortIndex'> {
+  const { sortIndex: _sortIndex, ...value } = record;
+  return value;
 }
 
 export class IndexedDbResumeRepository implements ResumeRepository {
@@ -29,26 +34,30 @@ export class IndexedDbResumeRepository implements ResumeRepository {
   }
 
   async getProfiles(): Promise<ResumeProfile[]> {
-    return getResumeDatabase().profiles.toArray();
+    const records = await getResumeDatabase().profiles.orderBy('sortIndex').toArray();
+    return records.map((record) => stripSortIndex(record) as ResumeProfile);
   }
 
   async replaceProfiles(profiles: ResumeProfile[]): Promise<void> {
     const db = getResumeDatabase();
+    const records: ResumeProfileRecord[] = profiles.map((profile, sortIndex) => ({ ...profile, sortIndex }));
     await db.transaction('rw', db.profiles, async () => {
       await db.profiles.clear();
-      if (profiles.length > 0) await db.profiles.bulkPut(profiles);
+      if (records.length > 0) await db.profiles.bulkPut(records);
     });
   }
 
   async getDrafts(): Promise<ResumeDraft[]> {
-    return getResumeDatabase().drafts.toArray();
+    const records = await getResumeDatabase().drafts.orderBy('sortIndex').toArray();
+    return records.map((record) => stripSortIndex(record) as ResumeDraft);
   }
 
   async replaceDrafts(drafts: ResumeDraft[]): Promise<void> {
     const db = getResumeDatabase();
+    const records: ResumeDraftRecord[] = drafts.map((draft, sortIndex) => ({ ...draft, sortIndex }));
     await db.transaction('rw', db.drafts, async () => {
       await db.drafts.clear();
-      if (drafts.length > 0) await db.drafts.bulkPut(drafts);
+      if (records.length > 0) await db.drafts.bulkPut(records);
     });
   }
 

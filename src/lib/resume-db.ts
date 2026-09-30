@@ -2,7 +2,7 @@ import Dexie, { type EntityTable } from 'dexie';
 import type { ResumeDraft, ResumeProfile } from '../types';
 
 export const RESUME_DB_NAME = 'resume-craft';
-export const RESUME_DB_VERSION = 1;
+export const RESUME_DB_VERSION = 2;
 
 export interface ResumeDocumentRecord {
   id: string;
@@ -32,10 +32,19 @@ export class ResumeCraftDatabase extends Dexie {
 
   constructor() {
     super(RESUME_DB_NAME);
-    this.version(RESUME_DB_VERSION).stores({
+    // v1 existed during v2.3 development with a boolean draft index.
+    // Keep it declared so existing development databases upgrade cleanly.
+    this.version(1).stores({
       documents: 'id, updatedAt',
       profiles: 'id, sortIndex, updatedAt, createdAt',
       drafts: 'id, sortIndex, timestamp, isAutoSave',
+      meta: 'key, updatedAt',
+    });
+
+    this.version(RESUME_DB_VERSION).stores({
+      documents: 'id, updatedAt',
+      profiles: 'id, sortIndex, updatedAt, createdAt',
+      drafts: 'id, sortIndex, timestamp',
       meta: 'key, updatedAt',
     });
   }

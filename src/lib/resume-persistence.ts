@@ -4,6 +4,7 @@ import { resumeRepository } from './resume-repository';
 export interface PersistedResumeSnapshot {
   markdown: string;
   profiles: ResumeProfile[];
+  jdText: string;
 }
 
 const DEFAULT_DEBOUNCE_MS = 350;
@@ -25,6 +26,7 @@ export function createResumePersistenceCoordinator(debounceMs = DEFAULT_DEBOUNCE
         await Promise.all([
           resumeRepository.saveActiveMarkdown(snapshot.markdown),
           resumeRepository.replaceProfiles(snapshot.profiles),
+          resumeRepository.saveJdText(snapshot.jdText),
         ]);
       });
     return writeChain;

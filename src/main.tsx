@@ -7,6 +7,8 @@ import './index.css';
 import { initAnalyticsPageview } from './lib/analytics';
 import { migrateLegacyStorageToIndexedDb } from './lib/storage-migration';
 import { createResumePersistenceCoordinator } from './lib/resume-persistence';
+import { resumeRepository } from './lib/resume-repository';
+import { setResumeBootstrapSnapshot } from './lib/resume-bootstrap-state';
 
 // Suppress benign ResizeObserver loop notification messages that can occur during layout/zoom updates
 if (typeof window !== 'undefined') {
@@ -27,7 +29,13 @@ async function bootstrap() {
   // Legacy localStorage remains available as a rollback source during this release.
   try {
     await migrateLegacyStorageToIndexedDb();
+    const [markdown, profiles] = await Promise.all([
+      resumeRepository.getActiveMarkdown(),
+      resumeRepository.getProfiles(),
+    ]);
+    setResumeBootstrapSnapshot({ markdown, profiles });
   } catch (error) {
+    setResumeBootstrapSnapshot(null);
     console.error('[bootstrap] IndexedDB migration failed; continuing with legacy storage:', error);
   }
 
@@ -38,6 +46,9 @@ async function bootstrap() {
 
   const persistence = createResumePersistenceCoordinator();
   let previous = useResumeStore.getState();
+
+  // Persist sanitized/default bootstrap state too, including first-run profiles.
+  persistence.schedule({ markdown: previous.markdown, profiles: previous.profiles });
 
   const unsubscribe = useResumeStore.subscribe((state) => {
     if (state.markdown === previous.markdown && state.profiles === previous.profiles) {

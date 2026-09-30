@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readActiveMarkdown } from './helpers/indexeddb';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -24,11 +25,7 @@ test.describe('critical resume flows', () => {
 
     await editor.fill(markdown);
 
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.localStorage.getItem('resume-markdown')),
-      )
-      .toBe(markdown);
+    await expect.poll(() => readActiveMarkdown(page)).toBe(markdown);
 
     await page.reload();
     await page.getByRole('button', { name: /^(Markdown source editor|Markdown 源码编辑模式)$/ }).click();

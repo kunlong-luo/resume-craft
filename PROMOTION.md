@@ -1,4 +1,4 @@
-# Resume Craft v2.1.0 Promotion Playbook
+# Resume Craft v2.3.0 Promotion Playbook
 
 This document keeps promotion practical, measurable, and non-spammy. Automation prepares material and previews posts; a human reviews and publishes anything that reaches an external community.
 
@@ -25,7 +25,7 @@ The first promotion cycle is for learning, not maximizing raw impressions.
 ## Primary proof points
 
 - No account required for normal editing.
-- Resume drafts are stored locally in the browser.
+- Core resume data is stored locally in browser IndexedDB; lightweight UI preferences remain in localStorage.
 - Markdown and structured form editing stay in sync.
 - A4 / US Letter support with target-market defaults.
 - ATS-oriented readability and JD matching guidance without claiming guaranteed ATS outcomes.
@@ -33,12 +33,12 @@ The first promotion cycle is for learning, not maximizing raw impressions.
 - Public share links are readable by link holders; password-protected links are encrypted locally before link creation.
 - Open-source repository and reproducible release assets.
 
-## Two-week launch sequence
+## Two-week v2.3 validation sequence
 
-### Days 1-2 — Foundation
+### Days 1-2 — Release verification
 
-- Merge the current documentation and promotion changes.
-- Verify the live demo, latest release link, social preview card, README, and mobile layout.
+- Verify the live demo, v2.3.0 release link, social preview card, README, migration behavior, and mobile layout.
+- Confirm an existing v2.2 browser profile opens with its resume data intact after the automatic IndexedDB migration.
 - Capture one clean desktop screenshot and one mobile screenshot.
 - Prepare one short demo GIF/video showing: edit -> preview -> Target Market -> ATS check -> PDF.
 - Record the baseline analytics counts before promotion.
@@ -49,7 +49,7 @@ Use channels where the product itself is directly relevant.
 
 **GitHub**
 - Keep README and social preview current.
-- Pin a concise v2.1.0 discussion/update.
+- Pin a concise v2.3.0 discussion/update focused on the local-data architecture upgrade and zero-account workflow.
 - Ask for bug reports and workflow feedback, not stars.
 
 **Show HN**
@@ -64,7 +64,7 @@ Suggested title:
 
 **Developer communities**
 - Share a technical breakdown rather than a generic advertisement.
-- Useful topics: building a local-first resume editor, browser-only encrypted sharing, keeping PDF output ATS-readable, A4 vs US Letter internationalization.
+- Useful topics: migrating a local-first editor from synchronous localStorage blobs to IndexedDB, browser-only encrypted sharing, keeping PDF output ATS-readable, and A4 vs US Letter internationalization.
 
 ### Days 6-9 — Job-seeker content
 
@@ -92,6 +92,7 @@ Suggested tagline:
 
 After the first cycle:
 - Compare visit -> editing_started -> ATS check -> PDF export -> share_created.
+- Watch for migration, reload, multi-profile, draft/backup, and local-clear feedback; storage regressions take priority over new feature requests.
 - Review GitHub issues/discussions and community replies.
 - Pick the next engineering work from observed friction rather than speculative feature ideas.
 

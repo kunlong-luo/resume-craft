@@ -161,11 +161,19 @@ test.describe('international market flows', () => {
     await page.goto('/');
 
     const optional = page.getByRole('button', { name: '+ Optional Fields' });
+    const globalContactLabel = page.getByText('LinkedIn / GitHub / Portfolio', { exact: true });
+
+    // App startup is asynchronous in v2.3 because storage migration completes before
+    // the editor bundle mounts. Wait for either state instead of using a zero-wait count.
+    await expect.poll(async () =>
+      (await optional.count()) + (await globalContactLabel.count()),
+    ).toBeGreaterThan(0);
+
     if (await optional.count()) {
       await optional.click();
     }
 
-    await expect(page.getByText('LinkedIn / GitHub / Portfolio', { exact: true })).toBeVisible();
+    await expect(globalContactLabel).toBeVisible();
     await expect(page.getByText('WeChat', { exact: true })).toHaveCount(0);
 
     const layout = await openLayout(page);

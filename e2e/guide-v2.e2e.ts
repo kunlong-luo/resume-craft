@@ -3,144 +3,42 @@ import { expect, test } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem('resume-onboarding-v1-complete', '1');
-    window.localStorage.setItem(
-      'resume-settings',
-      JSON.stringify({ lang: 'en', showPageBreakLine: false }),
-    );
+    window.localStorage.setItem('resume-settings', JSON.stringify({ lang: 'en' }));
   });
 });
 
 async function openGuide(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: 'More actions' }).click();
   await page.getByRole('button', { name: 'Help' }).click();
-
-  const guide = page.getByRole('dialog', { name: 'User Guide' });
+  const guide = page.getByRole('dialog', { name: 'Help & Privacy' });
   await expect(guide).toBeVisible();
   return guide;
 }
 
 test.describe('task-oriented user guide', () => {
-  test('shows the recommended resume workflow instead of a feature encyclopedia', async ({
-    page,
-  }) => {
+  test('shows the streamlined five-step workflow and current version', async ({ page }) => {
     await page.goto('/');
     const guide = await openGuide(page);
 
-    await expect(guide.getByText('Recommended workflow', { exact: true })).toBeVisible();
-    await expect(
-      guide.getByText('Build the resume in the right order'),
-    ).toBeVisible();
-
+    await expect(guide.getByText('A simple path to a finished resume')).toBeVisible();
     for (const step of [
-      'Choose a starting point',
-      'Finish the content first',
-      'Tailor it to the target role',
-      'Run Resume Check',
+      'Start with your content',
       'Adjust layout',
-      'Polish the visual style',
-      'Check page count',
-      'Final check and download',
-      'Back up and share safely',
+      'Polish the style',
+      'Run Resume Check',
+      'Download, back up, and share',
     ]) {
       await expect(guide.getByText(step, { exact: true })).toBeVisible();
     }
-
-    await expect(guide.getByText('International applications')).toBeVisible();
-    await expect(
-      guide.getByText(/Keep the \+ country\/region calling code/),
-    ).toBeVisible();
+    await expect(guide).toContainText('v2.1.0');
   });
 
-  test('opens the template library directly from the guide', async ({ page }) => {
+  test('keeps a permanent replay entry for onboarding', async ({ page }) => {
     await page.goto('/');
     const guide = await openGuide(page);
-
-    await guide.getByRole('button', { name: 'Open template library' }).click();
+    const replay = guide.getByRole('button', { name: 'Replay the interface tour' });
+    await expect(replay).toBeVisible();
+    await replay.click();
     await expect(guide).toBeHidden();
-
-    await expect(
-      page.getByRole('dialog', { name: 'Choose a content template' }),
-    ).toBeVisible();
-  });
-
-  test('opens import and Resume Check directly from the guide', async ({ page }) => {
-    await page.goto('/');
-
-    let guide = await openGuide(page);
-    await guide.getByRole('button', { name: 'Import resume' }).click();
-
-    const importDialog = page.getByRole('dialog', { name: 'Import Resume' });
-    await expect(importDialog).toBeVisible();
-    await importDialog.getByRole('button', { name: 'Close import dialog' }).click();
-    await expect(importDialog).toBeHidden();
-
-    guide = await openGuide(page);
-    await guide.getByRole('button', { name: 'Open Resume Check' }).first().click();
-
-    await expect(
-      page.getByRole('dialog', { name: 'Resume Check' }),
-    ).toBeVisible();
-  });
-
-  test('opens Layout and Style directly from the guide', async ({ page }) => {
-    await page.goto('/');
-
-    let guide = await openGuide(page);
-    await guide.getByRole('button', { name: 'Open Layout' }).click();
-
-    const layout = page.getByRole('dialog', { name: 'Layout' });
-    await expect(layout).toBeVisible();
-    await layout.getByRole('button', { name: 'Close Layout' }).click();
-    await expect(layout).toBeHidden();
-
-    guide = await openGuide(page);
-    await guide.getByRole('button', { name: 'Open Style' }).click();
-
-    await expect(
-      page.getByRole('dialog', { name: 'Style' }),
-    ).toBeVisible();
-  });
-
-  test('connects page-count, download, backup, and share steps to the real tools', async ({
-    page,
-  }) => {
-    await page.goto('/');
-
-    let guide = await openGuide(page);
-    await guide.getByRole('button', { name: 'Show A4 page lines' }).click();
-    await expect(guide).toBeHidden();
-    await expect
-      .poll(async () => {
-        const raw = await page.evaluate(() =>
-          window.localStorage.getItem('resume-settings'),
-        );
-        return raw ? JSON.parse(raw).showPageBreakLine : null;
-      })
-      .toBe(true);
-
-    guide = await openGuide(page);
-    await guide.getByRole('button', { name: 'Choose PDF download' }).click();
-    await expect(guide).toBeHidden();
-    await expect(
-      page
-        .locator('button:visible')
-        .filter({ hasText: 'ATS PDF' })
-        .first(),
-    ).toBeVisible();
-
-    await page.keyboard.press('Escape');
-    guide = await openGuide(page);
-    await guide.getByRole('button', { name: 'Open versions & backup' }).click();
-    const resumeManagement = page.getByRole('dialog', {
-      name: 'Resume Management',
-    });
-    await expect(resumeManagement).toBeVisible();
-    await page
-      .getByRole('button', { name: 'Close resume management dialog' })
-      .click();
-
-    guide = await openGuide(page);
-    await guide.getByRole('button', { name: 'Share resume' }).click();
-    await expect(page.getByRole('dialog', { name: 'Share resume' })).toBeVisible();
   });
 });

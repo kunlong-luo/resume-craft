@@ -14,7 +14,7 @@ export function usePaperMeasurement(
   elementRef: RefObject<HTMLDivElement | null>,
   targetPageLimit: 1 | 2 | 3,
   onPageCountChange?: (count: number) => void,
-  dependencies: any[] = [],
+  _dependencies: unknown[] = [],
   paperSize: PaperSize = 'a4'
 ) {
   const paperSpec = getPaperSpec(paperSize);
@@ -27,6 +27,11 @@ export function usePaperMeasurement(
     overflowPixels: 0,
     actualPages: 1,
   });
+  const onPageCountChangeRef = useRef(onPageCountChange);
+
+  useEffect(() => {
+    onPageCountChangeRef.current = onPageCountChange;
+  }, [onPageCountChange]);
 
   const [zoomMode, setZoomMode] = useState<'fit' | number>(() => {
     const saved = storage.getString(STORAGE_KEYS.PREVIEW_ZOOM);
@@ -38,7 +43,7 @@ export function usePaperMeasurement(
     return 'fit';
   });
 
-  // Track wrapper element width
+  // Track wrapper element width. Resize work is coalesced into one animation frame.
   useEffect(() => {
     const element = wrapperRef.current;
     if (!element) return;
@@ -47,7 +52,6 @@ export function usePaperMeasurement(
     const handleResize = () => {
       if (rafId !== null) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        if (!element) return;
         const newWidth = element.clientWidth;
         setWrapperWidth((prev) => (Math.abs(prev - newWidth) > 1 ? newWidth : prev));
       });
@@ -63,7 +67,6 @@ export function usePaperMeasurement(
     };
   }, []);
 
-  // Compute calculated scale factor based on viewport width and paper standard width
   const calculatedZoom = useMemo(() => {
     if (zoomMode === 'fit') {
       const horizontalPadding = wrapperWidth < 640 ? 20 : 64;
@@ -74,88 +77,104 @@ export function usePaperMeasurement(
     return zoomMode;
   }, [zoomMode, wrapperWidth, paperSpec.baseWidthPx]);
 
-  // Track and measure sheet height according to paper aspect ratio
+  // Keep observers stable while the user types. Previously this effect was torn down and
+  // recreated for every markdown/settings update. MutationObserver + ResizeObserver now
+  // schedule a single rAF measurement after the rendered preview actually changes.
   useEffect(() => {
     const element = elementRef?.current;
     if (!element) return;
 
     let rafId: number | null = null;
-    const measure = () => {
+    let settleTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const measureNow = () => {
+      const width = element.clientWidth;
+      const height = element.clientHeight;
+      if (!width || !height) return;
+
+      const pHeight = width * paperSpec.aspectRatio;
+      let maxContentBottom = 0;
+      const elemRect = element.getBoundingClientRect();
+      const scale = elemRect.width > 0 ? elemRect.width / width : 1;
+
+      const contentNodes = element.querySelectorAll(
+        'h1, h2, h3, h4, p, li, table, img, .resume-header, blockquote, [data-resume-section]'
+      );
+
+      contentNodes.forEach((node) => {
+        if (
+          node.classList.contains('print:hidden') ||
+          node.classList.contains('scissors-guide') ||
+          node.closest('.print\\:hidden')
+        ) {
+          return;
+        }
+        const rect = node.getBoundingClientRect();
+        if (rect.height > 0) {
+          const bottomUnscaled = (rect.bottom - elemRect.top) / scale;
+          if (bottomUnscaled > maxContentBottom) maxContentBottom = bottomUnscaled;
+        }
+      });
+
+      const effectiveHeight = maxContentBottom > 0
+        ? Math.max(pHeight, maxContentBottom + 16)
+        : Math.max(pHeight, height);
+
+      setUnscaledHeight((prev) => Math.abs(prev - effectiveHeight) > 0.5 ? effectiveHeight : prev);
+
+      const tolerance = 36;
+      const actualPages = Math.max(1, Math.ceil((effectiveHeight - tolerance) / pHeight));
+      onPageCountChangeRef.current?.(actualPages);
+
+      const limitHeight = targetPageLimit * pHeight;
+      const nextMetrics: PaperMetrics = {
+        isOver: effectiveHeight > limitHeight + tolerance,
+        overflowPixels: Math.max(0, Math.round(effectiveHeight - limitHeight)),
+        overflowPercent: Math.min(150, Math.max(10, Math.round((effectiveHeight / limitHeight) * 100))),
+        actualPages,
+      };
+
+      setMetrics((prev) => (
+        prev.isOver === nextMetrics.isOver &&
+        prev.overflowPixels === nextMetrics.overflowPixels &&
+        prev.overflowPercent === nextMetrics.overflowPercent &&
+        prev.actualPages === nextMetrics.actualPages
+          ? prev
+          : nextMetrics
+      ));
+    };
+
+    const scheduleMeasure = () => {
       if (rafId !== null) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        if (!element) return;
-        const width = element.clientWidth;
-        const height = element.clientHeight;
-        if (!width || !height) return;
-
-        // Paper aspect ratio height (heightMm / widthMm)
-        const pHeight = width * paperSpec.aspectRatio;
-
-        // Measure true content height by inspecting actual resume content nodes
-        let maxContentBottom = 0;
-        const elemRect = element.getBoundingClientRect();
-        const scale = elemRect.width > 0 ? elemRect.width / width : 1;
-
-        // Query actual content elements, excluding absolute overlay guides (like cut lines)
-        const contentNodes = element.querySelectorAll(
-          'h1, h2, h3, h4, p, li, table, img, .resume-header, blockquote, [data-resume-section]'
-        );
-
-        if (contentNodes.length > 0) {
-          contentNodes.forEach((node) => {
-            // Skip print-hidden overlay controls or cut lines
-            if (
-              node.classList.contains('print:hidden') || 
-              node.classList.contains('scissors-guide') ||
-              node.closest('.print\\:hidden')
-            ) {
-              return;
-            }
-            const rect = node.getBoundingClientRect();
-            if (rect.height > 0) {
-              const bottomUnscaled = (rect.bottom - elemRect.top) / scale;
-              if (bottomUnscaled > maxContentBottom) {
-                maxContentBottom = bottomUnscaled;
-              }
-            }
-          });
-        }
-
-        // Include bottom margin allowance (16px)
-        const effectiveHeight = maxContentBottom > 0
-          ? Math.max(pHeight, maxContentBottom + 16)
-          : Math.max(pHeight, height);
-
-        setUnscaledHeight(effectiveHeight);
-        
-        // 36px tolerance (~9.5mm) for subpixel rounding, font metrics & padding at page boundary
-        const tolerance = 36;
-        const actualPages = Math.max(1, Math.ceil((effectiveHeight - tolerance) / pHeight));
-        onPageCountChange?.(actualPages);
-
-        const limitHeight = targetPageLimit * pHeight;
-        const isOver = effectiveHeight > limitHeight + tolerance;
-        const overflowPixels = Math.max(0, Math.round(effectiveHeight - limitHeight));
-        const overflowPercent = Math.min(
-          150,
-          Math.max(10, Math.round((effectiveHeight / limitHeight) * 100))
-        );
-
-        setMetrics({ isOver, overflowPercent, overflowPixels, actualPages });
+        rafId = null;
+        measureNow();
       });
     };
 
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    const timer = setTimeout(measure, 300);
+    scheduleMeasure();
+
+    const resizeObserver = new ResizeObserver(scheduleMeasure);
+    resizeObserver.observe(element);
+
+    const mutationObserver = new MutationObserver(scheduleMeasure);
+    mutationObserver.observe(element, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    });
+
+    settleTimer = setTimeout(scheduleMeasure, 300);
 
     return () => {
       if (rafId !== null) cancelAnimationFrame(rafId);
-      observer.disconnect();
-      clearTimeout(timer);
+      if (settleTimer !== null) clearTimeout(settleTimer);
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
     };
-  }, [elementRef, targetPageLimit, onPageCountChange, paperSpec.aspectRatio, ...dependencies]);
+  }, [elementRef, targetPageLimit, paperSpec.aspectRatio]);
 
   const handleZoomChange = (newMode: 'fit' | number) => {
     setZoomMode(newMode);

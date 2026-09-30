@@ -13,6 +13,7 @@ const MIGRATED_LEGACY_KEYS = [
   STORAGE_KEYS.MARKDOWN,
   STORAGE_KEYS.PROFILES,
   STORAGE_KEYS.DRAFTS,
+  STORAGE_KEYS.JD_TEXT,
 ] as const;
 
 function removeMigratedLegacyKeys(): void {
@@ -31,7 +32,12 @@ export async function migrateLegacyStorageToIndexedDb(): Promise<StorageMigratio
   const markdown = storage.get<string | null>(STORAGE_KEYS.MARKDOWN, null);
   const profiles = storage.get<ResumeProfile[] | null>(STORAGE_KEYS.PROFILES, null);
   const drafts = storage.get<ResumeDraft[] | null>(STORAGE_KEYS.DRAFTS, null);
-  const hasLegacyData = markdown !== null || Boolean(profiles?.length) || Boolean(drafts?.length);
+  const jdText = storage.get<string | null>(STORAGE_KEYS.JD_TEXT, null);
+  const hasLegacyData =
+    markdown !== null ||
+    Boolean(profiles?.length) ||
+    Boolean(drafts?.length) ||
+    jdText !== null;
 
   if (!hasLegacyData) {
     await resumeRepository.setMeta(STORAGE_MIGRATION_META_KEY, STORAGE_MIGRATION_VERSION);
@@ -42,11 +48,13 @@ export async function migrateLegacyStorageToIndexedDb(): Promise<StorageMigratio
   if (markdown !== null) await resumeRepository.saveActiveMarkdown(markdown);
   if (profiles) await resumeRepository.replaceProfiles(profiles);
   if (drafts) await resumeRepository.replaceDrafts(drafts);
+  if (jdText !== null) await resumeRepository.saveJdText(jdText);
 
-  const [storedMarkdown, storedProfiles, storedDrafts] = await Promise.all([
+  const [storedMarkdown, storedProfiles, storedDrafts, storedJdText] = await Promise.all([
     resumeRepository.getActiveMarkdown(),
     resumeRepository.getProfiles(),
     resumeRepository.getDrafts(),
+    resumeRepository.getJdText(),
   ]);
 
   if (markdown !== null && storedMarkdown !== markdown) {
@@ -57,6 +65,9 @@ export async function migrateLegacyStorageToIndexedDb(): Promise<StorageMigratio
   }
   if (drafts && JSON.stringify(storedDrafts) !== JSON.stringify(drafts)) {
     throw new Error('IndexedDB migration verification failed for drafts');
+  }
+  if (jdText !== null && storedJdText !== jdText) {
+    throw new Error('IndexedDB migration verification failed for JD text');
   }
 
   // Mark complete only after verified writes, then remove only the core keys

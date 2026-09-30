@@ -2,10 +2,13 @@ import type { ResumeDraft, ResumeProfile } from '../types';
 import { getResumeDatabase, type ResumeDraftRecord, type ResumeProfileRecord } from './resume-db';
 
 const ACTIVE_DOCUMENT_ID = 'active';
+const JD_DOCUMENT_ID = 'jd';
 
 export interface ResumeRepository {
   getActiveMarkdown(): Promise<string | null>;
   saveActiveMarkdown(markdown: string): Promise<void>;
+  getJdText(): Promise<string | null>;
+  saveJdText(text: string): Promise<void>;
   getProfiles(): Promise<ResumeProfile[]>;
   replaceProfiles(profiles: ResumeProfile[]): Promise<void>;
   getDrafts(): Promise<ResumeDraft[]>;
@@ -29,6 +32,19 @@ export class IndexedDbResumeRepository implements ResumeRepository {
     await getResumeDatabase().documents.put({
       id: ACTIVE_DOCUMENT_ID,
       markdown,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  async getJdText(): Promise<string | null> {
+    const record = await getResumeDatabase().documents.get(JD_DOCUMENT_ID);
+    return record?.markdown ?? null;
+  }
+
+  async saveJdText(text: string): Promise<void> {
+    await getResumeDatabase().documents.put({
+      id: JD_DOCUMENT_ID,
+      markdown: text,
       updatedAt: new Date().toISOString(),
     });
   }

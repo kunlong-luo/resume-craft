@@ -1,5 +1,6 @@
 import type { ResumeProfile } from '../types';
 import { resumeRepository } from './resume-repository';
+import { STORAGE_HEALTH_EVENT } from './storage';
 
 export interface PersistedResumeSnapshot {
   markdown: string;
@@ -17,17 +18,42 @@ export function createResumePersistenceCoordinator(debounceMs = DEFAULT_DEBOUNCE
   let timer: ReturnType<typeof setTimeout> | null = null;
   let pending: PersistedResumeSnapshot | null = null;
   let writeChain: Promise<void> = Promise.resolve();
+  let hasWriteFailure = false;
+
+  const emitHealth = (status: 'error' | 'recovered', error?: unknown) => {
+    if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') return;
+    const errorName =
+      error && typeof error === 'object' && 'name' in error
+        ? String((error as { name?: unknown }).name ?? '')
+        : '';
+    window.dispatchEvent(new CustomEvent(STORAGE_HEALTH_EVENT, {
+      detail: {
+        status,
+        operation: 'set',
+        key: 'indexeddb',
+        quotaExceeded: errorName === 'QuotaExceededError',
+      },
+    }));
+  };
 
   const persist = (snapshot: PersistedResumeSnapshot) => {
     // A failed write must not poison every later autosave attempt.
     writeChain = writeChain
       .catch(() => undefined)
       .then(async () => {
-        await Promise.all([
-          resumeRepository.saveActiveMarkdown(snapshot.markdown),
-          resumeRepository.replaceProfiles(snapshot.profiles),
-          resumeRepository.saveJdText(snapshot.jdText),
-        ]);
+        try {
+          await Promise.all([
+            resumeRepository.saveActiveMarkdown(snapshot.markdown),
+            resumeRepository.replaceProfiles(snapshot.profiles),
+            resumeRepository.saveJdText(snapshot.jdText),
+          ]);
+          if (hasWriteFailure) emitHealth('recovered');
+          hasWriteFailure = false;
+        } catch (error) {
+          if (!hasWriteFailure) emitHealth('error', error);
+          hasWriteFailure = true;
+          throw error;
+        }
       });
     return writeChain;
   };

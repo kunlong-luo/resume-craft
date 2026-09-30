@@ -29,11 +29,12 @@ async function bootstrap() {
   // Legacy localStorage remains available as a rollback source during this release.
   try {
     await migrateLegacyStorageToIndexedDb();
-    const [markdown, profiles] = await Promise.all([
+    const [markdown, profiles, jdText] = await Promise.all([
       resumeRepository.getActiveMarkdown(),
       resumeRepository.getProfiles(),
+      resumeRepository.getJdText(),
     ]);
-    setResumeBootstrapSnapshot({ markdown, profiles });
+    setResumeBootstrapSnapshot({ markdown, profiles, jdText });
   } catch (error) {
     setResumeBootstrapSnapshot(null);
     console.error('[bootstrap] IndexedDB migration failed; continuing with legacy storage:', error);
@@ -48,15 +49,27 @@ async function bootstrap() {
   let previous = useResumeStore.getState();
 
   // Persist sanitized/default bootstrap state too, including first-run profiles.
-  persistence.schedule({ markdown: previous.markdown, profiles: previous.profiles });
+  persistence.schedule({
+    markdown: previous.markdown,
+    profiles: previous.profiles,
+    jdText: previous.jdText,
+  });
 
   const unsubscribe = useResumeStore.subscribe((state) => {
-    if (state.markdown === previous.markdown && state.profiles === previous.profiles) {
+    if (
+      state.markdown === previous.markdown &&
+      state.profiles === previous.profiles &&
+      state.jdText === previous.jdText
+    ) {
       previous = state;
       return;
     }
     previous = state;
-    persistence.schedule({ markdown: state.markdown, profiles: state.profiles });
+    persistence.schedule({
+      markdown: state.markdown,
+      profiles: state.profiles,
+      jdText: state.jdText,
+    });
   });
 
   const flushBeforeExit = () => {

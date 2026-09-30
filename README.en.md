@@ -35,16 +35,16 @@
 
 ---
 
-## 🆕 What's New in v2.1.0
+## 🆕 What's New in v2.3.0
 
-- Adds Target Market presets for the United States, Canada, United Kingdom, Ireland, China, and International.
-- Adds A4 / US Letter support across preview, ATS printing, and market-aware defaults.
-- Adds multiple date display styles while preserving explicit user overrides.
-- Strengthens international templates, ATS / checker guidance, and responsive layouts.
-- Clarifies public-link vs password-protected sharing boundaries and adds a privacy-safe anonymous runtime error signal.
-- Adds a production 1200×630 social preview card and stronger release / cross-browser CI gates.
+- Moves durable resume-owned data from synchronous `localStorage` payloads to Dexie + IndexedDB, including active Markdown, profiles, drafts / automatic backups, and JD text.
+- Keeps Zustand as the runtime editor state while small UI/bootstrap preferences such as theme, language, zoom, layout, and onboarding remain in `localStorage`.
+- Adds a verified v2.2 → v2.3 migration that writes to IndexedDB, reads the records back, and removes legacy core keys only after successful verification.
+- Moves editor persistence to asynchronous debounced and serialized writes, reducing large synchronous JSON writes on the editing hot path.
+- Adds multi-tab presence warnings, Web Locks serialization where supported, and scoped clearing across IndexedDB plus Resume Craft-owned localStorage keys.
+- Adds repository, migration, clear-data, and cross-browser E2E coverage, including a development-preview IndexedDB v1 → v2 upgrade path.
 
-See the full [v2.1.0 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.1.0).
+See the full [v2.3.0 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.3.0).
 
 ---
 
@@ -122,7 +122,7 @@ When creating resumes, candidates frequently suffer from **Word layout nightmare
 * **Localized paper and dates**: Supports A4 / US Letter plus date styles such as `2026.09`, `Sep 2026`, and `September 2026`.
 
 ### 13. ⚡ PWA & Local-First Storage
-* **Local First**: Installable as a desktop or mobile PWA. Resume drafts and settings are stored in browser-local storage, and the project does not provide an application backend for persisting resume content. New share links keep their payload in the URL fragment; only share them with trusted recipients.
+* **Local First**: Installable as a desktop or mobile PWA. Core resume content, profiles, drafts / automatic backups, and JD text are persisted in this browser's IndexedDB; small preferences such as theme, language, and zoom remain in localStorage. The project does not provide an application backend for persisting resume content. New share links keep their payload in the URL fragment; only share them with trusted recipients.
 
 ---
 
@@ -171,7 +171,8 @@ When creating resumes, candidates frequently suffer from **Word layout nightmare
 | **Frontend** | [React 19](https://react.dev/) + [TypeScript 7](https://www.typescriptlang.org/) | Type-safe, high-performance UI rendering |
 | **Bundler** | [Vite 8](https://vite.dev/) | Instant HMR & fast production builds |
 | **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Atomic styling with modern CSS variables |
-| **State** | [Zustand 5](https://github.com/pmndrs/zustand) | Lightweight reactive state with LocalStorage sync |
+| **State** | [Zustand 5](https://github.com/pmndrs/zustand) | Lightweight reactive runtime state |
+| **Local Persistence** | [Dexie 4](https://dexie.org/) + IndexedDB | Durable storage for core resumes, profiles, drafts / backups, and JD data |
 | **Animations** | [Motion 13](https://github.com/framer/motion) | Smooth drag-and-drop & modal transitions |
 | **Markdown** | `react-markdown` + `remark-gfm` | GFM-compliant markdown parsing |
 | **PDF Import / Export** | `pdfjs-dist` + browser print + `html2canvas-pro` + `jspdf` | Local text extraction and readability feedback plus ATS-friendly Save as PDF and image-based Quick PDF fallback |
@@ -231,7 +232,7 @@ While editing, use the current A4 / US Letter paper boundaries and **1-Click Aut
 
 Resume Craft is local-first, but local-first does not mean that every stored or shared value is cryptographically encrypted.
 
-- Resume drafts, settings, and profiles are primarily stored in browser `localStorage`.
+- Core resumes, profiles, drafts / automatic backups, and JD text are stored in this browser's IndexedDB; small UI preferences such as theme, language, and layout remain in `localStorage`.
 - The project does not provide an application backend for persisting resume content.
 - Fonts use local system stacks and are not loaded from third-party font CDNs such as Google Fonts.
 - The product uses Simple Analytics for a small set of anonymous aggregate signals (editing, export, ATS matching, Auto Fit, sharing, PWA installation, and feedback intent). Events contain only a fixed event name and no metadata. Do Not Track is respected and the analytics script is not loaded when DNT is enabled; resume, JD, contact, filename, share-payload, and access-code content are never sent, and session replay/fingerprinting are not used.

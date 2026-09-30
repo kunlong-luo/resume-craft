@@ -156,8 +156,11 @@ test.describe('v2.3 local data migration', () => {
     let dialog = await openHelp(page);
     await dialog.getByRole('button', { name: 'Privacy' }).click();
     await dialog.getByRole('button', { name: 'Clear local data…' }).click();
-    await dialog.getByRole('button', { name: 'Delete permanently' }).click();
-    await page.waitForLoadState('domcontentloaded');
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+      dialog.getByRole('button', { name: 'Delete permanently' }).click(),
+    ]);
+    await expect(page.getByRole('button', { name: 'More actions' })).toBeVisible();
 
     await expect.poll(() => page.evaluate(() => localStorage.getItem('another-app:key'))).toBe('keep-me');
 

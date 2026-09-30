@@ -60,6 +60,12 @@ function createFakeRepository() {
     async saveJdText(text) {
       state.jdText = text;
     },
+    async saveSnapshot(snapshot) {
+      if (snapshot.markdown != null) state.markdown = snapshot.markdown;
+      if (snapshot.jdText != null) state.jdText = snapshot.jdText;
+      if (snapshot.profiles != null) state.profiles = structuredClone(snapshot.profiles);
+      if (snapshot.drafts != null) state.drafts = structuredClone(snapshot.drafts);
+    },
     async getProfiles() {
       return structuredClone(state.profiles);
     },

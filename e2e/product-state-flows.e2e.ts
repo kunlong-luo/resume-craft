@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readActiveMarkdown, readProfiles } from './helpers/indexeddb';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -37,11 +38,7 @@ test.describe('product state flows', () => {
       .getByRole('button', { name: /Import This File|确认导入/ })
       .click();
 
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.localStorage.getItem('resume-markdown')),
-      )
-      .toBe(markdown);
+    await expect.poll(() => readActiveMarkdown(page)).toBe(markdown);
   });
 
   test('persists dark theme across reloads', async ({ page }) => {
@@ -93,18 +90,7 @@ test.describe('product state flows', () => {
     await profileNameInput.press('Enter');
 
     await expect
-      .poll(() =>
-        page.evaluate(() => {
-          const raw = window.localStorage.getItem('resume-profiles');
-          if (!raw) return false;
-          try {
-            const profiles = JSON.parse(raw) as Array<{ name?: string }>;
-            return profiles.some((profile) => profile.name === 'E2E Profile');
-          } catch {
-            return false;
-          }
-        }),
-      )
+      .poll(async () => (await readProfiles(page)).some((profile) => profile.name === 'E2E Profile'))
       .toBe(true);
 
     await page.reload();

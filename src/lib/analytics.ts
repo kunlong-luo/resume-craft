@@ -7,6 +7,7 @@ export const ANALYTICS_EVENTS = [
   'share_created',
   'pwa_install',
   'feedback_opened',
+  'local_data_cleared',
   'runtime_error',
 ] as const;
 

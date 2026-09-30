@@ -83,6 +83,7 @@ test.describe('template center', () => {
   test('previews a template without changing the active resume', async ({ page }) => {
     await page.goto('/');
 
+    await expect.poll(() => readActiveMarkdown(page)).not.toBeNull();
     const originalMarkdown = await readActiveMarkdown(page);
 
     await page

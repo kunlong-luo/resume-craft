@@ -56,10 +56,12 @@ describe('privacy-friendly analytics', () => {
       'share_created',
       'pwa_install',
       'feedback_opened',
+      'local_data_cleared',
       'runtime_error',
     ]);
 
     expect(isAllowedAnalyticsEvent('share_created')).toBe(true);
+    expect(isAllowedAnalyticsEvent('local_data_cleared')).toBe(true);
     expect(isAllowedAnalyticsEvent('runtime_error')).toBe(true);
     expect(isAllowedAnalyticsEvent('resume:Jane Doe')).toBe(false);
     expect(isAllowedAnalyticsEvent('jd:senior frontend engineer')).toBe(false);

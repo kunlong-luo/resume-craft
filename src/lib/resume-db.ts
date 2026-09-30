@@ -10,6 +10,14 @@ export interface ResumeDocumentRecord {
   updatedAt: string;
 }
 
+export interface ResumeProfileRecord extends ResumeProfile {
+  sortIndex: number;
+}
+
+export interface ResumeDraftRecord extends ResumeDraft {
+  sortIndex: number;
+}
+
 export interface ResumeMetaRecord {
   key: string;
   value: string;
@@ -18,16 +26,16 @@ export interface ResumeMetaRecord {
 
 export class ResumeCraftDatabase extends Dexie {
   documents!: EntityTable<ResumeDocumentRecord, 'id'>;
-  profiles!: EntityTable<ResumeProfile, 'id'>;
-  drafts!: EntityTable<ResumeDraft, 'id'>;
+  profiles!: EntityTable<ResumeProfileRecord, 'id'>;
+  drafts!: EntityTable<ResumeDraftRecord, 'id'>;
   meta!: EntityTable<ResumeMetaRecord, 'key'>;
 
   constructor() {
     super(RESUME_DB_NAME);
     this.version(RESUME_DB_VERSION).stores({
-      documents: 'id, updatedAt',
-      profiles: 'id, updatedAt, createdAt',
-      drafts: 'id, timestamp, isAutoSave',
+      documents: 'id, sortIndex, updatedAt',
+      profiles: 'id, sortIndex, updatedAt, createdAt',
+      drafts: 'id, sortIndex, timestamp, isAutoSave',
       meta: 'key, updatedAt',
     });
   }

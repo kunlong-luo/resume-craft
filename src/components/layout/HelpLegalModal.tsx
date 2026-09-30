@@ -22,6 +22,7 @@ import {
 import { useResumeStore } from '../../store/useResumeStore';
 import { trackAnalyticsEvent } from '../../lib/analytics';
 import { storage } from '../../lib/storage';
+import { deleteResumeDatabase } from '../../lib/resume-db';
 import { useDialogFocus } from '../../hooks/useDialogFocus';
 
 interface HelpLegalModalProps {
@@ -44,10 +45,17 @@ export function HelpLegalModal({ isOpen, onClose }: HelpLegalModalProps) {
     window.setTimeout(() => window.dispatchEvent(new CustomEvent(eventName)), 0);
   };
 
-  const clearLocalData = () => {
-    if (!storage.clearAllResumeData()) return;
-    trackAnalyticsEvent('local_data_cleared');
-    window.location.reload();
+  const clearLocalData = async () => {
+    try {
+      // Delete the durable IndexedDB layer first. If that fails, keep the
+      // localStorage fallback intact so the user can retry without data loss.
+      await deleteResumeDatabase();
+      if (!storage.clearAllResumeData()) return;
+      trackAnalyticsEvent('local_data_cleared');
+      window.location.reload();
+    } catch (error) {
+      console.error('[clear-local-data] Failed to clear IndexedDB:', error);
+    }
   };
 
   const steps = [

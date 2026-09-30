@@ -9,9 +9,22 @@ export interface StorageMigrationResult {
   status: 'migrated' | 'already-migrated' | 'no-legacy-data';
 }
 
+const MIGRATED_LEGACY_KEYS = [
+  STORAGE_KEYS.MARKDOWN,
+  STORAGE_KEYS.PROFILES,
+  STORAGE_KEYS.DRAFTS,
+] as const;
+
+function removeMigratedLegacyKeys(): void {
+  for (const key of MIGRATED_LEGACY_KEYS) {
+    storage.remove(key);
+  }
+}
+
 export async function migrateLegacyStorageToIndexedDb(): Promise<StorageMigrationResult> {
   const completedVersion = await resumeRepository.getMeta(STORAGE_MIGRATION_META_KEY);
   if (completedVersion === STORAGE_MIGRATION_VERSION) {
+    removeMigratedLegacyKeys();
     return { status: 'already-migrated' };
   }
 
@@ -46,8 +59,9 @@ export async function migrateLegacyStorageToIndexedDb(): Promise<StorageMigratio
     throw new Error('IndexedDB migration verification failed for drafts');
   }
 
-  // Mark complete only after verified writes. Cleanup is deliberately deferred to a later
-  // compatibility release so v2.2 data remains a rollback source during v2.3 rollout.
+  // Mark complete only after verified writes, then remove only the core keys
+  // that now have a verified IndexedDB copy. Lightweight UI preferences stay.
   await resumeRepository.setMeta(STORAGE_MIGRATION_META_KEY, STORAGE_MIGRATION_VERSION);
+  removeMigratedLegacyKeys();
   return { status: 'migrated' };
 }

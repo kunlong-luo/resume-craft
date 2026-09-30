@@ -76,12 +76,12 @@ test.describe('first-run onboarding', () => {
       .click();
 
     await expect(
-      page.getByRole('heading', { name: /User Guide|使用指南/ }),
+      page.getByRole('heading', { name: /Help & Privacy|帮助与隐私/ }),
     ).toBeVisible();
 
     await page
       .getByRole('button', {
-        name: /Run the getting-started tour again|重新查看新手引导/,
+        name: /Replay the interface tour|重新观看新手教程/,
       })
       .click();
 
@@ -158,7 +158,7 @@ test.describe('first-run onboarding', () => {
       .click();
     await page
       .getByRole('button', {
-        name: /Run the getting-started tour again|重新查看新手引导/,
+        name: /Replay the interface tour|重新观看新手教程/,
       })
       .click();
 

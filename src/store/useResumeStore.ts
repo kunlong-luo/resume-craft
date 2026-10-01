@@ -558,7 +558,15 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   importProfiles: (importedProfiles: ResumeProfile[]) => {
     if (!Array.isArray(importedProfiles) || importedProfiles.length === 0) return;
 
-    const nextActive = importedProfiles[0];
+    const normalizedProfiles = importedProfiles.map(profile => ({
+      ...profile,
+      templateId:
+        profile.templateId === 'custom' || TEMPLATES.some(template => template.id === profile.templateId)
+          ? profile.templateId
+          : getInitialTemplateId(profile.markdown),
+    }));
+
+    const nextActive = normalizedProfiles[0];
     storage.set(STORAGE_KEYS.ACTIVE_PROFILE_ID, nextActive.id);
     storage.set(STORAGE_KEYS.SETTINGS, nextActive.settings);
 
@@ -569,7 +577,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     }
 
     set({
-      profiles: importedProfiles,
+      profiles: normalizedProfiles,
       activeProfileId: nextActive.id,
       markdown: nextActive.markdown,
       settings: nextActive.settings,

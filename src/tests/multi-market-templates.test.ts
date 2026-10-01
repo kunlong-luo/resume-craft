@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { TEMPLATES } from '../data';
 import { getTemplatePresentation, getTemplatePreview } from '../lib/template-presentation';
+import { translateSectionTitle } from '../lib/section-translator';
 
 describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
   it('contains comprehensive authentic templates for US, UK, Canada, China and Global markets', () => {
@@ -99,6 +100,23 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
     it('does not emphasize coursework in the experienced UK template', () => {
       const ukTemplate = TEMPLATES.find(t => t.id === 'uk_cv')!;
       expect(ukTemplate.content).not.toContain('Key Modules');
+    });
+  });
+
+  describe('Canonical section title localization', () => {
+    it('translates Chinese capability headings into the standard English vocabulary', () => {
+      expect(translateSectionTitle('核心能力', 'en')).toBe('Skills');
+      expect(translateSectionTitle('专业技能', 'en')).toBe('Skills');
+      expect(translateSectionTitle('个人简介', 'en')).toBe('About Me');
+    });
+
+    it('normalizes English template aliases into consistent section names', () => {
+      expect(translateSectionTitle('Technical Skills', 'en')).toBe('Skills');
+      expect(translateSectionTitle('Core Competencies', 'en')).toBe('Skills');
+      expect(translateSectionTitle('Professional Experience', 'en')).toBe('Work Experience');
+      expect(translateSectionTitle('Career History', 'en')).toBe('Work Experience');
+      expect(translateSectionTitle('Key Projects', 'en')).toBe('Projects');
+      expect(translateSectionTitle('Education & Qualifications', 'en')).toBe('Education');
     });
   });
 

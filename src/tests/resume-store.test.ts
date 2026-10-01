@@ -268,24 +268,95 @@ describe('resume store state consistency', () => {
     expect(state.historyIndex).toBe(0);
   });
 
-  it('localizes default profile metadata from the effective profile language', () => {
-    const englishSettings = {
+  it('localizes default profile metadata from the global UI language', () => {
+    useResumeStore.getState().setUiLanguage('en');
+    const chineseResumeSettings = {
       ...useResumeStore.getState().settings,
-      lang: 'en' as const,
+      lang: 'zh' as const,
     };
 
     const created = useResumeStore.getState().createProfile({
       name: '',
       markdown: '',
-      settings: englishSettings,
+      settings: chineseResumeSettings,
       templateId: 'custom',
     });
 
     expect(created.name).toBe('New Resume');
     expect(created.targetRole).toBe('Target Role');
-    expect(created.settings.lang).toBe('en');
+    expect(created.settings.lang).toBe('zh');
+    expect(useResumeStore.getState().uiLanguage).toBe('en');
     expect(created.templateId).toBe('custom');
     expect(useResumeStore.getState().activeProfileId).toBe(created.id);
+  });
+
+  it('changes interface language without translating resume content', () => {
+    useResumeStore.setState({
+      uiLanguage: 'zh',
+      markdown: '# 张三\n\n## 工作经历\n- 示例',
+      settings: {
+        ...useResumeStore.getState().settings,
+        lang: 'zh',
+      },
+    });
+
+    useResumeStore.getState().setUiLanguage('en');
+
+    const state = useResumeStore.getState();
+    expect(state.uiLanguage).toBe('en');
+    expect(state.settings.lang).toBe('zh');
+    expect(state.markdown).toBe('# 张三\n\n## 工作经历\n- 示例');
+  });
+
+  it('changes resume content language without changing interface language', () => {
+    useResumeStore.setState({
+      uiLanguage: 'zh',
+      markdown: '# 张三\n\n## 工作经历\n- 示例',
+      settings: {
+        ...useResumeStore.getState().settings,
+        lang: 'zh',
+      },
+    });
+
+    useResumeStore.getState().updateSetting('lang', 'en');
+
+    const state = useResumeStore.getState();
+    expect(state.uiLanguage).toBe('zh');
+    expect(state.settings.lang).toBe('en');
+    expect(state.markdown).not.toBe('# 张三\n\n## 工作经历\n- 示例');
+  });
+
+  it('keeps global UI language and theme stable across profile switches', () => {
+    const first = {
+      ...buildProfile('profile_first', '中文内容'),
+      settings: {
+        ...useResumeStore.getState().settings,
+        lang: 'zh' as const,
+      },
+    };
+    const second = {
+      ...buildProfile('profile_second', 'English content'),
+      settings: {
+        ...useResumeStore.getState().settings,
+        lang: 'en' as const,
+      },
+    };
+
+    useResumeStore.setState({
+      profiles: [first, second],
+      activeProfileId: first.id,
+      markdown: first.markdown,
+      settings: first.settings,
+      uiLanguage: 'en',
+      themeMode: 'dark',
+    });
+
+    useResumeStore.getState().switchProfile(second.id);
+
+    const state = useResumeStore.getState();
+    expect(state.settings.lang).toBe('en');
+    expect(state.uiLanguage).toBe('en');
+    expect(state.themeMode).toBe('dark');
   });
 
   it('clears a previous filename when switching to a profile without one', () => {

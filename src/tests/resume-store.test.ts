@@ -122,7 +122,10 @@ describe('resume store state consistency', () => {
       customFileName: 'stale-name',
     });
 
-    const imported = buildProfile('profile_same', 'restored imported content');
+    const imported = {
+      ...buildProfile('profile_same', 'restored imported content'),
+      templateId: 'removed-template',
+    };
 
     useResumeStore.getState().importProfiles([imported]);
 

@@ -61,6 +61,7 @@ interface ResumeState {
   renameProfile: (profileId: string, name: string, targetRole?: string) => void;
   deleteProfile: (profileId: string) => boolean;
   importProfiles: (profiles: ResumeProfile[]) => void;
+  applyTemplate: (templateId: string) => boolean;
   
   handleMarkdownChange: (newVal: string, immediate?: boolean) => void;
   handleUndo: () => void;
@@ -590,6 +591,56 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       saveStatus: 'saved',
       measuredPageCount: null,
     });
+  },
+
+  applyTemplate: (templateId: string) => {
+    const template = TEMPLATES.find(item => item.id === templateId);
+    if (!template) return false;
+
+    const { settings, profiles, activeProfileId } = get();
+    const targetMarket: MarketRegion =
+      template.targetMarket ??
+      (template.suggestedLang === 'zh' ? 'cn' : settings.marketRegion || 'international');
+    const nextSettings: ResumeSettings = {
+      ...settings,
+      marketRegion: targetMarket,
+      paperSize: template.defaultPaperSize ?? resolveDefaultPaperSize(targetMarket),
+      dateStyle: template.dateStyle ?? getMarketProfile(targetMarket).dateStyle,
+    };
+
+    const now = new Date().toISOString();
+    const updatedProfiles = profiles.map(profile =>
+      profile.id === activeProfileId
+        ? {
+            ...profile,
+            markdown: template.content,
+            settings: nextSettings,
+            templateId: template.id,
+            updatedAt: now,
+          }
+        : profile
+    );
+
+    storage.set(STORAGE_KEYS.SETTINGS, nextSettings);
+
+    if (debounceTimer) clearTimeout(debounceTimer);
+    if (typingTimer) clearTimeout(typingTimer);
+    if (saveStatusTimer) clearTimeout(saveStatusTimer);
+
+    set({
+      markdown: template.content,
+      settings: nextSettings,
+      currentTemplateId: template.id,
+      profiles: updatedProfiles,
+      history: [template.content],
+      historyIndex: 0,
+      lastSaved: new Date().toLocaleTimeString(),
+      isSaving: false,
+      saveStatus: 'saved',
+      measuredPageCount: null,
+    });
+
+    return true;
   },
 
   // Complex operations

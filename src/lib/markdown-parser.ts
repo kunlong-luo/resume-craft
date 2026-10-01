@@ -766,9 +766,20 @@ export function parseExperienceField(expString: string) {
   
   parts.forEach(p => {
     const pl = p.toLowerCase();
-    if (/在职|离职|到岗|考虑|随时到岗|寻实习|找实习|暂不考虑/i.test(pl)) {
+    if (
+      /在职|离职|到岗|考虑|随时到岗|寻实习|找实习|暂不考虑/i.test(pl) ||
+      /employed|unemployed|open to offers|not looking|immediate|looking for internship/i.test(pl)
+    ) {
       jobStatus = p;
-    } else if (/年(?:工作|经验|从业)|^\d+\s*年$/i.test(pl) || /^\d+\s*(?:year|yr|exp)/i.test(pl) || pl.includes('工作经验') || pl.includes('在校生') || pl.includes('应届生') || pl.includes('应届毕业生')) {
+    } else if (
+      /年(?:工作|经验|从业)|^\d+\s*年$/i.test(pl) ||
+      /^\d+\s*(?:years?|yrs?|exp)/i.test(pl) ||
+      pl.includes('工作经验') ||
+      pl.includes('在校生') ||
+      pl.includes('应届生') ||
+      pl.includes('应届毕业生') ||
+      /student\s*\/\s*new graduate|new grad(?:uate)?/i.test(pl)
+    ) {
       workYears = p;
     } else if (/本科|硕士|博士|大专|等学|中专|学士|研究生|学位|phd|master|bachelor|associate/i.test(pl)) {
       degree = p;

@@ -21,7 +21,6 @@
 </p>
 
 <p align="center">
-  <a href="https://kunlong-luo.github.io/resume-craft/"><img src="https://img.shields.io/badge/Live%20Demo-%E5%9C%A8%E7%BA%BF%E4%BD%93%E9%AA%8C-4F46E5?style=flat-square&logo=github" alt="Live Demo" /></a>
   <a href="https://github.com/kunlong-luo/resume-craft/actions/workflows/ci.yml"><img src="https://github.com/kunlong-luo/resume-craft/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/kunlong-luo/resume-craft/releases/latest"><img src="https://img.shields.io/github/v/release/kunlong-luo/resume-craft?style=flat-square&logo=github" alt="Latest Release" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License" /></a>
@@ -168,15 +167,15 @@
 
 | 领域 | 技术方案 | 优势 / 说明 |
 | :--- | :--- | :--- |
-| **前端框架** | [React 19](https://react.dev/) + [TypeScript 7](https://www.typescriptlang.org/) | 极致性能与强类型安全 |
-| **构建工具** | [Vite 8](https://vite.dev/) | 毫秒级 HMR 与极速生产打包 |
-| **样式引擎** | [Tailwind CSS v4](https://tailwindcss.com/) | 新一代 CSS 变量与极简原子化样式 |
-| **状态管理** | [Zustand 5](https://github.com/pmndrs/zustand) | 轻量响应式运行时状态 |
-| **本地持久化** | [Dexie 4](https://dexie.org/) + IndexedDB | 核心简历、Profiles、Draft / 自动备份与 JD 数据持久化 |
-| **动效系统** | [Motion 13](https://github.com/framer/motion) | 流畅弹窗、拖拽重排与平滑展开动画 |
+| **前端框架** | React 19 + TypeScript 7 | 极致性能与强类型安全 |
+| **构建工具** | Vite 8 | 毫秒级 HMR 与极速生产打包 |
+| **样式引擎** | Tailwind CSS v4 | 新一代 CSS 变量与极简原子化样式 |
+| **状态管理** | Zustand 5 | 轻量响应式运行时状态 |
+| **本地持久化** | Dexie 4 + IndexedDB | 核心简历、Profiles、Draft / 自动备份与 JD 数据持久化 |
+| **动效系统** | Motion 13 | 流畅弹窗、拖拽重排与平滑展开动画 |
 | **Markdown** | `react-markdown` + `remark-gfm` | 标准 GFM 语法高能解析 |
 | **PDF 导入 / 导出** | `pdfjs-dist` + 浏览器原生打印 + `html2canvas-pro` + `jspdf` | 本地文本提取与机器可读性检查；ATS 友好打印 / Save as PDF + 图片型快速 PDF 双路径 |
-| **图标库** | [Lucide React](https://lucide.dev/) | 矢量现代线条图标 |
+| **图标库** | Lucide React | 矢量现代线条图标 |
 
 ---
 
@@ -197,7 +196,7 @@ pnpm install
 ```bash
 pnpm dev
 ```
-打开浏览器访问 [http://localhost:3000](http://localhost:3000) 即可开始开发调试。
+打开浏览器访问 `http://localhost:3000` 即可开始开发调试。
 
 ### 4. 运行工程脚本
 

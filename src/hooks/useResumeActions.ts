@@ -1,7 +1,7 @@
 import React from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useResumeStore } from '../store/useResumeStore';
-import { exportDirectPDF } from '../lib/pdf-export';
+import { useShallow } from 'zustand/react/shallow';
 import { trackAnalyticsEvent } from '../lib/analytics';
 import { getMarketDefaultFileName } from '../lib/export-utils';
 import { getPrintPageStyle } from '../lib/print-style';
@@ -12,18 +12,27 @@ interface UseResumeActionsProps {
 
 export function useResumeActions({ contentRef }: UseResumeActionsProps) {
   const {
-    markdown,
-    settings,
+    paperSize,
     uiLanguage,
-    customFileName,
     isExportingPDF,
     setIsIframeModalOpen,
     setIsExportingPDF,
     setPdfExportProgress,
-    replaceDocument
-  } = useResumeStore();
+    replaceDocument,
+  } = useResumeStore(
+    useShallow((state) => ({
+      paperSize: state.settings.paperSize,
+      uiLanguage: state.uiLanguage,
+      isExportingPDF: state.isExportingPDF,
+      setIsIframeModalOpen: state.setIsIframeModalOpen,
+      setIsExportingPDF: state.setIsExportingPDF,
+      setPdfExportProgress: state.setPdfExportProgress,
+      replaceDocument: state.replaceDocument,
+    })),
+  );
   
   const getExportTitle = () => {
+    const { markdown, settings, customFileName } = useResumeStore.getState();
     return getMarketDefaultFileName({
       markdown,
       settings,
@@ -32,9 +41,9 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
   };
 
   const handlePrint = useReactToPrint({
-    contentRef: contentRef,
-    documentTitle: getExportTitle(),
-    pageStyle: getPrintPageStyle(settings.paperSize),
+    contentRef,
+    documentTitle: () => getExportTitle(),
+    pageStyle: getPrintPageStyle(paperSize),
     onAfterPrint: () => {
       setIsExportingPDF(false);
       setPdfExportProgress(null);
@@ -61,9 +70,11 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
         throw new Error('未找到简历内容节点');
       }
 
+      const { exportDirectPDF } = await import('../lib/pdf-export');
+      const { settings: currentSettings } = useResumeStore.getState();
       await exportDirectPDF(targetElement, {
         filename: `${getExportTitle()}.pdf`,
-        paperSize: settings.paperSize,
+        paperSize: currentSettings.paperSize,
         onProgress: (status) => {
           setPdfExportProgress(status);
         }
@@ -115,6 +126,7 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
   };
 
   const handleExportMarkdown = () => {
+    const { markdown } = useResumeStore.getState();
     const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -135,7 +147,7 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
     reader.onload = (event) => {
       const result = event.target?.result;
       if (typeof result === 'string') {
-        replaceDocument(result, settings, 'custom');
+        replaceDocument(result, useResumeStore.getState().settings, 'custom');
       }
     };
     reader.readAsText(file);

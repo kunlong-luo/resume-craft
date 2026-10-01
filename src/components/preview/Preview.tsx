@@ -3,6 +3,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ResumeSettings } from '../../types';
 import { useResumeStore } from '../../store/useResumeStore';
+import { useShallow } from 'zustand/react/shallow';
 import { 
   THEME_MAP, FONT_FAMILY_CLASSES, parseResumeHeader, cleanMarkdown, 
   parseH2Sections, getSizeClasses
@@ -23,12 +24,20 @@ interface PreviewProps {
 
 export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ overrideMarkdown, overrideSettings }, ref) => {
   const {
-    markdown: storeMarkdown,
-    settings: storeSettings,
+    storeMarkdown,
+    storeSettings,
     uiLanguage,
-    updateSetting: onChangeSettings,
-    setMeasuredPageCount
-  } = useResumeStore();
+    onChangeSettings,
+    setMeasuredPageCount,
+  } = useResumeStore(
+    useShallow((state) => ({
+      storeMarkdown: state.markdown,
+      storeSettings: state.settings,
+      uiLanguage: state.uiLanguage,
+      onChangeSettings: state.updateSetting,
+      setMeasuredPageCount: state.setMeasuredPageCount,
+    })),
+  );
 
   const activeMarkdown = overrideMarkdown !== undefined ? overrideMarkdown : storeMarkdown;
   const markdown = useDeferredValue(activeMarkdown);

@@ -9,6 +9,7 @@ import { useConfirm } from '../../context/ConfirmContext';
 import { useResumeStore } from '../../store/useResumeStore';
 import { resumeRepository } from '../../lib/resume-repository';
 import { normalizeResumeBackup } from '../../lib/import-validation';
+import { TEMPLATES } from '../../data';
 import { useDialogFocus } from '../../hooks/useDialogFocus';
 
 export function BackupDraftModal() {
@@ -17,15 +18,25 @@ export function BackupDraftModal() {
     settings,
     isBackupHubOpen: isOpen,
     setIsBackupHubOpen,
-    setMarkdown,
     setSettings,
+    setCurrentTemplateId,
+    currentTemplateId,
     handleMarkdownChange
   } = useResumeStore();
 
   const onClose = () => setIsBackupHubOpen(false);
 
-  const onRestore = (newMarkdown: string, newSettings: ResumeSettings) => {
-    setMarkdown(newMarkdown);
+  const onRestore = (
+    newMarkdown: string,
+    newSettings: ResumeSettings,
+    templateId?: string,
+  ) => {
+    const safeTemplateId =
+      templateId && (templateId === 'custom' || TEMPLATES.some(template => template.id === templateId))
+        ? templateId
+        : 'custom';
+
+    setCurrentTemplateId(safeTemplateId);
     setSettings(newSettings);
     handleMarkdownChange(newMarkdown, true);
   };
@@ -97,6 +108,7 @@ export function BackupDraftModal() {
       title,
       markdown,
       settings,
+      templateId: currentTemplateId,
       timestamp: new Date().toLocaleString(isEn ? 'en-US' : 'zh-CN', { hour12: false }),
       isAutoSave: false
     };
@@ -119,7 +131,7 @@ export function BackupDraftModal() {
       type: 'warning'
     });
     if (confirmed) {
-      onRestore(draft.markdown, draft.settings);
+      onRestore(draft.markdown, draft.settings, draft.templateId);
       showToast(isEn ? 'Draft restored successfully!' : '草稿恢复成功！');
       setTimeout(() => onClose(), 800);
     }
@@ -161,7 +173,8 @@ export function BackupDraftModal() {
         version: "markdown-resume-backup-v1",
         exportedAt: new Date().toLocaleString(isEn ? 'en-US' : 'zh-CN', { hour12: false }),
         markdown,
-        settings
+        settings,
+        templateId: currentTemplateId,
       };
 
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json;charset=utf-8;' });
@@ -216,7 +229,7 @@ export function BackupDraftModal() {
         });
 
         if (confirmed) {
-          onRestore(parsed.markdown, parsed.settings);
+          onRestore(parsed.markdown, parsed.settings, parsed.templateId);
           showToast(isEn ? 'Configuration imported successfully!' : '备份文件导入并恢复成功！');
           setTimeout(() => onClose(), 800);
         }

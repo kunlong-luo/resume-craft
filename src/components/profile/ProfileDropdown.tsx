@@ -143,6 +143,8 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
         {isOpen && (
           <motion.div
             id="resume-profile-panel"
+            role="dialog"
+            aria-label={isEn ? 'Resume switcher' : '简历切换器'}
             initial={{ opacity: 0, y: -8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}

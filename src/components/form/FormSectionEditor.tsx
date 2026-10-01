@@ -39,6 +39,7 @@ interface FormSectionEditorProps {
   onInsertStarTemplate: (itemId: string, currentContent: string) => void;
   onTypeChange?: (newType: 'text' | 'items') => void;
   lang?: string;
+  contentLang?: string;
   marketRegion?: MarketRegion;
 }
 
@@ -56,13 +57,14 @@ export function FormSectionEditor({
   sec, secIndex, totalSectionsCount, isExpanded, onToggle, onTitleChange, onTextChange, onMove, onDelete, onApplySpacing, onAddItem, onMoveItem, onReorderItem, onDeleteItem, onItemFieldChange, onItemContentChange, onInsertStarTemplate,
   onTypeChange,
   lang = 'zh',
+  contentLang = 'zh',
   marketRegion
 }: FormSectionEditorProps) {
-  const activeLang = lang === 'en' ? 'en' : 'zh';
-  const translations = getTranslation(activeLang);
+  const activeUiLang = lang === 'en' ? 'en' : 'zh';
+  const translations = getTranslation(activeUiLang);
   const t = translations.form.section;
   const hideTypeSwitcher = isTextOnlySection(sec.title);
-  const theme = getSectionTheme(sec.title, lang);
+  const theme = getSectionTheme(sec.title, contentLang);
 
   return (
     <div 
@@ -94,7 +96,7 @@ export function FormSectionEditor({
                   <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{t.textLabel}</label>
                 </div>
                 <div className="flex flex-col mt-1">
-                  <FormTextareaToolbar textareaId={sec.id} value={sec.textValue} onChange={onTextChange} lang={lang} />
+                  <FormTextareaToolbar textareaId={sec.id} value={sec.textValue} onChange={onTextChange} lang={lang} contentLang={contentLang} />
                   <SmartMarkdownTextarea
                     id={sec.id} 
                     value={sec.textValue} 
@@ -121,6 +123,7 @@ export function FormSectionEditor({
                         onDelete={() => onDeleteItem(item.id, item.org)}
                         onInsertStarTemplate={() => onInsertStarTemplate(item.id, item.content)}
                         lang={lang}
+                        contentLang={contentLang}
                         marketRegion={marketRegion}
                       />
                     ))}

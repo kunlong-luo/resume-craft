@@ -122,7 +122,7 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
           );
         })}
 
-        <SectionPresets onAddPreset={addPresetSection} sections={localModel.sections} lang={uiLanguage} contentLang={contentLanguage} />
+        <SectionPresets onAddPreset={addPresetSection} sections={localModel.sections} lang={uiLanguage} />
       </div>
     </div>
   );

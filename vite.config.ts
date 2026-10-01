@@ -35,15 +35,45 @@ export default defineConfig(() => {
             { src: 'pwa-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           ],
         },
-        workbox: { globPatterns: ['**/*.{js,mjs,css,html,ico,png,svg,woff,woff2}'] },
+        workbox: {
+          globPatterns: ['**/*.{js,mjs,css,html,ico,png,svg,woff,woff2}'],
+          // PDF import/export is intentionally on-demand. Keeping these heavy
+          // chunks out of precache preserves the first-load benefit of dynamic imports.
+          globIgnores: [
+            '**/pdf-vendor-*.js',
+            '**/pdfjs-vendor-*.js',
+            '**/pdf.worker*.mjs',
+          ],
+          runtimeCaching: [
+            {
+              urlPattern: /\/assets\/(?:pdf-vendor|pdfjs-vendor|pdf\.worker)[^/]*\.(?:js|mjs)$/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'resume-craft-pdf-tools',
+                expiration: {
+                  maxEntries: 8,
+                  maxAgeSeconds: 60 * 60 * 24 * 30,
+                },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+          ],
+        },
       }),
     ],
     build: {
+      modulePreload: {
+        resolveDependencies: (_filename, deps) =>
+          deps.filter((dep) => !/(?:pdf-vendor|pdfjs-vendor|pdf\.worker)/i.test(dep)),
+      },
       rollupOptions: {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
+              if (id.includes('pdfjs-dist')) return 'pdfjs-vendor';
               if (id.includes('html2canvas') || id.includes('jspdf') || id.includes('html2pdf')) return 'pdf-vendor';
+              if (id.includes('dexie')) return 'storage-vendor';
+              if (id.includes('libphonenumber-js')) return 'phone-vendor';
               if (id.includes('react-markdown') || id.includes('remark-gfm') || id.includes('unified') || id.includes('mdast')) return 'markdown-vendor';
               if (id.includes('lucide-react')) return 'icons-vendor';
               if (id.includes('motion') || id.includes('framer-motion')) return 'motion-vendor';

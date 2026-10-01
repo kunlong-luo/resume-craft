@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { ChevronDown, Palette, SlidersHorizontal, Zap } from 'lucide-react';
 import { useResumeStore } from '../../store/useResumeStore';
+import { useShallow } from 'zustand/react/shallow';
 import { smartAutoFit } from '../../lib/preview-utils';
 import { Tooltip } from '../ui/Tooltip';
 import { LanguageToggle } from '../toolbar/LanguageToggle';
@@ -16,7 +17,13 @@ export function Toolbar() {
     settings,
     uiLanguage,
     updateSetting,
-  } = useResumeStore();
+  } = useResumeStore(
+    useShallow((state) => ({
+      settings: state.settings,
+      uiLanguage: state.uiLanguage,
+      updateSetting: state.updateSetting,
+    })),
+  );
 
   const isEn = uiLanguage === 'en';
 

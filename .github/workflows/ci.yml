@@ -57,6 +57,9 @@ jobs:
       - name: Build project
         run: pnpm run build
 
+      - name: Enforce performance budget
+        run: pnpm run perf:budget
+
   e2e-chromium:
     name: e2e-chromium
     needs: quality

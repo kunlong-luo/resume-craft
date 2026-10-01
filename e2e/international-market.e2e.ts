@@ -48,6 +48,35 @@ async function applyTemplate(
 }
 
 test.describe('international market flows', () => {
+  test('download menu keeps Chinese Canada market label on one line', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'resume-settings',
+        JSON.stringify({
+          lang: 'zh',
+          marketRegion: 'ca',
+          paperSize: 'letter',
+          dateStyle: 'month-short',
+        }),
+      );
+    });
+
+    await page.goto('/');
+    const exportModeButton = page.getByRole('button', {
+      name: /Choose PDF export mode|选择 PDF 下载方式/,
+    });
+    await expect(exportModeButton).toBeVisible();
+    await exportModeButton.click();
+
+    const marketLabel = page.getByTestId('export-market-label');
+    const paperLabel = page.getByTestId('export-paper-label');
+
+    await expect(marketLabel).toHaveText('加拿大');
+    await expect(marketLabel).toHaveCSS('white-space', 'nowrap');
+    await expect(paperLabel).toHaveText('Letter · 215.9 × 279.4 mm');
+    await expect(paperLabel).toHaveCSS('white-space', 'nowrap');
+  });
+
   test('US template synchronizes Letter market settings and survives reload', async ({ page }) => {
     await page.goto('/');
     await applyTemplate(page, 'US Software Engineer (Resume)');

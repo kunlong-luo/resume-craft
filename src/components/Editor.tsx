@@ -461,7 +461,7 @@ export const Editor = React.memo(function Editor() {
             <button 
               type="button"
               onClick={onReset}
-              aria-label={settings.lang === 'en' ? 'Reset to default template' : '重置为默认模板'}
+              aria-label={settings.lang === 'en' ? 'Reset current template' : '重置当前模板'}
               className="p-1.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               <RotateCcw className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />

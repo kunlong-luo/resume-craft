@@ -98,14 +98,24 @@ export function recordSuccessfulPdfExportAndShouldPrompt() {
     ...current,
     exportCount: current.exportCount + 1,
   };
-  writeSupportPromptState(next);
 
-  return shouldShowSupportPrompt({
+  const shouldPrompt = shouldShowSupportPrompt({
     hostname: window.location.hostname,
     pathname: window.location.pathname,
     prompted: next.prompted,
     exportCount: next.exportCount,
   });
+
+  // "One-time" means one display attempt, not one completed interaction.
+  // Mark it immediately so reloads/crashes/closing the tab cannot cause a
+  // second reminder after a later export.
+  writeSupportPromptState(
+    shouldPrompt
+      ? { ...next, prompted: true }
+      : next,
+  );
+
+  return shouldPrompt;
 }
 
 export function markSupportPrompt(decision: SupportPromptDecision) {

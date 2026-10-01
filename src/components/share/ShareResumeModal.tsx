@@ -40,7 +40,7 @@ function getPasswordStrength(password: string) {
 }
 
 export function ShareResumeModal({ isOpen, onClose }: ShareResumeModalProps) {
-  const { markdown, settings } = useResumeStore();
+  const { markdown, settings, uiLanguage } = useResumeStore();
   const [mode, setMode] = useState<ShareMode>('encrypted');
   const [password, setPassword] = useState('');
   const [shareUrl, setShareUrl] = useState('');
@@ -49,7 +49,7 @@ export function ShareResumeModal({ isOpen, onClose }: ShareResumeModalProps) {
   const [error, setError] = useState('');
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  const isEn = settings.lang === 'en';
+  const isEn = uiLanguage === 'en';
   const strength = useMemo(() => getPasswordStrength(password), [password]);
   const passwordValid =
     password.trim().length >= SHARE_PASSWORD_MIN_LENGTH &&

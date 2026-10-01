@@ -41,7 +41,7 @@ export function SectionHeader({
   const translations = getTranslation(activeUiLang);
   const t = translations.form.section;
   
-  const theme = getSectionTheme(title, lang);
+  const theme = getSectionTheme(title, activeContentLang);
   const Icon = theme.icon;
   const displaySubtitle = subtitle || theme.subtitle;
   const isEn = activeUiLang === 'en';

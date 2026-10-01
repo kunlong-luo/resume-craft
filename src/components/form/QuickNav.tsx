@@ -12,20 +12,21 @@ interface QuickNavProps {
   expandedSections: Record<string, boolean>;
   setExpandedSections: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   lang?: string;
+  contentLang?: string;
 }
 
-export function QuickNav({ sections, expandedSections, setExpandedSections, lang = 'zh' }: QuickNavProps) {
-  const activeLang = lang === 'en' ? 'en' : 'zh';
-  const translations = getTranslation(activeLang);
+export function QuickNav({ sections, expandedSections, setExpandedSections, lang = 'zh', contentLang = 'zh' }: QuickNavProps) {
+  const activeUiLang = lang === 'en' ? 'en' : 'zh';
+  const activeContentLang = contentLang === 'en' ? 'en' : 'zh';
+  const translations = getTranslation(activeUiLang);
   const basicTitle = translations.form.basic.title;
-  const isEn = activeLang === 'en';
 
   const [activeSectionId, setActiveSectionId] = useState<string>('basic');
   const lastClickedRef = useRef<{ id: string; time: number } | null>(null);
 
   const getTranslatedTitle = (sectionTitle: string) => {
-    if (!isEn) return sectionTitle || '自定义模块';
-    return translateSectionTitle(sectionTitle, 'en') || sectionTitle || 'Custom Section';
+    if (!sectionTitle) return activeContentLang === 'en' ? 'Custom Section' : '自定义模块';
+    return translateSectionTitle(sectionTitle, activeContentLang) || sectionTitle;
   };
 
   useEffect(() => {
@@ -105,7 +106,7 @@ export function QuickNav({ sections, expandedSections, setExpandedSections, lang
         
         {sections.map((sec) => {
           const isActive = activeSectionId === sec.id;
-          const theme = getSectionTheme(sec.title, lang);
+          const theme = getSectionTheme(sec.title, activeUiLang);
           const Icon = theme.icon;
 
           return (

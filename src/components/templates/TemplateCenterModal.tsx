@@ -475,7 +475,7 @@ export function TemplateCenterModal({
                   <div className="mt-2 text-xs font-bold text-slate-800 dark:text-slate-200">
                     {selectedPreview.name}
                   </div>
-                  <div className="mt-1 text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+                  <div data-testid="selected-template-sections" className="mt-1 text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
                     {selectedPreview.sections.join(' · ')}
                   </div>
                 </div>

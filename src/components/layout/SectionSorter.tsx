@@ -102,7 +102,7 @@ export function SectionSorter({ markdown, onChange, lang = 'zh', contentLang = '
             </h3>
           </div>
           <p className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">
-            {isEn
+            {isUiEn
               ? 'Drag handle or click arrows to reorder sections'
               : '按住手柄拖拽或点击上下箭头快速调整板块顺序'}
           </p>

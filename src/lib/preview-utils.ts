@@ -548,7 +548,7 @@ export function isLocationToken(s: string): boolean {
   if (/^(?:意向城市|期望城市|现居|现居地|所在城市|城市|常驻|期望工作地|工作地点|地点|location|city)[:：\s]*/i.test(clean)) {
     return true;
   }
-  if (/(?:北京|上海|广州|深圳|杭州|成都|武汉|南京|西安|厦门|苏州|天津|重庆|长沙|青岛|大连|宁波|郑州|合肥|无锡|福州|昆明|济南|佛山|东莞|珠海|南昌|贵阳|南宁|海口|三亚|长春|沈阳|哈尔滨|石家庄|太原|兰州|银川|西宁|乌鲁木齐|呼和浩特|拉萨|香港|澳门|台北|远程|全国|海外|硅谷|旧金山|西雅图|纽约|伦敦|东京|新加坡|多伦多|温哥华|悉尼|墨尔本|beijing|shanghai|shenzhen|hangzhou|guangzhou|remote)/i.test(clean)) {
+  if (/(?:北京|上海|广州|深圳|杭州|成都|武汉|南京|西安|厦门|苏州|天津|重庆|长沙|青岛|大连|宁波|郑州|合肥|无锡|福州|昆明|济南|佛山|东莞|珠海|南昌|贵阳|南宁|海口|三亚|长春|沈阳|哈尔滨|石家庄|太原|兰州|银川|西宁|乌鲁木齐|呼和浩特|拉萨|香港|澳门|台北|远程|全国|海外|硅谷|旧金山|西雅图|纽约|伦敦|东京|新加坡|多伦多|温哥华|悉尼|墨尔本|beijing|shanghai|shenzhen|hangzhou|guangzhou|san francisco|new york|seattle|london|singapore|toronto|vancouver|sydney|melbourne|tokyo|hong kong|macau|taipei|dublin|remote)/i.test(clean)) {
     return true;
   }
   if (/^[\u4e00-\u9fa5\w\s/、·•\-]+[市省区县]$/.test(clean)) {

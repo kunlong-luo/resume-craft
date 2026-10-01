@@ -25,6 +25,7 @@ const steps = [
 export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
   const { settings, uiLanguage, applyTemplate, replaceDocument } = useResumeStore();
   const isEn = uiLanguage === 'en';
+  const isResumeEn = settings.lang === 'en';
   const [step, setStep] = useState(0);
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
   const [pendingReplacement, setPendingReplacement] = useState<'example' | 'starter' | 'blank' | null>(null);
@@ -153,13 +154,13 @@ export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
     storage.getString(STORAGE_KEYS.ONBOARDING_COMPLETE) !== '1';
 
   const applyExample = () => {
-    applyTemplate(isEn ? 'us_swe' : 'ai_backend');
+    applyTemplate(isResumeEn ? 'us_swe' : 'ai_backend');
     complete();
   };
 
   const applyStarter = () => {
     replaceDocument(
-      isEn ? STARTER_MARKDOWN_EN : STARTER_MARKDOWN,
+      isResumeEn ? STARTER_MARKDOWN_EN : STARTER_MARKDOWN,
       settings,
       'custom',
     );

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  getSupportPromptCooldown,
   isOfficialHostedApp,
   shouldShowSupportPrompt,
 } from '../lib/support-prompt';
@@ -14,45 +13,37 @@ describe('support prompt', () => {
     expect(isOfficialHostedApp('kunlong-luo.github.io', '/resume-craft-copy/')).toBe(false);
   });
 
-  it('does not interrupt the first export', () => {
+  it('never interrupts before the first completed PDF export', () => {
     expect(shouldShowSupportPrompt({
       hostname: 'kunlong-luo.github.io',
       pathname: '/resume-craft/',
-      now: 1_000,
-      nextPromptAt: null,
+      prompted: false,
       exportCount: 0,
     })).toBe(false);
   });
 
-  it('shows after the first export when there is no active cooldown', () => {
+  it('becomes eligible after the first completed PDF export', () => {
     expect(shouldShowSupportPrompt({
       hostname: 'kunlong-luo.github.io',
       pathname: '/resume-craft/',
-      now: 1_000,
-      nextPromptAt: null,
+      prompted: false,
       exportCount: 1,
     })).toBe(true);
+  });
 
+  it('never shows again after the one-time prompt has been handled', () => {
     expect(shouldShowSupportPrompt({
       hostname: 'kunlong-luo.github.io',
       pathname: '/resume-craft/',
-      now: 1_000,
-      nextPromptAt: 2_000,
+      prompted: true,
       exportCount: 1,
     })).toBe(false);
 
     expect(shouldShowSupportPrompt({
       hostname: 'kunlong-luo.github.io',
       pathname: '/resume-craft/',
-      now: 2_000,
-      nextPromptAt: 2_000,
-      exportCount: 1,
-    })).toBe(true);
-  });
-
-  it('gives GitHub supporters a longer cooldown than skip', () => {
-    expect(getSupportPromptCooldown('supported')).toBeGreaterThan(
-      getSupportPromptCooldown('skip'),
-    );
+      prompted: true,
+      exportCount: 99,
+    })).toBe(false);
   });
 });

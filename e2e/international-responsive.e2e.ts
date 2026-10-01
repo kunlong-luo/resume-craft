@@ -99,7 +99,8 @@ test.describe('international responsive UX', () => {
     });
     await expectInsideViewport(resumeSwitcher, 390, 844);
     await expect(resumeSwitcher.getByRole('button', { name: /Copy current|复制当前/ })).toBeVisible();
-    await page.keyboard.press('Escape');
+    await page.mouse.click(6, 6);
+    await expect(resumeSwitcher).toBeHidden();
 
     await page.getByRole('button', {
       name: /Choose PDF export mode|选择 PDF 下载方式/,

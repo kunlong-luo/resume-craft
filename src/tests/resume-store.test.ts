@@ -177,6 +177,47 @@ describe('resume store state consistency', () => {
     expect(state.profiles[0].templateId).toBe('cn_demo');
   });
 
+  it('applies a template atomically with market metadata and a fresh history baseline', () => {
+    useResumeStore.setState({
+      markdown: 'old custom content',
+      currentTemplateId: 'custom',
+      history: ['older', 'old custom content'],
+      historyIndex: 1,
+      settings: {
+        ...useResumeStore.getState().settings,
+        marketRegion: 'ca',
+        paperSize: 'letter',
+        dateStyle: 'month-short',
+      },
+    });
+
+    const applied = useResumeStore.getState().applyTemplate('cn_demo');
+    expect(applied).toBe(true);
+
+    const state = useResumeStore.getState();
+    expect(state.currentTemplateId).toBe('cn_demo');
+    expect(state.settings.marketRegion).toBe('cn');
+    expect(state.settings.paperSize).toBe('a4');
+    expect(state.settings.dateStyle).toBe('cn-dot');
+    expect(state.markdown).toContain('Resume Craft 中文通用 Demo');
+    expect(state.profiles[0].templateId).toBe('cn_demo');
+    expect(state.profiles[0].settings.marketRegion).toBe('cn');
+    expect(state.history).toEqual([state.markdown]);
+    expect(state.historyIndex).toBe(0);
+  });
+
+  it('does not partially mutate state when applying an unknown template', () => {
+    const before = useResumeStore.getState();
+
+    const applied = useResumeStore.getState().applyTemplate('missing-template');
+
+    expect(applied).toBe(false);
+    const after = useResumeStore.getState();
+    expect(after.markdown).toBe(before.markdown);
+    expect(after.settings).toEqual(before.settings);
+    expect(after.currentTemplateId).toBe(before.currentTemplateId);
+  });
+
   it('clears a previous filename when switching to a profile without one', () => {
     const first = buildProfile('profile_first', 'first content', 'first-file');
     const second = buildProfile('profile_second', 'second content');

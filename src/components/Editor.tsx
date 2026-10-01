@@ -820,7 +820,12 @@ export const Editor = React.memo(function Editor() {
             transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
             className="flex-1 flex flex-col min-h-0 w-full h-full overflow-hidden"
           >
-            <SectionSorter markdown={value} onChange={onChange} lang={uiLanguage} />
+            <SectionSorter
+              markdown={value}
+              onChange={onChange}
+              lang={uiLanguage}
+              contentLang={settings.lang}
+            />
           </motion.div>
         ) : (
           <motion.div

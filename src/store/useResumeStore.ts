@@ -460,12 +460,14 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     const { profiles, settings: curSettings, markdown: curMd, currentTemplateId } = get();
     const now = new Date().toISOString();
     const id = `profile_${Date.now()}`;
+    const effectiveSettings = newSettings || curSettings;
+    const isEnProfile = effectiveSettings.lang === 'en';
     const newProfile: ResumeProfile = {
       id,
-      name: name.trim() || '新建简历档案',
-      targetRole: targetRole?.trim() || '求职版本',
+      name: name.trim() || (isEnProfile ? 'New Resume' : '新建简历档案'),
+      targetRole: targetRole?.trim() || (isEnProfile ? 'Target Role' : '求职版本'),
       markdown: newMd !== undefined ? newMd : curMd,
-      settings: newSettings || curSettings,
+      settings: effectiveSettings,
       templateId: templateId ?? (newMd !== undefined ? getInitialTemplateId(newMd) : currentTemplateId),
       customFileName: '',
       updatedAt: now,

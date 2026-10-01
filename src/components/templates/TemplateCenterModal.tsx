@@ -202,12 +202,22 @@ export function TemplateCenterModal({
     setActiveFilter('all');
   }, [currentTemplateId, isEn, isOpen]);
 
-  const visibleTemplates =
-    activeFilter === 'all'
-      ? localizedTemplates
-      : localizedTemplates.filter(
-          (item) => item.presentation.group === activeFilter,
-        );
+  const matchesFilter = (item: (typeof localizedTemplates)[number], filter: FilterKey) => {
+    if (filter === 'all') return true;
+
+    // Market filters and scenario filters are intentionally independent.
+    // A CN graduate template, for example, should appear under both
+    // "CN Standard" and "Graduate".
+    if (filter === 'cn' || filter === 'us' || filter === 'uk') {
+      return item.presentation.targetMarket === filter;
+    }
+
+    return item.presentation.group === filter;
+  };
+
+  const visibleTemplates = localizedTemplates.filter((item) =>
+    matchesFilter(item, activeFilter),
+  );
 
   const selectedTemplate =
     TEMPLATES.find((template) => template.id === selectedId) ?? TEMPLATES[0];
@@ -232,10 +242,10 @@ export function TemplateCenterModal({
     const currentSelection = localizedTemplates.find(
       (item) => item.template.id === selectedId,
     );
-    if (currentSelection?.presentation.group === filter) return;
+    if (currentSelection && matchesFilter(currentSelection, filter)) return;
 
-    const firstMatch = localizedTemplates.find(
-      (item) => item.presentation.group === filter,
+    const firstMatch = localizedTemplates.find((item) =>
+      matchesFilter(item, filter),
     );
     if (firstMatch) setSelectedId(firstMatch.template.id);
   };

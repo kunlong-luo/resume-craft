@@ -1,5 +1,6 @@
 import type { ResumeTemplate } from '../data';
 import { MarketRegion, PaperSize, DateStyle } from '../types';
+import { translateSectionTitle } from './section-translator';
 
 export type TemplateGroup = 'engineering' | 'product' | 'graduate' | 'global' | 'us' | 'uk' | 'cn';
 
@@ -358,7 +359,7 @@ export function getTemplatePresentation(
   };
 }
 
-export function getTemplatePreview(content: string) {
+export function getTemplatePreview(content: string, targetLang?: 'zh' | 'en') {
   const lines = content
     .split('\n')
     .map((line) => line.trim())
@@ -382,7 +383,8 @@ export function getTemplatePreview(content: string) {
   const sections = lines
     .filter((line) => line.startsWith('## '))
     .slice(0, 4)
-    .map((line) => line.replace(/^##\s+/, ''));
+    .map((line) => line.replace(/^##\s+/, ''))
+    .map((title) => targetLang ? translateSectionTitle(title, targetLang) : title);
 
   const firstBullet =
     lines

@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const VIEWPORTS = [
+  { width: 360, height: 800, label: 'small-mobile' },
   { width: 390, height: 844, label: 'mobile' },
   { width: 768, height: 900, label: 'tablet' },
   { width: 1024, height: 900, label: 'small-desktop' },
@@ -73,6 +74,43 @@ test.describe('international responsive UX', () => {
       ).toBe(true);
     });
   }
+
+
+  test('mobile: primary workspace, resume switcher, and download sheet stay usable', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+
+    const dock = page.getByRole('navigation', {
+      name: /Mobile workspace actions|移动端工作区操作/,
+    });
+    await expectInsideViewport(dock, 390, 844);
+
+    await dock.getByRole('button', { name: /Preview|预览/ }).click();
+    await expect(page.locator('#resume-preview-wrapper')).toBeVisible();
+    await expect.poll(() =>
+      page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    ).toBe(true);
+
+    await page.getByRole('button', {
+      name: /Open resume switcher|打开简历切换器/,
+    }).click();
+    const resumeSwitcher = page.getByRole('dialog', {
+      name: /Resume switcher|简历切换器/,
+    });
+    await expectInsideViewport(resumeSwitcher, 390, 844);
+    await expect(resumeSwitcher.getByRole('button', { name: /Copy current|复制当前/ })).toBeVisible();
+    await page.mouse.click(6, 6);
+    await expect(resumeSwitcher).toBeHidden();
+
+    await page.getByRole('button', {
+      name: /Choose PDF export mode|选择 PDF 下载方式/,
+    }).click();
+    const downloadDialog = page.getByRole('dialog', {
+      name: /Download options|下载选项/,
+    });
+    await expectInsideViewport(downloadDialog, 390, 844);
+    await expect(downloadDialog.getByLabel(/PDF file name|PDF 文件名/)).toBeVisible();
+  });
 
   test('mobile: month picker fits the viewport and exposes older experience years', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });

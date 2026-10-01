@@ -279,7 +279,7 @@ export function TemplateCenterModal({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[90] flex items-center justify-center p-3 sm:p-5">
+    <div className="fixed inset-0 z-[90] flex items-center justify-center p-2 sm:p-5">
       <button
         type="button"
         className="absolute inset-0 cursor-default bg-slate-950/65 backdrop-blur-sm"
@@ -294,9 +294,9 @@ export function TemplateCenterModal({
         aria-labelledby="template-center-title"
         aria-describedby="template-center-description"
         tabIndex={-1}
-        className="relative z-10 flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+        className="relative z-10 flex max-h-[calc(100dvh-1rem)] sm:max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-800 sm:px-6">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3.5 dark:border-slate-800 sm:px-6 sm:py-4">
           <div>
             <div className="mb-1 flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
               <FileText className="h-4 w-4" />
@@ -323,7 +323,7 @@ export function TemplateCenterModal({
             type="button"
             onClick={onClose}
             aria-label={isEn ? 'Close content template library' : '关闭内容模板库'}
-            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="min-h-10 min-w-10 inline-flex items-center justify-center rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <X className="h-4 w-4" />
           </button>
@@ -356,7 +356,7 @@ export function TemplateCenterModal({
 
         <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:overflow-hidden">
           <div className="min-h-0 border-b border-slate-200 p-4 dark:border-slate-800 sm:p-5 lg:overflow-y-auto lg:border-b-0 lg:border-r">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 min-[390px]:grid-cols-2 gap-3 sm:grid-cols-3">
               {visibleTemplates.map(({ template, presentation }) => {
                 const selected = template.id === selectedId;
                 const current = currentTemplateId === template.id;

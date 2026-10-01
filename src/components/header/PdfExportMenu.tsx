@@ -139,7 +139,7 @@ export function PdfExportMenu({
         type="button"
         onClick={onExportAts}
         disabled={isExporting}
-        className={`flex items-center gap-1.5 rounded-l-xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-blue-600 px-3 py-1.5 text-xs font-bold text-white shadow-md shadow-indigo-500/20 transition-all hover:from-indigo-500 hover:to-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-75 ${compact ? 'px-2.5' : ''}`}
+        className={`flex min-h-10 sm:min-h-0 items-center gap-1.5 rounded-l-xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-blue-600 px-3 py-1.5 text-xs font-bold text-white shadow-md shadow-indigo-500/20 transition-all hover:from-indigo-500 hover:to-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-75 ${compact ? 'px-2.5' : ''}`}
       >
         {isExporting ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -163,15 +163,19 @@ export function PdfExportMenu({
         disabled={isExporting}
         aria-label={isEn ? 'Choose PDF export mode' : '选择 PDF 下载方式'}
         aria-expanded={isOpen}
-        className="flex items-center justify-center rounded-r-xl border-l border-white/20 bg-blue-600 px-2 text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-75"
+        className="flex min-h-10 sm:min-h-0 items-center justify-center rounded-r-xl border-l border-white/20 bg-blue-600 px-2.5 sm:px-2 text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-75"
       >
         <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-[100] mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+        <div
+          role="dialog"
+          aria-label={isEn ? 'Download options' : '下载选项'}
+          className="fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] top-auto z-[100] mt-0 max-h-[80dvh] w-auto overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white p-2.5 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-full sm:mt-2 sm:max-h-none sm:w-80 sm:overflow-visible sm:rounded-2xl sm:p-2"
+        >
           {/* Target market & paper badge */}
-          <div className="mb-2 flex items-center justify-between gap-2 rounded-xl bg-indigo-50/70 px-2.5 py-1.5 dark:bg-indigo-950/40">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-1.5 rounded-xl bg-indigo-50/70 px-2.5 py-1.5 dark:bg-indigo-950/40">
             <span
               data-testid="export-market-label"
               className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] font-bold text-indigo-700 dark:text-indigo-300"
@@ -210,7 +214,7 @@ export function PdfExportMenu({
                 value={customFileName}
                 onChange={(event) => setCustomFileName(event.target.value)}
                 placeholder={defaultFileName}
-                className="min-w-0 flex-1 bg-transparent py-1.5 text-xs font-medium text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-200 dark:placeholder:text-slate-500"
+                className="min-w-0 flex-1 bg-transparent py-2.5 sm:py-1.5 text-xs font-medium text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-200 dark:placeholder:text-slate-500"
               />
             </div>
           </div>
@@ -224,7 +228,7 @@ export function PdfExportMenu({
                 setIsOpen(false);
                 onExportAts();
               }}
-              className="flex w-full items-start gap-2.5 rounded-xl px-3 py-2 text-left transition hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+              className="flex w-full items-start gap-2.5 rounded-xl px-3 py-3 sm:py-2 text-left transition hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
             >
               <Printer className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
               <div className="min-w-0 flex-1">
@@ -252,7 +256,7 @@ export function PdfExportMenu({
                   setIsOpen(false);
                   onExportQuick();
                 }}
-                className="flex w-full items-start gap-2.5 rounded-xl px-3 py-2 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                className="flex w-full items-start gap-2.5 rounded-xl px-3 py-3 sm:py-2 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
               >
                 <FileDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
                 <div className="min-w-0 flex-1">
@@ -274,7 +278,7 @@ export function PdfExportMenu({
             <button
               type="button"
               onClick={handleExportTxt}
-              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
+              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 sm:py-2 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
             >
               <FileText className="h-4 w-4 shrink-0 text-amber-500" />
               <div className="min-w-0 flex-1">
@@ -293,7 +297,7 @@ export function PdfExportMenu({
             <button
               type="button"
               onClick={handleExportJson}
-              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
+              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 sm:py-2 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
             >
               <FileJson className="h-4 w-4 shrink-0 text-emerald-500" />
               <div className="min-w-0 flex-1">
@@ -310,7 +314,7 @@ export function PdfExportMenu({
             <button
               type="button"
               onClick={handleExportMd}
-              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
+              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 sm:py-2 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
             >
               <FileCode className="h-4 w-4 shrink-0 text-slate-500" />
               <div className="min-w-0 flex-1">

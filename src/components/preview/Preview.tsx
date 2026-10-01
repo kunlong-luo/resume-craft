@@ -348,15 +348,46 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
     <div className="relative w-full h-full flex flex-col overflow-hidden">
       {/* Zoom and Preview Toolbar */}
       <div className="flex flex-row items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-50/95 dark:bg-slate-900/95 border-b border-slate-200/60 dark:border-slate-800/80 backdrop-blur-sm z-30 select-none print:hidden shrink-0 gap-2 transition-all">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-            {isEn 
-              ? `Real-time Rendering Preview (${paperSpec.id === 'letter' ? 'US Letter' : 'A4'})` 
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="sm:hidden truncate text-[11px] font-black text-slate-500 dark:text-slate-400">
+            {paperSpec.id === 'letter'
+              ? (isEn ? 'Letter Preview' : 'Letter 预览')
+              : (isEn ? 'A4 Preview' : 'A4 预览')}
+          </span>
+          <span className="hidden sm:inline text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+            {isEn
+              ? `Real-time Rendering Preview (${paperSpec.id === 'letter' ? 'US Letter' : 'A4'})`
               : `实时渲染预览 (${paperSpec.id === 'letter' ? 'US Letter 纸张' : 'A4 纸张'})`}
           </span>
         </div>
-        
-        <div className="flex items-center gap-2">
+
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="sm:hidden flex items-center rounded-lg border border-slate-200 bg-white/90 p-0.5 dark:border-slate-700 dark:bg-slate-800/90">
+            <button
+              type="button"
+              onClick={() => setZoomMode('fit-width')}
+              aria-pressed={zoomMode === 'fit-width'}
+              className={`min-h-8 rounded-md px-2 text-[10px] font-bold transition ${
+                zoomMode === 'fit-width'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-500 dark:text-slate-300'
+              }`}
+            >
+              {isEn ? 'Width' : '宽度'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoomMode('fit-page')}
+              aria-pressed={zoomMode === 'fit-page'}
+              className={`min-h-8 rounded-md px-2 text-[10px] font-bold transition ${
+                zoomMode === 'fit-page'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-500 dark:text-slate-300'
+              }`}
+            >
+              {isEn ? 'Page' : '整页'}
+            </button>
+          </div>
           <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 min-w-[32px] text-right">
             {Math.round(calculatedZoom * 100)}%
           </span>

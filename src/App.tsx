@@ -435,7 +435,7 @@ export default function App() {
 
         <main 
           ref={containerRef}
-          className="flex-1 flex flex-col md:flex-row overflow-hidden relative pb-14 md:pb-0"
+          className="flex-1 flex flex-col md:flex-row overflow-hidden relative pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0"
         >
           {/* Editor Pane */}
           {(!isMobile || mobileTab === 'editor') && (
@@ -504,51 +504,55 @@ export default function App() {
           </Suspense>
         </main>
 
-        {/* Mobile Ergonomic Bottom Floating Dock */}
+        {/* Mobile Ergonomic Bottom Dock */}
         {isMobile && (
-          <div className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 dark:bg-slate-800/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl rounded-full p-1.5 flex items-center gap-1.5 text-xs font-bold text-white animate-in fade-in slide-in-from-bottom-3 duration-200">
+          <nav
+            aria-label={uiLanguage === 'en' ? 'Mobile workspace actions' : '移动端工作区操作'}
+            className="md:hidden fixed left-1/2 -translate-x-1/2 z-50 w-[calc(100vw-1rem)] max-w-md bg-slate-950/92 dark:bg-slate-800/95 border border-white/10 backdrop-blur-xl shadow-2xl rounded-2xl p-1.5 grid grid-cols-3 gap-1.5 text-xs font-bold text-white animate-in fade-in slide-in-from-bottom-3 duration-200"
+            style={{ bottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+          >
             <button
+              type="button"
               onClick={() => setMobileTab('editor')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
-                mobileTab === 'editor' 
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' 
-                  : 'text-slate-300 hover:text-white'
+              aria-pressed={mobileTab === 'editor'}
+              className={`min-h-11 flex items-center justify-center gap-1.5 px-2 rounded-xl transition-all cursor-pointer active:scale-[0.98] ${
+                mobileTab === 'editor'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>{uiLanguage === 'en' ? 'Edit' : '编辑 Markdown'}</span>
+              <Edit3 className="w-4 h-4 shrink-0" />
+              <span>{uiLanguage === 'en' ? 'Edit' : '编辑'}</span>
             </button>
 
             <button
+              type="button"
               onClick={() => setMobileTab('preview')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
-                mobileTab === 'preview' 
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' 
-                  : 'text-slate-300 hover:text-white'
+              aria-pressed={mobileTab === 'preview'}
+              className={`min-h-11 flex items-center justify-center gap-1.5 px-2 rounded-xl transition-all cursor-pointer active:scale-[0.98] ${
+                mobileTab === 'preview'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Eye className="w-3.5 h-3.5" />
-              <span>
-                {paperSize === 'letter'
-                  ? uiLanguage === 'en'
-                    ? 'Letter Preview'
-                    : 'Letter 预览'
-                  : uiLanguage === 'en'
-                    ? 'A4 Preview'
-                    : 'A4 预览'}
+              <Eye className="w-4 h-4 shrink-0" />
+              <span className="flex min-w-0 flex-col items-start leading-none">
+                <span>{uiLanguage === 'en' ? 'Preview' : '预览'}</span>
+                <span className="mt-1 text-[9px] font-semibold opacity-70">
+                  {paperSize === 'letter' ? 'Letter' : 'A4'}
+                </span>
               </span>
             </button>
 
-            <div className="w-px h-4 bg-slate-700 mx-0.5" />
-
             <button
+              type="button"
               onClick={handleExportPDF}
-              className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full transition-all cursor-pointer active:scale-95"
+              className="min-h-11 flex items-center justify-center gap-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all cursor-pointer active:scale-[0.98] shadow-md shadow-emerald-950/20"
             >
-              <Printer className="w-3.5 h-3.5" />
-              <span>ATS PDF</span>
+              <Printer className="w-4 h-4 shrink-0" />
+              <span>PDF</span>
             </button>
-          </div>
+          </nav>
         )}
 
         <Suspense fallback={null}>

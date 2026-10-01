@@ -25,6 +25,9 @@ export function SettingsPopover({
 }: SettingsPopoverProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false,
+  );
 
   useDialogFocus({ isOpen, dialogRef, onClose });
 
@@ -34,6 +37,8 @@ export function SettingsPopover({
     const updatePosition = () => {
       const trigger = triggerRef.current;
       if (!trigger) return;
+      const mobile = window.innerWidth < 640;
+      setIsMobile(mobile);
       const rect = trigger.getBoundingClientRect();
       const panelWidth = window.innerWidth >= 640 ? 384 : 352;
       const viewportPadding = 10;
@@ -82,17 +87,27 @@ export function SettingsPopover({
             aria-modal="true"
             aria-label={title}
             tabIndex={-1}
-            initial={{ opacity: 0, scale: 0.97, y: -6 }}
+            initial={{ opacity: 0, scale: isMobile ? 1 : 0.97, y: isMobile ? 0 : -6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: -6 }}
-            transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-            style={{
-              position: 'fixed',
-              top: coords.top,
-              right: coords.right,
-              maxHeight: `calc(100vh - ${coords.top + 16}px)`,
-            }}
-            className="z-[130] flex w-[22rem] max-w-[calc(100vw-1.25rem)] flex-col overflow-y-auto rounded-2xl border border-slate-200/90 bg-white/98 p-4 shadow-[0_20px_48px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/98 sm:w-[24rem] sm:p-5"
+            exit={{ opacity: 0, scale: isMobile ? 1 : 0.97, y: isMobile ? 0 : -6 }}
+            transition={isMobile
+              ? { duration: 0.16 }
+              : { type: 'spring', stiffness: 450, damping: 32 }}
+            style={isMobile
+              ? {
+                  position: 'fixed',
+                  left: '0.5rem',
+                  right: '0.5rem',
+                  bottom: 'max(0.5rem, env(safe-area-inset-bottom))',
+                  maxHeight: 'min(82dvh, 44rem)',
+                }
+              : {
+                  position: 'fixed',
+                  top: coords.top,
+                  right: coords.right,
+                  maxHeight: `calc(100vh - ${coords.top + 16}px)`,
+                }}
+            className="z-[130] flex w-auto max-w-[calc(100vw-1rem)] flex-col overflow-y-auto overscroll-contain rounded-3xl border border-slate-200/90 bg-white/98 p-4 shadow-[0_20px_48px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/98 sm:w-[24rem] sm:max-w-[calc(100vw-1.25rem)] sm:rounded-2xl sm:p-5"
           >
             <div className="mb-4 flex items-start justify-between gap-4 border-b border-slate-100 pb-3 dark:border-slate-800">
               <div className="flex min-w-0 items-start gap-2.5">
@@ -110,7 +125,7 @@ export function SettingsPopover({
                 type="button"
                 onClick={onClose}
                 aria-label={`Close ${title}`}
-                className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                className="shrink-0 min-h-10 min-w-10 inline-flex items-center justify-center rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 active:scale-95 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               >
                 <X className="h-4 w-4" />
               </button>

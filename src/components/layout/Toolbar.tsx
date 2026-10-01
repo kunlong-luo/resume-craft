@@ -67,7 +67,7 @@ export function Toolbar() {
   }, [updateSetting]);
 
   return (
-    <div id="resume-main-toolbar" className="flex items-center justify-between px-3 sm:px-6 py-1.5 bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/90 relative z-20 gap-2 shadow-[0_1px_2px_rgba(15,23,42,0.02)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)] w-full transition-colors duration-200">
+    <div id="resume-main-toolbar" className="flex items-center justify-start md:justify-between px-2 sm:px-6 py-1.5 bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/90 relative z-20 gap-2 shadow-[0_1px_2px_rgba(15,23,42,0.02)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)] w-full min-w-0 overflow-x-auto scrollbar-none overscroll-x-contain touch-pan-x transition-colors duration-200">
       {/* Left Area: Language + Template Library */}
       <div className="flex items-center gap-1.5 text-xs shrink-0">
         <LanguageToggle />
@@ -79,7 +79,7 @@ export function Toolbar() {
       </div>
 
       {/* Right Area: Auto Fit + Layout + Style + View Mode */}
-      <div className="flex items-center gap-1.5 sm:gap-2 text-xs shrink-0 relative flex-nowrap">
+      <div className="ml-auto md:ml-0 flex items-center gap-1.5 sm:gap-2 text-xs shrink-0 relative flex-nowrap">
         {/* 1-Click Auto Fit Button */}
         <Tooltip content={isEn ? 'Auto fit margins and line heights to single page' : '一键微调字号与间距以贴合单页'} side="bottom">
           <button
@@ -89,7 +89,7 @@ export function Toolbar() {
               trackAnalyticsEvent('auto_fit_used');
             }}
             aria-label={isEn ? 'Auto fit to single page' : '单页自动适配'}
-            className="flex h-8 items-center justify-center gap-1 px-2.5 rounded-lg text-xs font-bold border border-amber-200 dark:border-amber-900/60 bg-amber-50/70 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 shadow-2xs transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+            className="flex h-9 md:h-8 items-center justify-center gap-1 px-2.5 rounded-lg text-xs font-bold border border-amber-200 dark:border-amber-900/60 bg-amber-50/70 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 shadow-2xs transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
             <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" aria-hidden="true" />
             <span className="hidden xl:inline">{isEn ? 'Fit Page' : '单页'}</span>
@@ -107,7 +107,7 @@ export function Toolbar() {
             aria-haspopup="dialog"
             aria-expanded={isLayoutOpen}
             aria-label={isEn ? 'Open layout settings' : '打开排版设置'}
-            className={`flex h-8 items-center justify-center gap-1 px-2.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+            className={`flex h-9 md:h-8 items-center justify-center gap-1 px-2.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               isLayoutOpen
                 ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20'
                 : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200/90 dark:border-slate-700 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-750'
@@ -130,7 +130,7 @@ export function Toolbar() {
             aria-haspopup="dialog"
             aria-expanded={isStyleOpen}
             aria-label={isEn ? 'Open style settings' : '打开样式设置'}
-            className={`flex h-8 items-center justify-center gap-1 px-2.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+            className={`flex h-9 md:h-8 items-center justify-center gap-1 px-2.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               isStyleOpen
                 ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20'
                 : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200/90 dark:border-slate-700 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-750'
@@ -145,7 +145,9 @@ export function Toolbar() {
         <div className="w-px h-4 bg-slate-200 dark:bg-slate-800 mx-0.5 shrink-0" />
 
         {/* Layout Mode Toggle Group */}
-        <LayoutModeToggle />
+        <div className="hidden md:block">
+          <LayoutModeToggle />
+        </div>
 
         <LayoutDrawer
           isOpen={isLayoutOpen}

@@ -108,11 +108,12 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
           type="button"
           aria-expanded={isOpen}
           aria-controls="resume-profile-panel"
+          aria-label={isEn ? 'Open resume switcher' : '打开简历切换器'}
           onClick={() => {
             setIsOpen(!isOpen);
             setConfirmDeleteId(null);
           }}
-          className={`group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-white dark:bg-slate-800 border rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-2xs ${
+          className={`group flex min-h-10 sm:min-h-0 items-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-1.5 bg-white dark:bg-slate-800 border rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-2xs ${
             isOpen
               ? 'border-indigo-500 ring-2 ring-indigo-500/20 text-indigo-700 dark:text-indigo-300'
               : 'border-slate-200/90 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:border-indigo-300 dark:hover:border-indigo-600'
@@ -122,7 +123,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
             <Layers className="w-3 h-3" />
           </div>
 
-          <div className="flex items-center gap-1.5 min-w-0 max-w-[130px] sm:max-w-[190px]">
+          <div className="hidden min-[430px]:flex items-center gap-1.5 min-w-0 max-w-[110px] sm:max-w-[190px]">
             <span className="truncate text-slate-800 dark:text-slate-100 font-extrabold text-[11px] sm:text-xs">
               {activeProfile ? activeProfile.name : (isEn ? 'My resumes' : '我的简历')}
             </span>
@@ -142,11 +143,13 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
         {isOpen && (
           <motion.div
             id="resume-profile-panel"
+            role="dialog"
+            aria-label={isEn ? 'Resume switcher' : '简历切换器'}
             initial={{ opacity: 0, y: -8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 450, damping: 30 }}
-            className="absolute left-0 top-full mt-1.5 w-80 sm:w-88 rounded-2xl bg-white dark:bg-slate-850 shadow-2xl border border-slate-200/90 dark:border-slate-750/90 z-[100] overflow-hidden"
+            className="fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] top-auto mt-0 w-auto max-h-[78dvh] sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-0 sm:top-full sm:mt-1.5 sm:w-88 sm:max-h-none rounded-3xl sm:rounded-2xl bg-white dark:bg-slate-850 shadow-2xl border border-slate-200/90 dark:border-slate-750/90 z-[100] overflow-hidden"
           >
           {/* Header & 1-Click Actions Bar */}
           <div className="p-3 bg-slate-50/80 dark:bg-slate-800/70 border-b border-slate-100 dark:border-slate-800 space-y-2">
@@ -179,7 +182,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
               <button
                 type="button"
                 onClick={handleFastDuplicate}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 text-[11px] font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
+                className="min-h-11 flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 text-[11px] font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
               >
                 <Copy className="w-3 h-3" />
                 <span>{isEn ? 'Copy current' : '复制当前'}</span>
@@ -188,7 +191,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
               <button
                 type="button"
                 onClick={handleFastBlank}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-[11px] font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
+                className="min-h-11 flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-[11px] font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
               >
                 <FilePlus className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                 <span>{isEn ? 'New blank' : '新建空白'}</span>
@@ -197,7 +200,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
           </div>
 
           {/* Profile List: 1-Click to Switch */}
-          <div className="max-h-64 overflow-y-auto p-1.5 space-y-0.5">
+          <div className="max-h-[50dvh] sm:max-h-64 overflow-y-auto overscroll-contain p-1.5 space-y-0.5">
             {profiles.map((p) => {
               const isActive = p.id === activeProfileId;
               const isEditing = editingId === p.id;
@@ -236,7 +239,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
                     switchProfile(p.id);
                     setIsOpen(false);
                   }}
-                  className={`group relative flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer ${
+                  className={`group relative min-h-12 flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
                     isActive
                       ? 'bg-indigo-50/90 dark:bg-indigo-950/70 text-indigo-950 dark:text-indigo-100 font-bold border border-indigo-200/80 dark:border-indigo-800/70 shadow-2xs'
                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/90 dark:hover:bg-slate-800/90 border border-transparent'
@@ -288,7 +291,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
                             deleteProfile(p.id);
                             setConfirmDeleteId(null);
                           }}
-                          className="px-1.5 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded hover:bg-red-700 transition-colors"
+                          className="min-h-8 px-2 py-1 bg-red-600 text-white text-[10px] font-bold rounded hover:bg-red-700 transition-colors"
                         >
                           {isEn ? 'Delete?' : '确认删除'}
                         </button>
@@ -298,13 +301,13 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
                             e.stopPropagation();
                             setConfirmDeleteId(null);
                           }}
-                          className="px-1 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] rounded hover:bg-slate-300"
+                          className="min-h-8 min-w-8 px-2 py-1 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] rounded hover:bg-slate-300"
                         >
                           ✕
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <Tooltip content={isEn ? 'Duplicate' : '复制档案'} side="top">
                           <button
                             type="button"
@@ -312,7 +315,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
                               e.stopPropagation();
                               duplicateProfile(p.id);
                             }}
-                            className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors cursor-pointer"
+                            className="p-2 sm:p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors cursor-pointer"
                           >
                             <Copy className="w-3 h-3" />
                           </button>
@@ -326,7 +329,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
                               setEditingId(p.id);
                               setEditName(p.name);
                             }}
-                            className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors cursor-pointer"
+                            className="p-2 sm:p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors cursor-pointer"
                           >
                             <Edit2 className="w-3 h-3" />
                           </button>
@@ -340,7 +343,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
                                 e.stopPropagation();
                                 setConfirmDeleteId(p.id);
                               }}
-                              className="p-1 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors cursor-pointer"
+                              className="p-2 sm:p-1 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors cursor-pointer"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>

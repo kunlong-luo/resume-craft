@@ -126,7 +126,11 @@ export function translateMarkdownContent(markdown: string, targetLang: 'zh' | 'e
   if (targetLang === 'en') {
     // 1. Section Headings (## <Title>)
     result = result.replace(/^##\s+(.+)$/gm, (match, title) => {
-      const translated = translateSectionTitle(title, 'en');
+      const rawTitle = String(title).trim();
+      // Preserve already-English source headings verbatim. English aliases are
+      // canonicalized only in the UI/preview layer so imports remain lossless.
+      if (!/[\u3400-\u9fff]/.test(rawTitle)) return match;
+      const translated = translateSectionTitle(rawTitle, 'en');
       return `## ${translated}`;
     });
 

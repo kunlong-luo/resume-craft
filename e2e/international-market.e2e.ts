@@ -87,7 +87,12 @@ test.describe('international market flows', () => {
 
     // Switch only the interface back to English. Resume-language-owned labels
     // must remain Chinese.
-    await page.keyboard.press('Escape');
+    const closeSettings = page.getByRole('button', {
+      name: /Close settings panel|关闭设置面板/,
+    });
+    await closeSettings.click();
+    await expect(layout).toBeHidden();
+
     await page
       .getByRole('group', { name: '界面语言' })
       .getByRole('button', { name: '将界面语言切换为英文' })
@@ -99,7 +104,7 @@ test.describe('international market flows', () => {
       await formButton.click();
     }
 
-    await expect(page.getByText('Basic Info', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Basic Info', exact: true })).toBeVisible();
     await expect(page.locator('input[value="工作经历"]')).toBeVisible();
     await expect(page.locator('input[value="Work Experience"]')).toHaveCount(0);
   });
@@ -144,7 +149,7 @@ test.describe('international market flows', () => {
     if (await formButton.count()) {
       await formButton.click();
     }
-    await expect(page.getByText('基本信息', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '基本信息', exact: true })).toBeVisible();
     await expect(page.locator('input[value="Work Experience"]')).toBeVisible();
     await expect(page.locator('input[value="工作经历"]')).toHaveCount(0);
 

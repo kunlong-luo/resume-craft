@@ -14,6 +14,7 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
   const {
     markdown,
     settings,
+    uiLanguage,
     customFileName,
     isExportingPDF,
     setIsIframeModalOpen,
@@ -49,7 +50,7 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
   const handleExportDirectPDF = async () => {
     if (isExportingPDF) return;
     setIsExportingPDF(true);
-    setPdfExportProgress(settings.lang === 'en' ? 'Preparing PDF...' : '准备导出 PDF...');
+    setPdfExportProgress(uiLanguage === 'en' ? 'Preparing PDF...' : '准备导出 PDF...');
 
     try {
       const targetElement = contentRef.current 
@@ -91,7 +92,7 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
       setIsIframeModalOpen(true);
     } else {
       setIsExportingPDF(true);
-      setPdfExportProgress(settings.lang === 'en' ? 'Opening print dialog...' : '调起打印窗口...');
+      setPdfExportProgress(uiLanguage === 'en' ? 'Opening print dialog...' : '调起打印窗口...');
       const timer = setTimeout(() => {
         setIsExportingPDF(false);
         setPdfExportProgress(null);

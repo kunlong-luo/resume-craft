@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Columns, FileText, SlidersHorizontal } from 'lucide-react';
+import { BookOpen, Columns, FileText, Globe2, SlidersHorizontal } from 'lucide-react';
 import { DateStyle, FontFamily, FontSize, Language, MarketRegion, PaperMargin, TemplateLayout } from '../../types';
 import { useResumeStore } from '../../store/useResumeStore';
 import { CustomSlider } from '../ui/CustomSlider';
@@ -187,6 +187,17 @@ export function LayoutDrawer({
                 ? 'Controls resume content language only. Changing it translates standard section headings and keeps the app UI unchanged.'
                 : '仅控制简历内容语言；切换时会转换常用章节标题，不会改变应用界面语言。'}
             </p>
+            <div
+              data-testid="language-independence-note"
+              className="mt-2 flex items-start gap-2 rounded-lg border border-sky-100 bg-sky-50/70 px-2.5 py-2 text-[9px] leading-relaxed text-sky-700 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-300"
+            >
+              <Globe2 className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span>
+                {isEn
+                  ? `Interface: ${uiLanguage === 'en' ? 'English' : 'Chinese'} (top globe control). Resume language and target market are independent.`
+                  : `界面：${uiLanguage === 'en' ? 'English' : '中文'}（顶部地球图标切换）。简历语言与目标市场彼此独立。`}
+              </span>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
             <button

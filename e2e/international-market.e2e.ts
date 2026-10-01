@@ -84,6 +84,24 @@ test.describe('international market flows', () => {
     await expect.poll(() =>
       page.evaluate(() => window.localStorage.getItem('resume_ui_language')),
     ).toBe('zh');
+
+    // Switch only the interface back to English. Resume-language-owned labels
+    // must remain Chinese.
+    await page.keyboard.press('Escape');
+    await page
+      .getByRole('group', { name: '界面语言' })
+      .getByRole('button', { name: '将界面语言切换为英文' })
+      .click();
+
+    await expect(page.getByRole('group', { name: 'Interface language' })).toBeVisible();
+    const formButton = page.getByRole('button', { name: /Form editor|表单编辑/ });
+    if (await formButton.count()) {
+      await formButton.click();
+    }
+
+    await expect(page.getByText('Basic Info', { exact: true })).toBeVisible();
+    await expect(page.locator('input[value="工作经历"]')).toBeVisible();
+    await expect(page.locator('input[value="Work Experience"]')).toHaveCount(0);
   });
 
   test('Chinese UI writes English resume values in form mode', async ({ page }) => {
@@ -121,6 +139,14 @@ test.describe('international market flows', () => {
     await expect.poll(() =>
       page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}').lang),
     ).toBe('en');
+
+    const formButton = page.getByRole('button', { name: /Form editor|表单编辑/ });
+    if (await formButton.count()) {
+      await formButton.click();
+    }
+    await expect(page.getByText('基本信息', { exact: true })).toBeVisible();
+    await expect(page.locator('input[value="Work Experience"]')).toBeVisible();
+    await expect(page.locator('input[value="工作经历"]')).toHaveCount(0);
 
     const presentToggle = page.getByRole('button', { name: '至今', exact: true }).first();
     await expect(presentToggle).toBeVisible();

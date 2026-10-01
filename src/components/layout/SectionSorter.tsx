@@ -12,6 +12,7 @@ interface SectionSorterProps {
   markdown: string;
   onChange: (val: string, isUndoable?: boolean) => void;
   lang?: string;
+  contentLang?: string;
 }
 
 interface SorterItem extends MarkdownSection {
@@ -38,8 +39,9 @@ function cleanContentPreview(content: string, maxLen = 30): string {
   return cleaned.substring(0, maxLen).trim() + '...';
 }
 
-export function SectionSorter({ markdown, onChange, lang }: SectionSorterProps) {
-  const isEn = lang === 'en';
+export function SectionSorter({ markdown, onChange, lang = 'zh', contentLang = 'zh' }: SectionSorterProps) {
+  const isUiEn = lang === 'en';
+  const activeContentLang = contentLang === 'en' ? 'en' : 'zh';
 
   const { header, sections } = useMemo(() => {
     return splitMarkdownIntoSections(markdown);
@@ -96,7 +98,7 @@ export function SectionSorter({ markdown, onChange, lang }: SectionSorterProps) 
           <div className="flex items-center gap-2">
             <Move className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <h3 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">
-              {isEn ? 'Section Order' : '板块排序'}
+              {isUiEn ? 'Section Order' : '板块排序'}
             </h3>
           </div>
           <p className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">
@@ -107,7 +109,7 @@ export function SectionSorter({ markdown, onChange, lang }: SectionSorterProps) 
         </div>
 
         <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 px-2.5 py-0.5 bg-white dark:bg-slate-800 rounded-md border border-slate-200/80 dark:border-slate-700/80 shrink-0 shadow-2xs">
-          {isEn ? `${items.length} Sections` : `共 ${items.length} 个板块`}
+          {isUiEn ? `${items.length} Sections` : `共 ${items.length} 个板块`}
         </div>
       </div>
 
@@ -115,7 +117,7 @@ export function SectionSorter({ markdown, onChange, lang }: SectionSorterProps) 
         <div className="border border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-8 text-center text-slate-400 dark:text-slate-500 flex flex-col items-center justify-center gap-2">
           <Info className="w-7 h-7 text-slate-300 dark:text-slate-600 stroke-[1.5]" />
           <p className="text-xs">
-            {isEn ? 'No primary sections (## Heading) detected' : '未检测到简历板块（以 ## 开头的二级标题）'}
+            {isUiEn ? 'No primary sections (## Heading) detected' : '未检测到简历板块（以 ## 开头的二级标题）'}
           </p>
         </div>
       ) : (
@@ -164,7 +166,7 @@ export function SectionSorter({ markdown, onChange, lang }: SectionSorterProps) 
                   <div className="min-w-0 flex-1 space-y-0.5">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-[13px]">
-                        {isEn ? translateSectionTitle(item.title, 'en') : item.title}
+                        {translateSectionTitle(item.title, activeContentLang)}
                       </span>
                       {/* 只保留图标，移除图标后重复的文本 */}
                       <span 
@@ -175,7 +177,7 @@ export function SectionSorter({ markdown, onChange, lang }: SectionSorterProps) 
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-400 dark:text-slate-400 truncate font-normal">
-                      {contentPreview || (isEn ? '(Empty content)' : '(暂无详细内容)')}
+                      {contentPreview || (isUiEn ? '(Empty content)' : '(暂无详细内容)')}
                     </p>
                   </div>
                 </div>
@@ -185,7 +187,7 @@ export function SectionSorter({ markdown, onChange, lang }: SectionSorterProps) 
                   className="flex items-center gap-1 shrink-0"
                   onPointerDown={(e) => e.stopPropagation()}
                 >
-                  <Tooltip content={isEn ? 'Move up' : '上移'} side="top" disabled={idx === 0}>
+                  <Tooltip content={isUiEn ? 'Move up' : '上移'} side="top" disabled={idx === 0}>
                     <button
                       type="button"
                       disabled={idx === 0}
@@ -202,7 +204,7 @@ export function SectionSorter({ markdown, onChange, lang }: SectionSorterProps) 
                       <ArrowUp className="w-3 h-3" />
                     </button>
                   </Tooltip>
-                  <Tooltip content={isEn ? 'Move down' : '下移'} side="top" disabled={idx === items.length - 1}>
+                  <Tooltip content={isUiEn ? 'Move down' : '下移'} side="top" disabled={idx === items.length - 1}>
                     <button
                       type="button"
                       disabled={idx === items.length - 1}

@@ -50,7 +50,6 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
           tpl.targetMarket ?? (tpl.suggestedLang === 'zh' ? 'cn' : 'international');
         settingsToUse = {
           ...settings,
-          ...(tpl.suggestedLang ? { lang: tpl.suggestedLang } : {}),
           marketRegion: targetMarket,
           paperSize: tpl.defaultPaperSize ?? resolveDefaultPaperSize(targetMarket),
           dateStyle: tpl.dateStyle ?? getMarketProfile(targetMarket).dateStyle,

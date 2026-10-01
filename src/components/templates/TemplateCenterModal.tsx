@@ -20,6 +20,7 @@ import {
   type TemplateGroup,
 } from '../../lib/template-presentation';
 import { useResumeStore } from '../../store/useResumeStore';
+import { getMarketProfile, resolveDefaultPaperSize } from '../../lib/market-profile';
 
 interface TemplateCenterModalProps {
   isOpen: boolean;
@@ -279,8 +280,12 @@ export function TemplateCenterModal({
     if (selectedTemplate.targetMarket) {
       updateSettings({
         marketRegion: selectedTemplate.targetMarket,
-        paperSize: selectedTemplate.defaultPaperSize || settings.paperSize,
-        dateStyle: selectedTemplate.dateStyle || settings.dateStyle,
+        paperSize:
+          selectedTemplate.defaultPaperSize ??
+          resolveDefaultPaperSize(selectedTemplate.targetMarket),
+        dateStyle:
+          selectedTemplate.dateStyle ??
+          getMarketProfile(selectedTemplate.targetMarket).dateStyle,
       });
     }
 

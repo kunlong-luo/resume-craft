@@ -170,7 +170,6 @@ export function TemplateCenterModal({
 }: TemplateCenterModalProps) {
   const {
     markdown,
-    settings,
     uiLanguage,
     currentTemplateId,
     applyTemplate,

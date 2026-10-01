@@ -168,7 +168,7 @@ test.describe('international responsive UX', () => {
     await expect(label).toBeVisible();
     await expect(studentButton).toBeVisible();
 
-    await expect(page.getByDisplayValue('Skills')).toBeVisible();
+    await expect(page.locator('input[value="Skills"]')).toBeVisible();
     await expect(page.locator('#resume-print-content h2').filter({ hasText: /^Skills$/ })).toBeVisible();
     await expect(page.locator('#resume-print-content h2').filter({ hasText: /^Work Experience$/ })).toBeVisible();
 

@@ -87,9 +87,11 @@ const FILTERS: Array<{
 
 function MiniResumePreview({
   content,
+  paperSize = 'a4',
   compact = false,
 }: {
   content: string;
+  paperSize?: 'a4' | 'letter';
   compact?: boolean;
 }) {
   const preview = getTemplatePreview(content);
@@ -98,9 +100,10 @@ function MiniResumePreview({
     <div
       className={
         compact
-          ? 'aspect-[210/297] w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-2 shadow-sm'
-          : 'aspect-[210/297] w-full overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-sm'
+          ? 'w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-2 shadow-sm'
+          : 'w-full overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-sm'
       }
+      style={{ aspectRatio: paperSize === 'letter' ? '8.5 / 11' : '210 / 297' }}
       aria-hidden="true"
     >
       <div
@@ -180,7 +183,7 @@ export function TemplateCenterModal({
 
   useDialogFocus({ isOpen, dialogRef, onClose });
 
-  const [selectedId, setSelectedId] = useState('ai_backend');
+  const [selectedId, setSelectedId] = useState('cn_demo');
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
 
   const localizedTemplates = useMemo(
@@ -194,7 +197,7 @@ export function TemplateCenterModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    const fallbackId = isEn ? 'us_swe' : 'ai_backend';
+    const fallbackId = isEn ? 'us_swe' : 'cn_demo';
     setSelectedId(
       TEMPLATES.some((template) => template.id === currentTemplateId)
         ? currentTemplateId
@@ -391,7 +394,7 @@ export function TemplateCenterModal({
                         : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900')
                     }
                   >
-                    <MiniResumePreview content={template.content} compact />
+                    <MiniResumePreview content={template.content} paperSize={template.defaultPaperSize} compact />
                     <div className="mt-2.5 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 truncate text-[11px] font-black text-slate-800 dark:text-slate-100">
@@ -441,7 +444,7 @@ export function TemplateCenterModal({
 
           <div className="min-h-0 bg-slate-50/80 p-5 dark:bg-slate-950/35 sm:p-6 lg:overflow-y-auto">
             <div className="mx-auto max-w-sm">
-              <MiniResumePreview content={selectedTemplate.content} />
+              <MiniResumePreview content={selectedTemplate.content} paperSize={selectedTemplate.defaultPaperSize} />
 
               <div className="mt-5">
                 <div className="flex flex-wrap items-center gap-2">

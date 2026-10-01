@@ -6,6 +6,7 @@
 export const STORAGE_KEYS = {
   MARKDOWN: 'resume-markdown',
   SETTINGS: 'resume-settings',
+  UI_LANGUAGE: 'resume_ui_language',
   THEME_MODE: 'resume_theme_mode',
   PREVIEW_ZOOM: 'resume_preview_zoom',
   DRAFTS: 'resume-drafts',

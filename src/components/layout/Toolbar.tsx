@@ -14,10 +14,11 @@ import { trackAnalyticsEvent } from '../../lib/analytics';
 export function Toolbar() {
   const {
     settings,
+    uiLanguage,
     updateSetting,
   } = useResumeStore();
 
-  const isEn = settings.lang === 'en';
+  const isEn = uiLanguage === 'en';
 
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
   const [isStyleOpen, setIsStyleOpen] = useState(false);

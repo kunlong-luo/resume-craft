@@ -25,6 +25,7 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
   const {
     markdown: storeMarkdown,
     settings: storeSettings,
+    uiLanguage,
     updateSetting: onChangeSettings,
     setMeasuredPageCount
   } = useResumeStore();
@@ -135,10 +136,10 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
   const resumeInnerContent = useMemo(() => {
     const bodyContent = headerInfo.hasHeader ? headerInfo.bodyMarkdown : cleaned;
     const isLetter = paperSpec.id === 'letter';
-    const paperName = settings.lang === 'en'
+    const paperName = uiLanguage === 'en'
       ? (isLetter ? 'Letter' : 'A4')
       : (isLetter ? 'US Letter' : 'A4');
-    const pageBreakLabel = settings.lang === 'en' 
+    const pageBreakLabel = uiLanguage === 'en' 
       ? `${paperName} Page {p} Boundary ({size}mm) ✂️` 
       : `${paperName} 第 {p} 页边界线 ({size}mm) ✂️`;
 
@@ -214,7 +215,7 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
                 <div className="bg-rose-500 dark:bg-rose-600 text-white border border-rose-400/60 px-2.5 py-0.5 rounded-full shadow-md ml-4 -translate-y-1/2 flex items-center gap-1.5 font-bold tracking-tight">
                   <span className="text-[10px]">✂️</span>
                   <span className="text-[9.5px] font-mono tracking-wider">
-                    {settings.lang === 'en'
+                    {uiLanguage === 'en'
                       ? `${paperName} Page ${p} Fold`
                       : `${paperName} 第 ${p} 页裁切参考线`}
                   </span>
@@ -300,7 +301,7 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
                     {i > 0 && (
                       <>
                         <div className="print:hidden my-8 border-t-2 border-dashed border-gray-400 relative flex justify-center select-none">
-                          <span className="absolute -top-3 bg-white px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">{settings.lang === 'en' ? 'Page Break' : '分页符 / Page Break'}</span>
+                          <span className="absolute -top-3 bg-white px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">{uiLanguage === 'en' ? 'Page Break' : '分页符 / Page Break'}</span>
                         </div>
                         <div className="hidden print:block print-page-break" />
                       </>
@@ -319,7 +320,7 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
               {i > 0 && (
                 <>
                   <div className="print:hidden my-8 border-t-2 border-dashed border-gray-300 relative flex justify-center select-none">
-                    <span className="absolute -top-3 bg-white px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{settings.lang === 'en' ? 'Page Break' : '分页符 / Page Break'}</span>
+                    <span className="absolute -top-3 bg-white px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{uiLanguage === 'en' ? 'Page Break' : '分页符 / Page Break'}</span>
                   </div>
                   <div className="hidden print:block print-page-break" />
                 </>
@@ -330,9 +331,9 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
         })()}
       </>
     );
-  }, [headerInfo, cleaned, settings, markdownComponents, theme]);
+  }, [headerInfo, cleaned, settings, markdownComponents, theme, uiLanguage]);
 
-  const isEn = settings.lang === 'en';
+  const isEn = uiLanguage === 'en';
 
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden">
@@ -408,7 +409,7 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
         onZoomChange={setZoomMode} 
         showPageBreakLine={settings.showPageBreakLine}
         onTogglePageBreakLine={() => onChangeSettings?.('showPageBreakLine', !settings.showPageBreakLine)}
-        lang={settings.lang} 
+        lang={uiLanguage} 
       />
 
       <HeightGuard 
@@ -417,7 +418,7 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
         setTargetPageLimit={setTargetPageLimit} 
         onSmartAutoFit={handleSmartAutoFit} 
         isAutoFitting={isAutoFitting}
-        lang={settings.lang}
+        lang={uiLanguage}
       />
     </div>
   );

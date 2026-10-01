@@ -10,7 +10,8 @@ import { getTranslation } from '../i18n';
 export function useFormEditor(
   value: string,
   onChange: (value: string, immediate?: boolean) => void,
-  settings?: { lang?: string }
+  settings?: { lang?: string },
+  uiLanguage?: string,
 ) {
   const { confirm } = useConfirm();
   const { showToast } = useToast();
@@ -20,8 +21,9 @@ export function useFormEditor(
     basic: true
   });
   
-  const currentLang = settings?.lang || 'zh';
-  const translations = getTranslation(currentLang);
+  const contentLang = settings?.lang || 'zh';
+  const interfaceLang = uiLanguage || contentLang;
+  const translations = getTranslation(interfaceLang);
   const t = translations.form;
 
   const [showOptionalBasic, setShowOptionalBasic] = useState(() => {
@@ -127,9 +129,9 @@ export function useFormEditor(
           return { ...sec, type: newType, items: [newItem], textValue: '' };
         } else if (newType === 'text' && !sec.textValue && sec.items.length > 0) {
           let textVal = '';
-          const gpaTitle = currentLang === 'en' ? 'GPA / Performance' : '在校表现';
-          const coursesTitle = currentLang === 'en' ? 'Core Courses' : '主修课程';
-          const honorsTitle = currentLang === 'en' ? 'Honors & Awards' : '荣誉成就';
+          const gpaTitle = contentLang === 'en' ? 'GPA / Performance' : '在校表现';
+          const coursesTitle = contentLang === 'en' ? 'Core Courses' : '主修课程';
+          const honorsTitle = contentLang === 'en' ? 'Honors & Awards' : '荣誉成就';
 
           sec.items.forEach(item => {
             const heading = [item.org, item.degree, item.role, item.time].filter(Boolean).join(' ｜ ');
@@ -211,7 +213,7 @@ export function useFormEditor(
 
       if (existing) {
         scrollToSectionElement(existing.id, (id) => setExpandedSections(prev => ({ ...prev, [id]: true })));
-        const isEn = currentLang === 'en';
+        const isEn = interfaceLang === 'en';
 
         showToast({
           type: 'info',
@@ -224,7 +226,7 @@ export function useFormEditor(
       }
     }
 
-    const preset = getPresetSection(presetType, currentLang);
+    const preset = getPresetSection(presetType, contentLang);
     const now = Date.now();
     const newSection: FormSection = {
       ...preset,
@@ -235,7 +237,7 @@ export function useFormEditor(
     setExpandedSections(prev => ({ ...prev, [newSection.id]: true }));
     handleModelChange({ ...localModel, sections: updatedSections });
 
-    const isEn = currentLang === 'en';
+    const isEn = interfaceLang === 'en';
     showToast({
       type: 'success',
       title: isEn ? 'Module Added' : '常用模块添加成功',
@@ -365,7 +367,7 @@ export function useFormEditor(
 
   const insertStarTemplateToItem = async (sectionId: string, itemId: string, currentContent: string, sectionTitle: string) => {
     const applyTemplate = () => {
-      const template = getStarTemplate(sectionTitle, currentLang);
+      const template = getStarTemplate(sectionTitle, contentLang);
       const updatedSections = localModel.sections.map(sec => {
         if (sec.id === sectionId) {
           const updatedItems = sec.items.map(item => item.id === itemId ? { ...item, ...template } : item);

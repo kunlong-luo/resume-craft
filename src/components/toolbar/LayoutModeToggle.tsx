@@ -5,8 +5,8 @@ import { useResumeStore } from '../../store/useResumeStore';
 import { Tooltip } from '../ui/Tooltip';
 
 export function LayoutModeToggle() {
-  const { settings, updateSetting } = useResumeStore();
-  const isEn = settings.lang === 'en';
+  const { settings, uiLanguage, updateSetting } = useResumeStore();
+  const isEn = uiLanguage === 'en';
 
   const modes = [
     {

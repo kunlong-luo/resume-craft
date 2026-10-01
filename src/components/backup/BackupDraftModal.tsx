@@ -19,7 +19,8 @@ export function BackupDraftModal() {
     isBackupHubOpen: isOpen,
     setIsBackupHubOpen,
     currentTemplateId,
-    replaceDocument
+    replaceDocument,
+    uiLanguage,
   } = useResumeStore();
 
   const onClose = () => setIsBackupHubOpen(false);
@@ -79,7 +80,7 @@ export function BackupDraftModal() {
     setDrafts(updatedDrafts);
     void resumeRepository.replaceDrafts(updatedDrafts).catch((error) => {
       console.error('Error saving drafts to IndexedDB', error);
-      setErrorMessage(settings.lang === 'en' ? 'Failed to save local draft.' : '本地草稿保存失败。');
+      setErrorMessage(uiLanguage === 'en' ? 'Failed to save local draft.' : '本地草稿保存失败。');
       setTimeout(() => setErrorMessage(''), 3000);
     });
   };
@@ -96,7 +97,7 @@ export function BackupDraftModal() {
 
   const handleCreateDraft = (e: React.FormEvent) => {
     e.preventDefault();
-    const isEn = settings.lang === 'en';
+    const isEn = uiLanguage === 'en';
     const title = newDraftTitle.trim() || (isEn ? `Draft - ${new Date().toLocaleString('en-US', { hour12: false })}` : `草稿版 - ${new Date().toLocaleString('zh-CN', { hour12: false })}`);
     
     const newDraft: ResumeDraft = {
@@ -116,7 +117,7 @@ export function BackupDraftModal() {
   };
 
   const handleRestoreDraft = async (draft: ResumeDraft) => {
-    const isEn = settings.lang === 'en';
+    const isEn = uiLanguage === 'en';
     const confirmed = await confirm({
       title: isEn ? 'Restore Draft' : '恢复草稿确认',
       message: isEn 
@@ -135,7 +136,7 @@ export function BackupDraftModal() {
 
   const handleDeleteDraft = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const isEn = settings.lang === 'en';
+    const isEn = uiLanguage === 'en';
     const confirmed = await confirm({
       title: isEn ? 'Delete Draft' : '删除草稿确认',
       message: isEn
@@ -155,7 +156,7 @@ export function BackupDraftModal() {
   const handleSaveRename = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!editingTitle.trim()) return;
-    const isEn = settings.lang === 'en';
+    const isEn = uiLanguage === 'en';
     const updated = drafts.map(d => d.id === id ? { ...d, title: editingTitle.trim() } : d);
     saveDraftsList(updated);
     setEditingDraftId(null);
@@ -163,7 +164,7 @@ export function BackupDraftModal() {
   };
 
   const handleExportConfig = () => {
-    const isEn = settings.lang === 'en';
+    const isEn = uiLanguage === 'en';
     try {
       const backupData = {
         version: "markdown-resume-backup-v1",
@@ -197,7 +198,7 @@ export function BackupDraftModal() {
 
   const handleImportConfig = (file: File) => {
     if (!file) return;
-    const isEn = settings.lang === 'en';
+    const isEn = uiLanguage === 'en';
     if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
       showToast(isEn ? 'Only .json files are supported' : '仅支持导入 .json 格式的备份文件', true);
       return;
@@ -291,10 +292,10 @@ export function BackupDraftModal() {
                 </div>
                 <div>
                   <h3 id="backup-hub-title" className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm tracking-tight flex items-center gap-2">
-                    {settings.lang === 'en' ? 'Resume Management' : '简历管理'}
+                    {uiLanguage === 'en' ? 'Resume Management' : '简历管理'}
                   </h3>
                   <p id="backup-hub-description" className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1 sm:line-clamp-none">
-                    {settings.lang === 'en' 
+                    {uiLanguage === 'en' 
                       ? 'Manage resumes, drafts, and backups.'
                       : '管理简历、草稿和备份。'}
                   </p>
@@ -302,7 +303,7 @@ export function BackupDraftModal() {
               </div>
               <button
                 onClick={onClose}
-                aria-label={settings.lang === 'en' ? 'Close resume management dialog' : '关闭简历管理弹窗'}
+                aria-label={uiLanguage === 'en' ? 'Close resume management dialog' : '关闭简历管理弹窗'}
                 className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all cursor-pointer shrink-0"
               >
                 <X className="w-4 h-4" />
@@ -314,9 +315,9 @@ export function BackupDraftModal() {
               <div className="flex p-1 bg-slate-200/60 dark:bg-slate-800 rounded-xl gap-1 shrink-0">
                 {(
                   [
-                    { id: 'profiles', icon: Layers, label: settings.lang === 'en' ? 'Resumes' : '简历' },
-                    { id: 'drafts', icon: History, label: settings.lang === 'en' ? `Drafts (${drafts.length})` : `草稿 (${drafts.length})` },
-                    { id: 'backup', icon: FileJson, label: settings.lang === 'en' ? 'Backup' : '备份' }
+                    { id: 'profiles', icon: Layers, label: uiLanguage === 'en' ? 'Resumes' : '简历' },
+                    { id: 'drafts', icon: History, label: uiLanguage === 'en' ? `Drafts (${drafts.length})` : `草稿 (${drafts.length})` },
+                    { id: 'backup', icon: FileJson, label: uiLanguage === 'en' ? 'Backup' : '备份' }
                   ] as const
                 ).map((tab) => {
                   const Icon = tab.icon;
@@ -372,7 +373,7 @@ export function BackupDraftModal() {
             <div className="flex-1 overflow-y-auto p-0 sm:p-6 bg-white dark:bg-slate-900 scrollbar-thin">
               {activeTab === 'profiles' ? (
                 <ProfilesTab
-                  lang={settings.lang}
+                  lang={uiLanguage}
                   showToast={showToast}
                 />
               ) : activeTab === 'drafts' ? (
@@ -388,7 +389,7 @@ export function BackupDraftModal() {
                   setEditingTitle={setEditingTitle}
                   handleSaveRename={handleSaveRename}
                   handleDeleteDraft={handleDeleteDraft}
-                  lang={settings.lang}
+                  lang={uiLanguage}
                 />
               ) : (
                 <BackupTab 
@@ -398,7 +399,7 @@ export function BackupDraftModal() {
                   importDragActive={importDragActive}
                   fileInputRef={fileInputRef}
                   handleImportConfig={handleImportConfig}
-                  lang={settings.lang}
+                  lang={uiLanguage}
                 />
               )}
             </div>
@@ -409,7 +410,7 @@ export function BackupDraftModal() {
                 onClick={onClose}
                 className="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition-all cursor-pointer shadow-sm active:scale-98"
               >
-                {settings.lang === 'en' ? 'Close Hub' : '关闭 Hub'}
+                {uiLanguage === 'en' ? 'Close Hub' : '关闭 Hub'}
               </button>
             </div>
           </motion.div>

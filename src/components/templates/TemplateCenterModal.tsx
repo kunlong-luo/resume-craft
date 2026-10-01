@@ -170,13 +170,13 @@ export function TemplateCenterModal({
 }: TemplateCenterModalProps) {
   const {
     markdown,
-    settings,
+    uiLanguage,
     currentTemplateId,
     applyTemplate,
   } = useResumeStore();
   const { confirm } = useConfirm();
   const dialogRef = useRef<HTMLDivElement>(null);
-  const isEn = settings.lang === 'en';
+  const isEn = uiLanguage === 'en';
 
   useDialogFocus({ isOpen, dialogRef, onClose });
 

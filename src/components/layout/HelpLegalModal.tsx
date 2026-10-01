@@ -33,8 +33,8 @@ interface HelpLegalModalProps {
 type Tab = 'guide' | 'privacy' | 'license';
 
 export function HelpLegalModal({ isOpen, onClose }: HelpLegalModalProps) {
-  const { settings } = useResumeStore();
-  const isEn = (settings.lang || 'zh') === 'en';
+  const { uiLanguage } = useResumeStore();
+  const isEn = uiLanguage === 'en';
   const [activeTab, setActiveTab] = useState<Tab>('guide');
   const [confirmClear, setConfirmClear] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { STARTER_MARKDOWN, STARTER_MARKDOWN_EN, TEMPLATES } from '../data';
-import { ResumeSettings, ResumeProfile, MarketRegion } from '../types';
+import { ResumeSettings, ResumeProfile, MarketRegion, Language, ThemeMode } from '../types';
 import { storage, STORAGE_KEYS } from '../lib/storage';
 import { translateMarkdownContent } from '../lib/section-translator';
 import { migrateStoredMarkdown } from '../lib/markdown-migrations';
@@ -12,6 +12,8 @@ interface ResumeState {
   // States
   markdown: string;
   settings: ResumeSettings;
+  uiLanguage: Language;
+  themeMode: ThemeMode;
   currentTemplateId: string;
   lastSaved: string;
   isSaving: boolean;
@@ -39,6 +41,8 @@ interface ResumeState {
   // Actions
   setMarkdown: (markdown: string) => void;
   setSettings: (settings: ResumeSettings) => void;
+  setUiLanguage: (language: Language) => void;
+  setThemeMode: (mode: ThemeMode) => void;
   setCurrentTemplateId: (id: string) => void;
   setLastSaved: (lastSaved: string) => void;
   setStorageHealth: (status: 'ok' | 'error', isQuotaExceeded?: boolean) => void;
@@ -127,10 +131,8 @@ const sanitizeSettings = (raw: Partial<ResumeSettings> | null, defaultSettings: 
     ? Math.min(Math.max(merged.letterSpacing, -1.0), 2.0)
     : defaultSettings.letterSpacing;
 
-  // Sanitize themeMode
-  if (!merged.themeMode || !['light', 'dark', 'system'].includes(merged.themeMode)) {
-    merged.themeMode = 'light';
-  }
+  // themeMode is a global app preference now. Strip legacy per-profile values.
+  delete merged.themeMode;
 
   // Sanitize fontSize
   if (!['compact', 'standard', 'relaxed'].includes(merged.fontSize)) {
@@ -163,6 +165,36 @@ const getBrowserLanguage = (): 'zh' | 'en' => {
   return 'en';
 };
 
+
+const getInitialUiLanguage = (): Language => {
+  const saved = storage.getString(STORAGE_KEYS.UI_LANGUAGE, '');
+  if (saved === 'zh' || saved === 'en') return saved;
+
+  // Legacy migration: before UI/content language were split, settings.lang drove both.
+  const legacySettings = storage.get<Partial<ResumeSettings> | null>(STORAGE_KEYS.SETTINGS, null);
+  if (legacySettings?.lang === 'zh' || legacySettings?.lang === 'en') {
+    storage.set(STORAGE_KEYS.UI_LANGUAGE, legacySettings.lang);
+    return legacySettings.lang;
+  }
+
+  return getBrowserLanguage();
+};
+
+const getInitialThemeMode = (): ThemeMode => {
+  const saved = storage.getString(STORAGE_KEYS.THEME_MODE, '');
+  if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
+
+  // Legacy migration for backups/local state that embedded themeMode in resume settings.
+  const legacySettings = storage.get<Partial<ResumeSettings> | null>(STORAGE_KEYS.SETTINGS, null);
+  const legacyMode = legacySettings?.themeMode;
+  if (legacyMode === 'light' || legacyMode === 'dark' || legacyMode === 'system') {
+    storage.set(STORAGE_KEYS.THEME_MODE, legacyMode);
+    return legacyMode;
+  }
+
+  return 'light';
+};
+
 const getInitialSettings = (): ResumeSettings => {
   const initialLang = getBrowserLanguage();
   const initialMarket: MarketRegion = initialLang === 'zh' ? 'cn' : 'international';
@@ -185,7 +217,6 @@ const getInitialSettings = (): ResumeSettings => {
     marketRegion: initialMarket,
     paperSize: resolveDefaultPaperSize(initialMarket),
     dateStyle: getMarketProfile(initialMarket).dateStyle,
-    themeMode: (storage.getString(STORAGE_KEYS.THEME_MODE, 'light') || 'light') as 'light' | 'dark' | 'system',
   };
   
   const savedSettings = storage.get<Partial<ResumeSettings> | null>(STORAGE_KEYS.SETTINGS, null);
@@ -323,6 +354,8 @@ const getInitialProfiles = (
 
 const baseMarkdown = getInitialMarkdown();
 const baseSettings = getInitialSettings();
+const initialUiLanguage = getInitialUiLanguage();
+const initialThemeMode = getInitialThemeMode();
 const { profiles: initialProfiles, activeId: initialActiveId } = getInitialProfiles(baseMarkdown, baseSettings);
 const activeProfile = initialProfiles.find(p => p.id === initialActiveId) || initialProfiles[0];
 
@@ -330,6 +363,8 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   // Initial States derived from Active Profile
   markdown: activeProfile.markdown,
   settings: activeProfile.settings,
+  uiLanguage: initialUiLanguage,
+  themeMode: initialThemeMode,
   currentTemplateId: activeProfile.templateId || getInitialTemplateId(activeProfile.markdown),
   lastSaved: new Date().toLocaleTimeString(),
   isSaving: false,
@@ -366,13 +401,22 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   },
   setSettings: (settings) => {
     const { profiles, activeProfileId } = get();
+    const nextSettings = sanitizeSettings(settings, get().settings);
     const updatedProfiles = profiles.map(p =>
       p.id === activeProfileId
-        ? { ...p, settings, updatedAt: new Date().toISOString() }
+        ? { ...p, settings: nextSettings, updatedAt: new Date().toISOString() }
         : p
     );
-    storage.set(STORAGE_KEYS.SETTINGS, settings);
-    set({ settings, profiles: updatedProfiles, measuredPageCount: null });
+    storage.set(STORAGE_KEYS.SETTINGS, nextSettings);
+    set({ settings: nextSettings, profiles: updatedProfiles, measuredPageCount: null });
+  },
+  setUiLanguage: (uiLanguage) => {
+    storage.set(STORAGE_KEYS.UI_LANGUAGE, uiLanguage);
+    set({ uiLanguage });
+  },
+  setThemeMode: (themeMode) => {
+    storage.set(STORAGE_KEYS.THEME_MODE, themeMode);
+    set({ themeMode });
   },
   setCurrentTemplateId: (currentTemplateId) => {
     const { profiles, activeProfileId } = get();
@@ -457,11 +501,11 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   },
 
   createProfile: ({ name, targetRole, markdown: newMd, settings: newSettings, templateId }) => {
-    const { profiles, settings: curSettings, markdown: curMd, currentTemplateId } = get();
+    const { profiles, settings: curSettings, markdown: curMd, currentTemplateId, uiLanguage } = get();
     const now = new Date().toISOString();
     const id = `profile_${Date.now()}`;
-    const effectiveSettings = newSettings || curSettings;
-    const isEnProfile = effectiveSettings.lang === 'en';
+    const effectiveSettings = sanitizeSettings(newSettings || curSettings, curSettings);
+    const isEnProfile = uiLanguage === 'en';
     const newProfile: ResumeProfile = {
       id,
       name: name.trim() || (isEnProfile ? 'New Resume' : '新建简历档案'),
@@ -484,11 +528,11 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   },
 
   duplicateProfile: (profileId: string) => {
-    const { profiles } = get();
+    const { profiles, uiLanguage } = get();
     const source = profiles.find(p => p.id === profileId);
     if (!source) return profiles[0];
 
-    const isEn = source.settings.lang === 'en';
+    const isEn = uiLanguage === 'en';
     const now = new Date().toISOString();
     const id = `profile_${Date.now()}`;
     const newProfile: ResumeProfile = {
@@ -564,6 +608,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
 
     const normalizedProfiles = importedProfiles.map(profile => ({
       ...profile,
+      settings: sanitizeSettings(profile.settings, get().settings),
       templateId:
         profile.templateId === 'custom' || TEMPLATES.some(template => template.id === profile.templateId)
           ? profile.templateId
@@ -598,7 +643,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
 
   replaceDocument: (nextMarkdown: string, nextSettingsInput?: ResumeSettings, templateId?: string) => {
     const { settings, profiles, activeProfileId } = get();
-    const nextSettings = nextSettingsInput ?? settings;
+    const nextSettings = sanitizeSettings(nextSettingsInput ?? settings, settings);
     const safeTemplateId =
       templateId === 'custom' || TEMPLATES.some(template => template.id === templateId)
         ? (templateId as string)
@@ -777,12 +822,17 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   },
 
   updateSetting: (key, value) => {
+    if (key === 'themeMode') {
+      const mode = value as ThemeMode | undefined;
+      if (mode === 'light' || mode === 'dark' || mode === 'system') {
+        get().setThemeMode(mode);
+      }
+      return;
+    }
+
     const prevLang = get().settings?.lang;
     const newSettings = { ...get().settings, [key]: value };
     storage.set(STORAGE_KEYS.SETTINGS, newSettings);
-    if (key === 'themeMode') {
-      storage.set(STORAGE_KEYS.THEME_MODE, value);
-    }
 
     let nextMarkdown = get().markdown;
     if (key === 'lang' && value !== prevLang && (value === 'zh' || value === 'en')) {
@@ -808,15 +858,16 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
 
   updateSettings: (partialSettings) => {
     const prevLang = get().settings?.lang;
-    const newSettings = { ...get().settings, ...partialSettings };
-    storage.set(STORAGE_KEYS.SETTINGS, newSettings);
-    if (partialSettings.themeMode) {
-      storage.set(STORAGE_KEYS.THEME_MODE, partialSettings.themeMode);
+    const { themeMode: requestedThemeMode, ...profileSettings } = partialSettings;
+    if (requestedThemeMode === 'light' || requestedThemeMode === 'dark' || requestedThemeMode === 'system') {
+      get().setThemeMode(requestedThemeMode);
     }
+    const newSettings = { ...get().settings, ...profileSettings };
+    storage.set(STORAGE_KEYS.SETTINGS, newSettings);
 
     let nextMarkdown = get().markdown;
-    if (partialSettings.lang && partialSettings.lang !== prevLang && (partialSettings.lang === 'zh' || partialSettings.lang === 'en')) {
-      nextMarkdown = translateMarkdownContent(nextMarkdown, partialSettings.lang);
+    if (profileSettings.lang && profileSettings.lang !== prevLang && (profileSettings.lang === 'zh' || profileSettings.lang === 'en')) {
+      nextMarkdown = translateMarkdownContent(nextMarkdown, profileSettings.lang);
     }
 
     const { profiles, activeProfileId } = get();
@@ -829,7 +880,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       settings: newSettings,
       markdown: nextMarkdown,
       profiles: updatedProfiles,
-      ...(partialSettings.lang && partialSettings.lang !== prevLang
+      ...(profileSettings.lang && profileSettings.lang !== prevLang
         ? { history: [nextMarkdown], historyIndex: 0 }
         : {}),
       measuredPageCount: null,

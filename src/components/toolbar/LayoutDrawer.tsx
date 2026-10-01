@@ -1,6 +1,6 @@
 import React from 'react';
 import { BookOpen, Columns, FileText, SlidersHorizontal } from 'lucide-react';
-import { DateStyle, FontFamily, FontSize, MarketRegion, PaperMargin, TemplateLayout } from '../../types';
+import { DateStyle, FontFamily, FontSize, Language, MarketRegion, PaperMargin, TemplateLayout } from '../../types';
 import { useResumeStore } from '../../store/useResumeStore';
 import { CustomSlider } from '../ui/CustomSlider';
 import { SettingsPopover } from './SettingsPopover';
@@ -18,10 +18,12 @@ export function LayoutDrawer({
   onClose,
   triggerRef,
 }: LayoutDrawerProps) {
-  const { settings, updateSetting, updateSettings } = useResumeStore();
-  const isEn = settings.lang === 'en';
+  const { settings, uiLanguage, updateSetting, updateSettings } = useResumeStore();
+  const isEn = uiLanguage === 'en';
+  const resumeLanguage: Language = settings.lang || 'zh';
   const t = isEn ? TOOLBAR_TRANSLATIONS.en : TOOLBAR_TRANSLATIONS.zh;
-  const currentMarket: MarketRegion = settings.marketRegion || (isEn ? 'international' : 'cn');
+  const currentMarket: MarketRegion =
+    settings.marketRegion || (resumeLanguage === 'zh' ? 'cn' : 'international');
 
   const marketLabels: Record<MarketRegion, string> = {
     us: isEn ? 'US' : '美国',
@@ -172,6 +174,45 @@ export function LayoutDrawer({
                 </button>
               );
             })}
+          </div>
+        </section>
+
+        <section className="space-y-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+          <div>
+            <div className="mb-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
+              {isEn ? 'Resume language' : '简历语言'}
+            </div>
+            <p className="text-[9px] leading-relaxed text-slate-400 dark:text-slate-500">
+              {isEn
+                ? 'Controls resume content language only. Changing it translates standard section headings and keeps the app UI unchanged.'
+                : '仅控制简历内容语言；切换时会转换常用章节标题，不会改变应用界面语言。'}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+            <button
+              type="button"
+              aria-pressed={resumeLanguage === 'zh'}
+              onClick={() => updateSetting('lang', 'zh')}
+              className={`rounded-lg px-2 py-2 text-[10px] font-bold transition ${
+                resumeLanguage === 'zh'
+                  ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+            >
+              中文
+            </button>
+            <button
+              type="button"
+              aria-pressed={resumeLanguage === 'en'}
+              onClick={() => updateSetting('lang', 'en')}
+              className={`rounded-lg px-2 py-2 text-[10px] font-bold transition ${
+                resumeLanguage === 'en'
+                  ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+            >
+              English
+            </button>
           </div>
         </section>
 

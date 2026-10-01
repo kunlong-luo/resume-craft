@@ -110,6 +110,7 @@ export const Editor = React.memo(function Editor() {
     historyIndex,
     history,
     settings,
+    uiLanguage,
     updateSetting,
     currentTemplateId,
     applyTemplate,
@@ -117,6 +118,8 @@ export const Editor = React.memo(function Editor() {
   } = useResumeStore();
 
   const deferredValue = useDeferredValue(value);
+  const isUiEn = uiLanguage === 'en';
+  const isResumeEn = settings.lang === 'en';
 
   const { confirm } = useConfirm();
 
@@ -124,7 +127,6 @@ export const Editor = React.memo(function Editor() {
   const canRedo = historyIndex < history.length - 1;
 
   const onReset = async () => {
-    const isEn = settings.lang === 'en';
     const fallbackTemplateIdByMarket = {
       cn: 'cn_demo',
       us: 'us_swe',
@@ -133,7 +135,7 @@ export const Editor = React.memo(function Editor() {
       ie: 'english',
       international: 'english',
     } as const;
-    const currentMarket = settings.marketRegion || (isEn ? 'international' : 'cn');
+    const currentMarket = settings.marketRegion || (isResumeEn ? 'international' : 'cn');
     const fallbackTemplateId = fallbackTemplateIdByMarket[currentMarket];
     const isCustomReset = currentTemplateId === 'custom';
     const resetTemplate =
@@ -141,18 +143,18 @@ export const Editor = React.memo(function Editor() {
         ? TEMPLATES.find((template) => template.id === currentTemplateId)
         : undefined) ??
       TEMPLATES.find((template) => template.id === fallbackTemplateId) ??
-      TEMPLATES.find((template) => template.id === (isEn ? 'english' : 'cn_demo')) ??
+      TEMPLATES.find((template) => template.id === (isResumeEn ? 'english' : 'cn_demo')) ??
       TEMPLATES[0];
 
     if (!resetTemplate) return;
 
     const confirmed = await confirm({
-      title: isEn ? 'Reset current template' : '重置当前模板',
-      message: isEn
+      title: isUiEn ? 'Reset current template' : '重置当前模板',
+      message: isUiEn
         ? `Restore "${resetTemplate.name}" to its original example content and sync its target market, paper size, and date format? Your current content changes will be lost.`
         : `恢复「${resetTemplate.name}」的原始示例内容，并同步目标市场、纸张和日期格式？当前内容修改将会丢失。`,
-      confirmText: isEn ? 'Reset template' : '重置模板',
-      cancelText: isEn ? 'Cancel' : '取消',
+      confirmText: isUiEn ? 'Reset template' : '重置模板',
+      cancelText: isUiEn ? 'Cancel' : '取消',
       type: 'danger'
     });
 
@@ -261,14 +263,14 @@ export const Editor = React.memo(function Editor() {
 
   const handleAutoClean = () => {
     if (!autoCleanResult.hasChanges) {
-      setCleanFeedback(settings.lang === 'en' ? 'Already Perfect!' : '排版格式已是最佳状态');
+      setCleanFeedback(isUiEn ? 'Already Perfect!' : '排版格式已是最佳状态');
       setTimeout(() => setCleanFeedback(null), 2000);
       return;
     }
 
     onChange(autoCleanResult.cleanedMarkdown, true);
     setCleanFeedback(
-      settings.lang === 'en' 
+      isUiEn 
         ? `Cleaned ${autoCleanResult.fixesCount} items!` 
         : `已一键规范化 ${autoCleanResult.fixesCount} 处格式！`
     );
@@ -298,7 +300,7 @@ export const Editor = React.memo(function Editor() {
           <button
             type="button"
             onClick={() => setActiveMode('form')}
-            aria-label={settings.lang === 'en' ? 'Form editor' : '表单编辑模式'}
+            aria-label={isUiEn ? 'Form editor' : '表单编辑模式'}
             className={`relative flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               activeMode === 'form'
                 ? 'text-indigo-700 dark:text-indigo-300 font-extrabold'
@@ -313,13 +315,13 @@ export const Editor = React.memo(function Editor() {
               />
             )}
             <Layers className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-            <span>{settings.lang === 'en' ? 'Form' : '表单'}</span>
+            <span>{isUiEn ? 'Form' : '表单'}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveMode('markdown')}
-            aria-label={settings.lang === 'en' ? 'Markdown source editor' : 'Markdown 源码编辑模式'}
+            aria-label={isUiEn ? 'Markdown source editor' : 'Markdown 源码编辑模式'}
             className={`relative flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               activeMode === 'markdown'
                 ? 'text-indigo-700 dark:text-indigo-300 font-extrabold'
@@ -334,30 +336,30 @@ export const Editor = React.memo(function Editor() {
               />
             )}
             <Code className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-            <span>{settings.lang === 'en' ? 'Markdown' : '源码'}</span>
+            <span>{isUiEn ? 'Markdown' : '源码'}</span>
           </button>
         </div>
 
         {/* Right Toolset: 排序 | 折叠 | 规范 | 分页线 | 复制 | 重置 */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-          <Tooltip content={settings.lang === 'en' ? 'Undo' : '撤销'} shortcut="Ctrl+Z">
+          <Tooltip content={isUiEn ? 'Undo' : '撤销'} shortcut="Ctrl+Z">
             <button 
               type="button"
               onClick={onUndo}
               disabled={!canUndo}
-              aria-label={settings.lang === 'en' ? 'Undo' : '撤销'}
+              aria-label={isUiEn ? 'Undo' : '撤销'}
               className={`p-1.5 rounded-lg transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${canUndo ? 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 cursor-pointer' : 'text-slate-300 dark:text-slate-600 cursor-not-allowed'}`}
             >
               <Undo className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </Tooltip>
 
-          <Tooltip content={settings.lang === 'en' ? 'Redo' : '重做'} shortcut="Ctrl+Y">
+          <Tooltip content={isUiEn ? 'Redo' : '重做'} shortcut="Ctrl+Y">
             <button 
               type="button"
               onClick={onRedo}
               disabled={!canRedo}
-              aria-label={settings.lang === 'en' ? 'Redo' : '重做'}
+              aria-label={isUiEn ? 'Redo' : '重做'}
               className={`p-1.5 rounded-lg transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${canRedo ? 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 cursor-pointer' : 'text-slate-300 dark:text-slate-600 cursor-not-allowed'}`}
             >
               <Redo className="w-3.5 h-3.5" aria-hidden="true" />
@@ -367,12 +369,12 @@ export const Editor = React.memo(function Editor() {
           <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
 
           {/* 排序 (Section Order) */}
-          <Tooltip content={settings.lang === 'en' ? 'Reorder resume sections' : '调整简历模块顺序'}>
+          <Tooltip content={isUiEn ? 'Reorder resume sections' : '调整简历模块顺序'}>
             <button
               type="button"
               onClick={() => setActiveMode(activeMode === 'layout' ? 'form' : 'layout')}
               aria-pressed={activeMode === 'layout'}
-              aria-label={settings.lang === 'en' ? 'Reorder sections' : '调整简历模块顺序'}
+              aria-label={isUiEn ? 'Reorder sections' : '调整简历模块顺序'}
               className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 activeMode === 'layout'
                   ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-950/70 dark:border-indigo-800 dark:text-indigo-300'
@@ -386,7 +388,7 @@ export const Editor = React.memo(function Editor() {
           {/* 折叠/展开 (Collapse / Expand all) */}
           {activeMode === 'form' && formExpandedState.hasSections && (
             <Tooltip
-              content={formExpandedState.isAllExpanded ? (settings.lang === 'en' ? 'Collapse all sections' : '一键折叠所有模块') : (settings.lang === 'en' ? 'Expand all sections' : '一键展开所有模块')}
+              content={formExpandedState.isAllExpanded ? (isUiEn ? 'Collapse all sections' : '一键折叠所有模块') : (isUiEn ? 'Expand all sections' : '一键展开所有模块')}
             >
               <button 
                 type="button"
@@ -395,7 +397,7 @@ export const Editor = React.memo(function Editor() {
                     detail: { expand: !formExpandedState.isAllExpanded }
                   }));
                 }}
-                aria-label={formExpandedState.isAllExpanded ? (settings.lang === 'en' ? 'Collapse all sections' : '一键折叠所有模块') : (settings.lang === 'en' ? 'Expand all sections' : '一键展开所有模块')}
+                aria-label={formExpandedState.isAllExpanded ? (isUiEn ? 'Collapse all sections' : '一键折叠所有模块') : (isUiEn ? 'Expand all sections' : '一键展开所有模块')}
                 className="p-1.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
                 {formExpandedState.isAllExpanded ? (
@@ -412,14 +414,14 @@ export const Editor = React.memo(function Editor() {
             content={
               cleanFeedback
                 ? cleanFeedback
-                : (settings.lang === 'en' ? 'Standardize CJK/English spacing, trim extra lines' : '规范中英空格与去除多余空行')
+                : (isUiEn ? 'Standardize CJK/English spacing, trim extra lines' : '规范中英空格与去除多余空行')
             }
             shortcut="Ctrl+Shift+F"
           >
             <button 
               type="button"
               onClick={handleAutoClean}
-              aria-label={settings.lang === 'en' ? 'Auto format and clean spacing' : '规范排版'}
+              aria-label={isUiEn ? 'Auto format and clean spacing' : '规范排版'}
               className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 cleanFeedback
                   ? 'bg-emerald-500 text-white border-emerald-500 shadow-emerald-500/20'
@@ -437,12 +439,12 @@ export const Editor = React.memo(function Editor() {
           </Tooltip>
 
           {/* 分页辅助线 (Page Break Line) */}
-          <Tooltip content={settings.lang === 'en' ? 'Toggle page break guide line' : '显示/隐藏分页辅助线'}>
+          <Tooltip content={isUiEn ? 'Toggle page break guide line' : '显示/隐藏分页辅助线'}>
             <button
               type="button"
               onClick={() => updateSetting('showPageBreakLine', !settings.showPageBreakLine)}
               aria-pressed={settings.showPageBreakLine}
-              aria-label={settings.lang === 'en' ? 'Toggle page break guide' : '切换分页辅助线'}
+              aria-label={isUiEn ? 'Toggle page break guide' : '切换分页辅助线'}
               className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 settings.showPageBreakLine
                   ? 'bg-rose-50 border-rose-200 text-rose-600 dark:bg-rose-950/60 dark:border-rose-800 dark:text-rose-400'
@@ -456,11 +458,11 @@ export const Editor = React.memo(function Editor() {
           <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
 
           {/* 复制 Markdown 源码 */}
-          <Tooltip content={settings.lang === 'en' ? 'Copy Markdown source' : '复制 Markdown 源码'}>
+          <Tooltip content={isUiEn ? 'Copy Markdown source' : '复制 Markdown 源码'}>
             <button 
               type="button"
               onClick={handleCopy}
-              aria-label={settings.lang === 'en' ? 'Copy Markdown source' : '复制 Markdown 源码'}
+              aria-label={isUiEn ? 'Copy Markdown source' : '复制 Markdown 源码'}
               className="p-1.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" aria-hidden="true" /> : <Copy className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />}
@@ -468,11 +470,11 @@ export const Editor = React.memo(function Editor() {
           </Tooltip>
 
           {/* 重置模板 */}
-          <Tooltip content={settings.lang === 'en' ? 'Reset current template and market format' : '重置当前模板并同步市场格式'}>
+          <Tooltip content={isUiEn ? 'Reset current template and market format' : '重置当前模板并同步市场格式'}>
             <button 
               type="button"
               onClick={onReset}
-              aria-label={settings.lang === 'en' ? 'Reset current template' : '重置当前模板'}
+              aria-label={isUiEn ? 'Reset current template' : '重置当前模板'}
               className="p-1.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               <RotateCcw className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
@@ -494,7 +496,7 @@ export const Editor = React.memo(function Editor() {
             >
           {/* Formatting Help Toolbar */}
           <div className="flex items-center flex-wrap gap-1 px-4 py-1.5 bg-gray-50/70 dark:bg-slate-850 border-b border-gray-100 dark:border-slate-800">
-            <Tooltip content={settings.lang === 'en' ? 'Heading 1' : '一级大标题'} shortcut="# text" side="bottom">
+            <Tooltip content={isUiEn ? 'Heading 1' : '一级大标题'} shortcut="# text" side="bottom">
               <button
                 onClick={() => insertMarkdown('# text')}
                 className="p-1.5 hover:bg-gray-200/60 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded transition-colors cursor-pointer"
@@ -503,7 +505,7 @@ export const Editor = React.memo(function Editor() {
               </button>
             </Tooltip>
 
-            <Tooltip content={settings.lang === 'en' ? 'Heading 2 (Section)' : '二级板块标题'} shortcut="## text" side="bottom">
+            <Tooltip content={isUiEn ? 'Heading 2 (Section)' : '二级板块标题'} shortcut="## text" side="bottom">
               <button
                 onClick={() => insertMarkdown('## text')}
                 className="p-1.5 hover:bg-gray-200/60 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded transition-colors cursor-pointer"
@@ -514,7 +516,7 @@ export const Editor = React.memo(function Editor() {
 
             <div className="w-px h-3.5 bg-gray-200 dark:bg-slate-700 mx-1"></div>
 
-            <Tooltip content={settings.lang === 'en' ? 'Bold' : '文本加粗'} shortcut="**text**" side="bottom">
+            <Tooltip content={isUiEn ? 'Bold' : '文本加粗'} shortcut="**text**" side="bottom">
               <button
                 onClick={() => insertMarkdown('**text**')}
                 className="p-1.5 hover:bg-gray-200/60 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded transition-colors cursor-pointer"
@@ -523,7 +525,7 @@ export const Editor = React.memo(function Editor() {
               </button>
             </Tooltip>
 
-            <Tooltip content={settings.lang === 'en' ? 'Italic' : '斜体强调'} shortcut="*text*" side="bottom">
+            <Tooltip content={isUiEn ? 'Italic' : '斜体强调'} shortcut="*text*" side="bottom">
               <button
                 onClick={() => insertMarkdown('*text*')}
                 className="p-1.5 hover:bg-gray-200/60 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded transition-colors cursor-pointer"
@@ -532,7 +534,7 @@ export const Editor = React.memo(function Editor() {
               </button>
             </Tooltip>
 
-            <Tooltip content={settings.lang === 'en' ? 'Inline Code' : '行内代码/标签'} shortcut="`text`" side="bottom">
+            <Tooltip content={isUiEn ? 'Inline Code' : '行内代码/标签'} shortcut="`text`" side="bottom">
               <button
                 onClick={() => insertMarkdown('`text`')}
                 className="p-1.5 hover:bg-gray-200/60 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded transition-colors cursor-pointer"
@@ -543,7 +545,7 @@ export const Editor = React.memo(function Editor() {
 
             <div className="w-px h-3.5 bg-gray-200 dark:bg-slate-700 mx-1"></div>
 
-            <Tooltip content={settings.lang === 'en' ? 'Bullet List' : '无序项目列表'} shortcut="- text" side="bottom">
+            <Tooltip content={isUiEn ? 'Bullet List' : '无序项目列表'} shortcut="- text" side="bottom">
               <button
                 onClick={() => insertMarkdown('- text')}
                 className="p-1.5 hover:bg-gray-200/60 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded transition-colors cursor-pointer"
@@ -552,7 +554,7 @@ export const Editor = React.memo(function Editor() {
               </button>
             </Tooltip>
 
-            <Tooltip content={settings.lang === 'en' ? 'Numbered List' : '有序项目列表'} shortcut="1. text" side="bottom">
+            <Tooltip content={isUiEn ? 'Numbered List' : '有序项目列表'} shortcut="1. text" side="bottom">
               <button
                 onClick={() => insertMarkdown('1. text')}
                 className="p-1.5 hover:bg-gray-200/60 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded transition-colors cursor-pointer"
@@ -561,7 +563,7 @@ export const Editor = React.memo(function Editor() {
               </button>
             </Tooltip>
 
-            <Tooltip content={settings.lang === 'en' ? 'Insert Link' : '插入超链接'} shortcut="[title](url)" side="bottom">
+            <Tooltip content={isUiEn ? 'Insert Link' : '插入超链接'} shortcut="[title](url)" side="bottom">
               <button
                 onClick={() => insertMarkdown('[link](url)')}
                 className="p-1.5 hover:bg-gray-200/60 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded transition-colors cursor-pointer"
@@ -570,7 +572,7 @@ export const Editor = React.memo(function Editor() {
               </button>
             </Tooltip>
 
-            <Tooltip content={settings.lang === 'en' ? 'Divider Line' : '插入水平分割线'} shortcut="---" side="bottom">
+            <Tooltip content={isUiEn ? 'Divider Line' : '插入水平分割线'} shortcut="---" side="bottom">
               <button
                 onClick={() => insertMarkdown('\n---\n')}
                 className="p-1.5 hover:bg-gray-200/60 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded transition-colors cursor-pointer"
@@ -579,7 +581,7 @@ export const Editor = React.memo(function Editor() {
               </button>
             </Tooltip>
 
-            <Tooltip content={settings.lang === 'en' ? 'Insert Page Break' : '插入强制分页符'} side="bottom">
+            <Tooltip content={isUiEn ? 'Insert Page Break' : '插入强制分页符'} side="bottom">
               <button
                 onClick={() => insertMarkdown('\n<!-- pagebreak -->\n')}
                 className="p-1.5 hover:bg-gray-200/60 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded transition-colors cursor-pointer"
@@ -588,7 +590,7 @@ export const Editor = React.memo(function Editor() {
               </button>
             </Tooltip>
 
-            <Tooltip content={settings.lang === 'en' ? 'Insert Table' : '插入 Markdown 表格'} side="bottom">
+            <Tooltip content={isUiEn ? 'Insert Table' : '插入 Markdown 表格'} side="bottom">
               <button
                 onClick={() => insertMarkdown('\n| Header 1 | Header 2 |\n| -------- | -------- |\n| Item 1   | Item 2   |\n')}
                 className="p-1.5 hover:bg-gray-200/60 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white rounded transition-colors cursor-pointer"
@@ -601,13 +603,13 @@ export const Editor = React.memo(function Editor() {
 
             {/* Quick Snippets Inserter Dropdown */}
             <div className="relative">
-              <Tooltip content={settings.lang === 'en' ? 'Insert ready-made resume sections' : '快速插入常用结构化简历模块'}>
+              <Tooltip content={isUiEn ? 'Insert ready-made resume sections' : '快速插入常用结构化简历模块'}>
                 <button
                   onClick={() => setIsSnippetsDropdownOpen(!isSnippetsDropdownOpen)}
                   className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-indigo-950/60 dark:to-blue-950/60 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-indigo-900/70 dark:hover:to-blue-900/70 text-blue-700 dark:text-blue-300 hover:text-indigo-800 dark:hover:text-white rounded border border-blue-200/50 dark:border-indigo-800 text-[11px] font-semibold transition-all shadow-sm cursor-pointer ml-1 active:scale-95"
                 >
                   <Layers className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-                  <span>{settings.lang === 'en' ? 'Insert Snippets' : '插入常用模块'}</span>
+                  <span>{isUiEn ? 'Insert Snippets' : '插入常用模块'}</span>
                   <ChevronDown className={`w-3 h-3 text-blue-500 dark:text-blue-400 transition-transform shrink-0 ${isSnippetsDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
               </Tooltip>
@@ -622,13 +624,13 @@ export const Editor = React.memo(function Editor() {
                   {/* Dropdown Items list */}
                   <div className="absolute left-1 mt-1 w-56 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-xl rounded-lg py-1.5 z-50 flex flex-col animate-in fade-in slide-in-from-top-1 duration-150">
                     <div className="px-2.5 py-1 text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-widest border-b border-gray-100 dark:border-slate-700 mb-1">
-                      {settings.lang === 'en' ? 'Select Snippet to Insert' : '选择常用模块插入'}
+                      {isUiEn ? 'Select Snippet to Insert' : '选择常用模块插入'}
                     </div>
                     
                     {/* 1. Summary / Personal Advantages */}
                     <button
                       onClick={() => {
-                        const snippet = settings.lang === 'en'
+                        const snippet = isResumeEn
                           ? `\n## Summary\n- **Core Competence**: Over 5 years of solid experience in large-scale web applications and frontend architecture.\n- **Engineering Excellence**: Proven track record in performance optimization, CI/CD pipeline automation, and code quality standards.\n- **Team Leadership**: Experienced in cross-functional collaboration, technical mentoring, and leading agile delivery teams.\n`
                           : `\n## 个人优势\n- **专业深度**：5 年前端研发与架构经验，精通 React/TypeScript 技术栈与现代工程化体系。\n- **性能攻坚**：主导多次核心系统性能重构与指标调优，具备丰富的大型复杂业务系统治理经验。\n- **团队协作**：具备良好的跨团队沟通与技术攻坚能力，指导初中级工程师，推动敏捷迭代与工程规范落地。\n`;
                         insertMarkdown(snippet);
@@ -637,13 +639,13 @@ export const Editor = React.memo(function Editor() {
                       className="flex items-center gap-2.5 px-3 py-1.5 text-xs text-gray-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-slate-750 hover:text-amber-700 dark:hover:text-amber-300 transition-colors cursor-pointer text-left font-medium"
                     >
                       <User className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
-                      <span>{settings.lang === 'en' ? 'Strengths' : '个人优势模板'}</span>
+                      <span>{isUiEn ? 'Strengths' : '个人优势模板'}</span>
                     </button>
 
                     {/* 2. Skill bar progress indicators */}
                     <button
                       onClick={() => {
-                        const snippet = settings.lang === 'en'
+                        const snippet = isResumeEn
                           ? `\n- **Frontend Core**: React / Vue.js | Expert ★★★★★\n- **Backend/Full-stack**: Node.js / Go | Proficient ★★★★☆\n- **AI & LLM**: RAG / Agent Development | Proficient ★★★★☆\n- **DevOps & Tooling**: Webpack / Vite / Docker | Familiar ★★★☆☆\n`
                           : `\n- **前端核心**：React / Vue.js ｜ 精通 ★★★★★\n- **后端/全栈**：Node.js / Go ｜ 熟练 ★★★★☆\n- **大模型应用**：RAG / Agent 开发 ｜ 熟练 ★★★★☆\n- **工具与工程**：Webpack / Vite / Docker ｜ 熟悉 ★★★☆☆\n`;
                         insertMarkdown(snippet);
@@ -652,13 +654,13 @@ export const Editor = React.memo(function Editor() {
                       className="flex items-center gap-2.5 px-3 py-1.5 text-xs text-gray-700 dark:text-slate-200 hover:bg-cyan-50 dark:hover:bg-slate-750 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors cursor-pointer text-left font-medium"
                     >
                       <Layers className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
-                      <span>{settings.lang === 'en' ? 'Skills & Ratings' : '专业技能 (带星级)'}</span>
+                      <span>{isUiEn ? 'Skills & Ratings' : '专业技能 (带星级)'}</span>
                     </button>
 
                     {/* 3. Work experience */}
                     <button
                       onClick={() => {
-                        const snippet = settings.lang === 'en'
+                        const snippet = isResumeEn
                           ? `\n### **Company Name | Position / Role | 2023.06 - Present**\n- **Core Responsibility**: Directed/Led... (Describe major tasks, e.g. key system design and full-stack development)\n- **Business Impact**: Spearheaded... (e.g. Completed performance overhaul, reducing latency by 50% and doubling peak throughput)\n- **Team & Collaboration**: Mentored 3 junior engineers and established continuous integration guidelines to accelerate release velocity by 30%.\n`
                           : `\n### **公司名称 ｜ 岗位名称 ｜ 2023.06 - 至今**\n- **核心职责**：主导/负责...（描述主要工作，如：核心系统的架构设计与研发）\n- **业务产出**：主导了...（例如：完成了全链路性能重构，首屏耗时降低 50%，核心 QPS 支持翻倍）\n- **团队协作**：指导...（例如：指导 3 位初级工程师，制定 CI/CD 规范，缩短版本发布周期 30%）\n`;
                         insertMarkdown(snippet);
@@ -667,13 +669,13 @@ export const Editor = React.memo(function Editor() {
                       className="flex items-center gap-2.5 px-3 py-1.5 text-xs text-gray-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-750 hover:text-blue-700 dark:hover:text-blue-300 transition-colors cursor-pointer text-left font-medium"
                     >
                       <Briefcase className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
-                      <span>{settings.lang === 'en' ? 'Work Experience' : '工作经历模板'}</span>
+                      <span>{isUiEn ? 'Work Experience' : '工作经历模板'}</span>
                     </button>
 
                     {/* 4. STAR Project */}
                     <button
                       onClick={() => {
-                        const snippet = settings.lang === 'en'
+                        const snippet = isResumeEn
                           ? `\n### **Project Name | Role | 2024.10 - 2025.02**\n- **[Situation]**: Faced with severe latency spikes (averaging 3.5s) and slow queries during high traffic events, resulting in a 10% drop in user conversion rate.\n- **[Task]**: As Lead Engineer, tasked to refactor database performance and system architecture to reduce average latency below 500ms.\n- **[Action]**: Designed and implemented the following initiatives:\n  1. **Database Tuning**: Engineered composite indexes and optimized SQL joins to reduce slow query logs by 90%.\n  2. **Concurrency Control**: Implemented Redis cache clusters and Kafka message brokers for reliable request throttling.\n- **[Result]**: Reduced response time to 500ms, achieved 100% service uptime during high-concurrency events, and increased checkout conversion by 12%.\n`
                           : `\n### **项目名称 ｜ 角色名称 ｜ 2024.10 - 2025.02**\n- **[Situation 业务背景]**：面对...（例如：原有系统在 QPS 万级时存在慢查询和高延迟问题，导致成单率降低了 10%）\n- **[Task 核心任务]**：作为重构负责人，主导数据库性能调优与架构演进，在 3 个月内将响应耗时控制在 500ms 内\n- **[Action 关键行动]**：为了达成目标，实施了以下方案：\n  1. **数据库优化**：针对全表扫描慢查询建立复合索引，重写 Join 逻辑，使慢 SQL 占比降低 90%\n  2. **并发削峰**：引入 Redis 热点缓存与 Kafka 消息队列，完美支撑双十一 QPS 高峰\n- **[Result 实际产出]**：项目上线后，首屏响应由 3.5s 缩短至 0.5s，单点服务稳定度 100%，成单率增加 12%\n`;
                         insertMarkdown(snippet);
@@ -682,13 +684,13 @@ export const Editor = React.memo(function Editor() {
                       className="flex items-center gap-2.5 px-3 py-1.5 text-xs text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-slate-750 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer text-left font-medium"
                     >
                       <FolderKanban className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
-                      <span>{settings.lang === 'en' ? 'Project Experience (STAR)' : '代表项目 (STAR)'}</span>
+                      <span>{isUiEn ? 'Project Experience (STAR)' : '代表项目 (STAR)'}</span>
                     </button>
 
                     {/* 5. Education experiences */}
                     <button
                       onClick={() => {
-                        const snippet = settings.lang === 'en'
+                        const snippet = isResumeEn
                           ? `\n### **University Name | B.S. in Computer Science | 2016.09 - 2020.06**\n- **Academic Performance**: GPA 3.8/4.0 (Top 5%), received National Scholarship for Academic Excellence.\n- **Campus Leadership**: Served as CS Club President, organizing 2 campus-wide hackathons.\n`
                           : `\n### **学校名称 ｜ 专业名称 (本科) ｜ 2016.09 - 2020.06**\n- **学术成绩**：GPA 3.8/4.0 (专业前 5%)，连续 2 年获得国家励志奖学金\n- **校园经历**：曾担任学校计算机社团团长，主导举办了 2 次校级编程挑战赛\n`;
                         insertMarkdown(snippet);
@@ -697,13 +699,13 @@ export const Editor = React.memo(function Editor() {
                       className="flex items-center gap-2.5 px-3 py-1.5 text-xs text-gray-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-slate-750 hover:text-purple-700 dark:hover:text-purple-300 transition-colors cursor-pointer text-left font-medium"
                     >
                       <GraduationCap className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
-                      <span>{settings.lang === 'en' ? 'Education Background' : '教育背景模板'}</span>
+                      <span>{isUiEn ? 'Education Background' : '教育背景模板'}</span>
                     </button>
 
                     {/* 6. Multi-column Contacts */}
                     <button
                       onClick={() => {
-                        const snippet = settings.lang === 'en'
+                        const snippet = isResumeEn
                           ? `\n# Your Name\nPosition: Senior Software Engineer | 5 Years Experience | San Francisco, CA\n+1 (555) 019-2834 | your.email@email.com | github.com/yourusername | linkedin.com/in/yourprofile\n`
                           : `\n# 姓名\n意向岗位：高级前端工程师 ｜ 5年工作经验 ｜ 深圳\n13812345678 ｜ your.email@email.com ｜ github.com/yourgithub\n`;
                         insertMarkdown(snippet);
@@ -712,7 +714,7 @@ export const Editor = React.memo(function Editor() {
                       className="flex items-center gap-2.5 px-3 py-1.5 text-xs text-gray-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-750 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors cursor-pointer text-left font-medium"
                     >
                       <User className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
-                      <span>{settings.lang === 'en' ? 'Contact Info Header' : '个人联系方式栏'}</span>
+                      <span>{isUiEn ? 'Contact Info Header' : '个人联系方式栏'}</span>
                     </button>
                   </div>
                 </>
@@ -721,7 +723,7 @@ export const Editor = React.memo(function Editor() {
 
             {/* Auto Spacing & Clean button */}
             <Tooltip
-              content={settings.lang === 'en' ? 'Magic Formatter: Auto Clean & Format' : '魔法排版：中英空格与格式一键规整'}
+              content={isUiEn ? 'Magic Formatter: Auto Clean & Format' : '魔法排版：中英空格与格式一键规整'}
               shortcut="Ctrl+Shift+F"
             >
               <button
@@ -739,8 +741,8 @@ export const Editor = React.memo(function Editor() {
                   {cleanFeedback 
                     ? cleanFeedback 
                     : autoCleanResult.hasChanges 
-                      ? (settings.lang === 'en' ? `Clean (${autoCleanResult.fixesCount})` : `规整 (${autoCleanResult.fixesCount})`) 
-                      : (settings.lang === 'en' ? 'Formatted' : '格式正常')}
+                      ? (isUiEn ? `Clean (${autoCleanResult.fixesCount})` : `规整 (${autoCleanResult.fixesCount})`) 
+                      : (isUiEn ? 'Formatted' : '格式正常')}
                 </span>
               </button>
             </Tooltip>
@@ -802,7 +804,7 @@ export const Editor = React.memo(function Editor() {
             transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
             className="flex-1 flex flex-col min-h-0 w-full h-full overflow-hidden"
           >
-            <SectionSorter markdown={value} onChange={onChange} lang={settings.lang} />
+            <SectionSorter markdown={value} onChange={onChange} lang={uiLanguage} />
           </motion.div>
         ) : (
           <motion.div
@@ -823,19 +825,19 @@ export const Editor = React.memo(function Editor() {
       <div className="flex items-center justify-between px-3 sm:px-5 py-1.5 sm:py-2 bg-gray-50 dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 text-[10px] sm:text-[11px] text-gray-500 dark:text-slate-400 font-medium z-10 overflow-x-auto scrollbar-none whitespace-nowrap gap-2">
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <Tooltip 
-            content={settings.lang === 'en' ? `Characters: ${charCount} | Lines: ${lineCount}` : `字符数：${charCount} 字（含标点空格） | 行数：${lineCount} 行`}
+            content={isUiEn ? `Characters: ${charCount} | Lines: ${lineCount}` : `字符数：${charCount} 字（含标点空格） | 行数：${lineCount} 行`}
             side="top"
           >
             <span className="cursor-help hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
-              {settings.lang === 'en' ? 'Words: ' : '字数: '}
+              {isUiEn ? 'Words: ' : '字数: '}
               <strong className="text-gray-700 dark:text-slate-200 font-bold">{wordCount}</strong>
             </span>
           </Tooltip>
         </div>
         <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 text-[10px] shrink-0">
-          <span>{settings.lang === 'en' ? `Chars: ${charCount}` : `字符: ${charCount}`}</span>
+          <span>{isUiEn ? `Chars: ${charCount}` : `字符: ${charCount}`}</span>
           <span>•</span>
-          <span>{settings.lang === 'en' ? `Lines: ${lineCount}` : `行数: ${lineCount}`}</span>
+          <span>{isUiEn ? `Lines: ${lineCount}` : `行数: ${lineCount}`}</span>
         </div>
       </div>
     </div>

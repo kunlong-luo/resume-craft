@@ -12,8 +12,8 @@ export function ToolbarSelectors({
   onOpenTemplateCenter,
   isOpen = false,
 }: ToolbarSelectorsProps) {
-  const { settings } = useResumeStore();
-  const isEn = settings.lang === 'en';
+  const { uiLanguage } = useResumeStore();
+  const isEn = uiLanguage === 'en';
 
   return (
     <div className="flex items-center shrink-0">

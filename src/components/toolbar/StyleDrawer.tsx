@@ -17,8 +17,8 @@ export function StyleDrawer({
   onClose,
   triggerRef,
 }: StyleDrawerProps) {
-  const { settings, updateSetting, updateSettings } = useResumeStore();
-  const isEn = settings.lang === 'en';
+  const { settings, uiLanguage, updateSetting, updateSettings } = useResumeStore();
+  const isEn = uiLanguage === 'en';
   const t = isEn ? TOOLBAR_TRANSLATIONS.en : TOOLBAR_TRANSLATIONS.zh;
 
   const visualThemes = useMemo(

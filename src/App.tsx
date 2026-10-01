@@ -52,6 +52,8 @@ export default function App() {
   const {
     markdown,
     settings,
+    uiLanguage,
+    themeMode,
     profiles,
     currentTemplateId,
     setLastSaved,
@@ -237,7 +239,7 @@ export default function App() {
           const hasDuplicate = currentDrafts.some((draft) => draft.markdown === markdown);
           if (hasDuplicate) return;
 
-          const isEn = settings.lang === 'en';
+          const isEn = uiLanguage === 'en';
           const newAutoDraft = {
             id: `draft_auto_${Date.now()}`,
             title: new Date().toLocaleTimeString(isEn ? 'en-US' : 'zh-CN', { hour12: false }),
@@ -264,7 +266,7 @@ export default function App() {
   // Dark mode / Studio Dark synchronization
   useEffect(() => {
     const applyTheme = () => {
-      const mode = settings.themeMode || 'light';
+      const mode = themeMode || 'light';
       let isDark = false;
       if (mode === 'dark') {
         isDark = true;
@@ -279,13 +281,13 @@ export default function App() {
 
     applyTheme();
 
-    if (settings.themeMode === 'system' && typeof window !== 'undefined') {
+    if (themeMode === 'system' && typeof window !== 'undefined') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const listener = () => applyTheme();
       mediaQuery.addEventListener('change', listener);
       return () => mediaQuery.removeEventListener('change', listener);
     }
-  }, [settings.themeMode]);
+  }, [themeMode]);
 
   const { showToast } = useToast() || {};
   const { updateSetting } = useResumeStore();
@@ -304,8 +306,8 @@ export default function App() {
       if (warned) return;
       warned = true;
       showToast?.({
-        title: settings.lang === 'en' ? 'Resume Craft is open in another tab' : '检测到另一个 Resume Craft 标签页',
-        message: settings.lang === 'en'
+        title: uiLanguage === 'en' ? 'Resume Craft is open in another tab' : '检测到另一个 Resume Craft 标签页',
+        message: uiLanguage === 'en'
           ? 'Avoid editing the same resume in multiple tabs at once. Local writes are serialized, but the latest edit can still replace older state.'
           : '请避免在多个标签页同时编辑同一份简历。写入会串行处理，但较新的编辑仍可能覆盖较旧状态。',
         type: 'info',
@@ -327,7 +329,7 @@ export default function App() {
 
     channel.postMessage({ type: 'hello', sourceId });
     return () => channel.close();
-  }, [settings.lang, showToast]);
+  }, [uiLanguage, showToast]);
 
   useEffect(() => {
     const handleStorageHealth = (event: Event) => {
@@ -337,8 +339,8 @@ export default function App() {
       if (detail.status === 'recovered') {
         setStorageHealth('ok');
         showToast?.({
-          title: settings.lang === 'en' ? 'Local saving restored' : '本地保存已恢复',
-          message: settings.lang === 'en'
+          title: uiLanguage === 'en' ? 'Local saving restored' : '本地保存已恢复',
+          message: uiLanguage === 'en'
             ? 'Resume changes can be saved to this browser again.'
             : '浏览器本地存储已恢复，可以继续自动保存简历修改。',
           type: 'success',
@@ -349,12 +351,12 @@ export default function App() {
 
       setStorageHealth('error', detail.quotaExceeded === true);
       showToast?.({
-        title: settings.lang === 'en' ? 'Local save failed' : '本地保存失败',
+        title: uiLanguage === 'en' ? 'Local save failed' : '本地保存失败',
         message: detail.quotaExceeded
-          ? (settings.lang === 'en'
+          ? (uiLanguage === 'en'
             ? 'Browser storage is full. Export a JSON backup before closing this page, then free storage space.'
             : '浏览器本地存储空间不足。关闭页面前请先导出 JSON 备份，再清理存储空间。')
-          : (settings.lang === 'en'
+          : (uiLanguage === 'en'
             ? 'The browser rejected a local storage write. Export a JSON backup before closing this page.'
             : '浏览器拒绝写入本地存储。关闭页面前请先导出 JSON 备份。'),
         type: 'error',
@@ -364,7 +366,7 @@ export default function App() {
 
     window.addEventListener(STORAGE_HEALTH_EVENT, handleStorageHealth);
     return () => window.removeEventListener(STORAGE_HEALTH_EVENT, handleStorageHealth);
-  }, [setStorageHealth, settings.lang, showToast]);
+  }, [setStorageHealth, uiLanguage, showToast]);
 
   // Global Keyboard Shortcuts (Cmd/Ctrl + S, Cmd/Ctrl + P, Cmd/Ctrl + Shift + F)
   useEffect(() => {
@@ -383,8 +385,8 @@ export default function App() {
           const pad = (num: number) => String(num).padStart(2, '0');
           setLastSaved(`${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`);
           showToast?.({
-            title: settings.lang === 'en' ? 'Resume saved locally' : '简历草稿已手动保存',
-            message: settings.lang === 'en'
+            title: uiLanguage === 'en' ? 'Resume saved locally' : '简历草稿已手动保存',
+            message: uiLanguage === 'en'
               ? 'The current resume content was saved to local browser storage.'
               : '核心简历数据已保存到浏览器本地。',
             type: 'success',
@@ -394,8 +396,8 @@ export default function App() {
           console.error('[manual-save] Failed to save resume to IndexedDB:', error);
           setStorageHealth('error');
           showToast?.({
-            title: settings.lang === 'en' ? 'Local save failed' : '本地保存失败',
-            message: settings.lang === 'en'
+            title: uiLanguage === 'en' ? 'Local save failed' : '本地保存失败',
+            message: uiLanguage === 'en'
               ? 'The browser rejected the local save. Export a backup before closing this page.'
               : '浏览器拒绝本地保存。关闭页面前请先导出备份。',
             type: 'error',
@@ -466,7 +468,7 @@ export default function App() {
           {/* Draggable Divider for Split Mode on Desktop */}
           {!isMobile && settings.layoutMode === 'split' && (
             <Tooltip
-              content={settings.lang === 'en' ? 'Drag to resize (Double click to reset 50%)' : '拖拽调节左右宽度（双击复位 50%）'}
+              content={uiLanguage === 'en' ? 'Drag to resize (Double click to reset 50%)' : '拖拽调节左右宽度（双击复位 50%）'}
               side="top"
               delay={400}
               disabled={isDragging}
@@ -525,7 +527,7 @@ export default function App() {
               }`}
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>{settings.lang === 'en' ? 'Edit' : '编辑 Markdown'}</span>
+              <span>{uiLanguage === 'en' ? 'Edit' : '编辑 Markdown'}</span>
             </button>
 
             <button
@@ -539,10 +541,10 @@ export default function App() {
               <Eye className="w-3.5 h-3.5" />
               <span>
                 {settings.paperSize === 'letter'
-                  ? settings.lang === 'en'
+                  ? uiLanguage === 'en'
                     ? 'Letter Preview'
                     : 'Letter 预览'
-                  : settings.lang === 'en'
+                  : uiLanguage === 'en'
                     ? 'A4 Preview'
                     : 'A4 预览'}
               </span>
@@ -566,7 +568,7 @@ export default function App() {
           <HelpLegalModal isOpen={isHelpLegalOpen} onClose={() => setIsHelpLegalOpen(false)} />
           <SupportProjectModal
             isOpen={isSupportProjectOpen}
-            lang={settings.lang}
+            lang={uiLanguage}
             onClose={handleCloseSupportPrompt}
             onSupportClick={handleSupportProject}
             onContinue={continuePendingExport}

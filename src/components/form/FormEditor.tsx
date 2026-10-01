@@ -6,6 +6,7 @@ import { QuickNav } from './QuickNav';
 import { SectionPresets } from './SectionPresets';
 import { getSectionCategory } from '../../lib/markdown-parser';
 import { useFormEditor } from '../../hooks/useFormEditor';
+import { useResumeStore } from '../../store/useResumeStore';
 
 interface FormEditorProps {
   value: string;
@@ -14,6 +15,7 @@ interface FormEditorProps {
 }
 
 export const FormEditor = React.memo(function FormEditor({ value, onChange, settings }: FormEditorProps) {
+  const { uiLanguage } = useResumeStore();
   const {
     localModel,
     expandedSections,
@@ -36,7 +38,7 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
     addItem,
     applyChineseEnglishSpacingToSection,
     insertStarTemplateToItem
-  } = useFormEditor(value, onChange, settings);
+  } = useFormEditor(value, onChange, settings, uiLanguage);
 
   return (
     <div className="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-slate-900/60 min-w-0 overflow-x-hidden flex flex-col">
@@ -44,7 +46,7 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
         sections={localModel.sections} 
         expandedSections={expandedSections} 
         setExpandedSections={setExpandedSections} 
-        lang={settings?.lang} 
+        lang={uiLanguage} 
       />
 
       <div className="p-6 space-y-6">
@@ -55,7 +57,7 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
           onToggleExpanded={() => setExpandedSections(prev => ({ ...prev, basic: prev['basic'] === false }))}
           showOptional={showOptionalBasic}
           onToggleOptional={() => setShowOptionalBasic(!showOptionalBasic)}
-          lang={settings?.lang}
+          lang={uiLanguage}
           marketRegion={settings?.marketRegion}
         />
         
@@ -82,7 +84,7 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
                 onTypeChange={(newType) => handleSectionTypeChange(sec.id, newType)}
                 onMoveItem={(itemIndex, direction) => moveItem(sec.id, itemIndex, direction)}
                 onReorderItem={(fromIdx, toIdx) => reorderItems(sec.id, fromIdx, toIdx)}
-                lang={settings?.lang}
+                lang={uiLanguage}
                 marketRegion={settings?.marketRegion}
               />
             );
@@ -109,13 +111,13 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
               onItemContentChange={(itemId, content) => handleItemContentChange(sec.id, itemId, content)}
               onInsertStarTemplate={(itemId, currentContent) => insertStarTemplateToItem(sec.id, itemId, currentContent, sec.title)}
               onTypeChange={(newType) => handleSectionTypeChange(sec.id, newType)}
-              lang={settings?.lang}
+              lang={uiLanguage}
               marketRegion={settings?.marketRegion}
             />
           );
         })}
 
-        <SectionPresets onAddPreset={addPresetSection} sections={localModel.sections} lang={settings?.lang} />
+        <SectionPresets onAddPreset={addPresetSection} sections={localModel.sections} lang={uiLanguage} />
       </div>
     </div>
   );

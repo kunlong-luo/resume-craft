@@ -8,9 +8,10 @@ import { getPrintPageStyle } from '../lib/print-style';
 
 interface UseResumeActionsProps {
   contentRef: React.RefObject<HTMLDivElement | null>;
+  onPdfExportComplete?: () => void;
 }
 
-export function useResumeActions({ contentRef }: UseResumeActionsProps) {
+export function useResumeActions({ contentRef, onPdfExportComplete }: UseResumeActionsProps) {
   const {
     paperSize,
     uiLanguage,
@@ -47,6 +48,7 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
     onAfterPrint: () => {
       setIsExportingPDF(false);
       setPdfExportProgress(null);
+      onPdfExportComplete?.();
     },
     onPrintError: () => {
       setIsExportingPDF(false);
@@ -82,6 +84,7 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
       trackAnalyticsEvent('pdf_export_success');
       setIsExportingPDF(false);
       setPdfExportProgress(null);
+      onPdfExportComplete?.();
     } catch (err) {
       console.error('Quick PDF export error:', err);
       setIsExportingPDF(false);

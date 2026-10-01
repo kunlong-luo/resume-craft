@@ -20,6 +20,7 @@ interface BasicInfoEditorProps {
   showOptional: boolean;
   onToggleOptional: () => void;
   lang?: 'zh' | 'en';
+  contentLang?: 'zh' | 'en';
   marketRegion?: MarketRegion;
 }
 
@@ -35,16 +36,17 @@ const WeChatIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, showOptional, onToggleOptional, lang = 'zh', marketRegion }: BasicInfoEditorProps) {
+export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, showOptional, onToggleOptional, lang = 'zh', contentLang = 'zh', marketRegion }: BasicInfoEditorProps) {
   const [tagInput, setTagInput] = useState('');
   
-  const activeLang = lang === 'en' ? 'en' : 'zh';
-  const translations = getTranslation(activeLang);
+  const activeUiLang = lang === 'en' ? 'en' : 'zh';
+  const activeContentLang = contentLang === 'en' ? 'en' : 'zh';
+  const translations = getTranslation(activeUiLang);
   const t = translations.form.basic;
   const commonT = translations.common;
-  const degreeOptions = getDegreeOptions(activeLang);
-  const jobStatusOptions = getJobStatusOptions(activeLang);
-  const popularCities = getPopularCities(activeLang);
+  const degreeOptions = getDegreeOptions(activeContentLang);
+  const jobStatusOptions = getJobStatusOptions(activeContentLang);
+  const popularCities = getPopularCities(activeContentLang);
   const marketProfile = getMarketProfile(marketRegion);
   const isAgeDiscouraged = marketProfile.discouragedPersonalFields.includes('age');
   const isChinaMarket = marketProfile.region === 'cn';
@@ -72,7 +74,7 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
     if (model.jobStatus && !jobStatusOptions.some(o => o.value === model.jobStatus)) {
       setCustomJobStatus(true);
     }
-  }, [model.degree, model.jobStatus, activeLang]);
+  }, [model.degree, model.jobStatus, activeContentLang]);
 
   const getNumericYears = (wy: string | undefined): string => {
     if (!wy) return '';
@@ -94,10 +96,10 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
       return;
     }
     if (n === 0) {
-      handleStructuredFieldChange('workYears', activeLang === 'en' ? 'Student / New Graduate' : '在校生/应届生');
+      handleStructuredFieldChange('workYears', activeContentLang === 'en' ? 'Student / New Graduate' : '在校生/应届生');
       return;
     }
-    const formatted = activeLang === 'en' 
+    const formatted = activeContentLang === 'en' 
       ? `${n} ${n === 1 ? 'Year' : 'Years'} Experience`
       : `${n}年工作经验`;
     handleStructuredFieldChange('workYears', formatted);
@@ -281,7 +283,7 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
             <InternationalPhoneField
               value={model.phone || ''}
               onChange={(value) => handleBasicInfoChange('phone', value)}
-              lang={activeLang}
+              lang={activeUiLang}
               label={t.phoneLabel}
               placeholder={t.phonePlaceholder}
             />
@@ -400,7 +402,7 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
                   <div className={showWechatField ? 'space-y-2' : 'space-y-2 md:col-span-2'}>
                     <div className="flex items-center justify-between">
                       <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">
-                        {isChinaMarket ? t.socialLabel : (activeLang === 'en' ? 'LinkedIn / GitHub / Portfolio' : 'LinkedIn / GitHub / 作品集')}
+                        {isChinaMarket ? t.socialLabel : (activeUiLang === 'en' ? 'LinkedIn / GitHub / Portfolio' : 'LinkedIn / GitHub / 作品集')}
                       </label>
                     </div>
                     <div className="relative group/field">
@@ -451,7 +453,7 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
                             if (isStudentGrad) {
                               handleStructuredFieldChange('workYears', '');
                             } else {
-                              handleStructuredFieldChange('workYears', activeLang === 'en' ? 'Student / New Graduate' : '在校生/应届生');
+                              handleStructuredFieldChange('workYears', activeContentLang === 'en' ? 'Student / New Graduate' : '在校生/应届生');
                             }
                           }}
                           className={`h-5 text-[10px] px-2 rounded font-medium cursor-pointer transition-all inline-flex items-center border ${
@@ -472,7 +474,7 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
                         max="50"
                         value={isStudentGrad ? '' : getNumericYears(model.workYears)}
                         onChange={(e) => handleYearsNumberChange(e.target.value)}
-                        className={`w-full h-9.5 pl-9 ${activeLang === 'en' ? 'pr-12' : 'pr-8'} text-sm tactile-input font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-white rounded-lg`}
+                        className={`w-full h-9.5 pl-9 ${activeUiLang === 'en' ? 'pr-12' : 'pr-8'} text-sm tactile-input font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-white rounded-lg`}
                         placeholder={isStudentGrad ? t.studentGradBadge : t.expPlaceholder}
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none select-none">
@@ -539,7 +541,7 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
                         {t.ageLabel}
                         {isAgeDiscouraged && (
                           <span className="ml-1.5 text-[9px] font-normal lowercase tracking-normal text-slate-400/80">
-                            {activeLang === 'en' ? '(optional / usually omitted in US/UK)' : '(美加英等通常不填)'}
+                            {activeUiLang === 'en' ? '(optional / usually omitted in US/UK)' : '(美加英等通常不填)'}
                           </span>
                         )}
                       </label>
@@ -548,7 +550,7 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
                       value={model.age || ''}
                       onChange={(val) => handleStructuredFieldChange('age', val)}
                       placeholder={t.agePlaceholder}
-                      lang={activeLang}
+                      lang={activeUiLang}
                       className="w-full"
                     />
                   </div>
@@ -610,7 +612,7 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
                 <div className="space-y-1.5 pt-1">
                   <div className="h-6 flex items-center justify-between">
                     <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none select-none">
-                      {isChinaMarket ? t.cityLabel : (activeLang === 'en' ? 'Location' : '所在地')}
+                      {isChinaMarket ? t.cityLabel : (activeUiLang === 'en' ? 'Location' : '所在地')}
                     </label>
                     {cityList.length > 0 && (
                       <button

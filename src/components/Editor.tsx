@@ -7,6 +7,7 @@ import {
 import { FormEditor } from './form/FormEditor';
 import { SectionSorter } from './layout/SectionSorter';
 import { useResumeStore } from '../store/useResumeStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useConfirm } from '../context/ConfirmContext';
 import { TEMPLATES } from '../data';
 
@@ -103,10 +104,10 @@ function highlightMarkdown(text: string): string {
 // Props are refactored to use Zustand global store
 export const Editor = React.memo(function Editor() {
   const {
-    markdown: value,
-    handleMarkdownChange: onChange,
-    handleUndo: onUndo,
-    handleRedo: onRedo,
+    value,
+    onChange,
+    onUndo,
+    onRedo,
     historyIndex,
     history,
     settings,
@@ -115,7 +116,22 @@ export const Editor = React.memo(function Editor() {
     currentTemplateId,
     applyTemplate,
     replaceDocument,
-  } = useResumeStore();
+  } = useResumeStore(
+    useShallow((state) => ({
+      value: state.markdown,
+      onChange: state.handleMarkdownChange,
+      onUndo: state.handleUndo,
+      onRedo: state.handleRedo,
+      historyIndex: state.historyIndex,
+      history: state.history,
+      settings: state.settings,
+      uiLanguage: state.uiLanguage,
+      updateSetting: state.updateSetting,
+      currentTemplateId: state.currentTemplateId,
+      applyTemplate: state.applyTemplate,
+      replaceDocument: state.replaceDocument,
+    })),
+  );
 
   const deferredValue = useDeferredValue(value);
   const isUiEn = uiLanguage === 'en';

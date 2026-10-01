@@ -7,6 +7,7 @@ import { autoFormatAndCleanResume } from '../../lib/resume-auto-fixer';
 import { ScoreDisplay } from './ScoreDisplay';
 import { DiagnosticList } from './DiagnosticList';
 import { useResumeStore } from '../../store/useResumeStore';
+import { useShallow } from 'zustand/react/shallow';
 import { WEAK_WORDS_CONFIG, type WeakWordConfig } from '../../data/weak-words-config';
 import { useDialogFocus } from '../../hooks/useDialogFocus';
 
@@ -19,13 +20,32 @@ interface ResumeCheckerProps {
 }
 
 export function ResumeChecker(props: ResumeCheckerProps = {}) {
-  const store = useResumeStore();
-  const markdown = props.markdown ?? store.markdown;
-  const onUpdateMarkdown = props.onUpdateMarkdown ?? store.handleMarkdownChange;
-  const isOpen = props.isOpen ?? store.isCheckerOpen;
-  const onClose = props.onClose ?? (() => store.setIsCheckerOpen(false));
-  const lang = props.lang ?? store.uiLanguage;
-  const marketRegion = store.settings.marketRegion;
+  const {
+    storeMarkdown,
+    handleMarkdownChange,
+    storeIsCheckerOpen,
+    setIsCheckerOpen,
+    uiLanguage,
+    marketRegion,
+    dateStyle,
+    measuredPageCount,
+  } = useResumeStore(
+    useShallow((state) => ({
+      storeMarkdown: state.markdown,
+      handleMarkdownChange: state.handleMarkdownChange,
+      storeIsCheckerOpen: state.isCheckerOpen,
+      setIsCheckerOpen: state.setIsCheckerOpen,
+      uiLanguage: state.uiLanguage,
+      marketRegion: state.settings.marketRegion,
+      dateStyle: state.settings.dateStyle,
+      measuredPageCount: state.measuredPageCount,
+    })),
+  );
+  const markdown = props.markdown ?? storeMarkdown;
+  const onUpdateMarkdown = props.onUpdateMarkdown ?? handleMarkdownChange;
+  const isOpen = props.isOpen ?? storeIsCheckerOpen;
+  const onClose = props.onClose ?? (() => setIsCheckerOpen(false));
+  const lang = props.lang ?? uiLanguage;
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocus({ isOpen, dialogRef, onClose });
 
@@ -41,15 +61,15 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
       onUpdateMarkdown,
       lang,
       marketRegion,
-      store.measuredPageCount,
+      measuredPageCount,
     );
-  }, [markdown, onUpdateMarkdown, lang, marketRegion, store.measuredPageCount]);
+  }, [markdown, onUpdateMarkdown, lang, marketRegion, measuredPageCount]);
 
   const handleFixAll = () => {
     const result = autoFormatAndCleanResume(markdown, {
       marketRegion,
       lang,
-      dateStyle: store.settings.dateStyle,
+      dateStyle: dateStyle,
       sanitizeMarketFields: true,
     });
     if (result.hasChanges) {

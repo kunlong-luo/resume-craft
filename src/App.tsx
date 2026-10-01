@@ -405,8 +405,10 @@ export default function App() {
         smartAutoFit(currentState.settings, currentState.updateSetting);
         trackAnalyticsEvent('auto_fit_used');
         showToast?.({
-          title: '已触发一键贴合控页',
-          message: '微调行高与边距以压缩适应单页',
+          title: uiLanguage === 'en' ? 'Auto Fit applied' : '已触发一键贴合控页',
+          message: uiLanguage === 'en'
+            ? 'Adjusted line height and margins to better fit the resume on one page.'
+            : '微调行高与边距以压缩适应单页',
           type: 'info',
           duration: 2500,
         });

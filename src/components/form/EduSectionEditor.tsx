@@ -32,6 +32,7 @@ interface EduSectionEditorProps {
   onMoveItem?: (itemIndex: number, direction: 'up' | 'down') => void;
   onReorderItem?: (fromIndex: number, toIndex: number) => void;
   lang?: string;
+  contentLang?: string;
   marketRegion?: MarketRegion;
 }
 
@@ -53,14 +54,18 @@ export function EduSectionEditor({
   onMoveItem,
   onReorderItem,
   lang = 'zh',
+  contentLang = 'zh',
   marketRegion,
 }: EduSectionEditorProps) {
   const [customDegrees, setCustomDegrees] = React.useState<Record<string, boolean>>({});
-  const activeLang = lang === 'en' ? 'en' : 'zh';
-  const translations = getTranslation(activeLang);
+  const activeUiLang = lang === 'en' ? 'en' : 'zh';
+  const activeContentLang = contentLang === 'en' ? 'en' : 'zh';
+  const translations = getTranslation(activeUiLang);
+  const contentTranslations = getTranslation(activeContentLang);
   const t = translations.form.edu;
+  const contentT = contentTranslations.form.edu;
   const secT = translations.form.section;
-  const degreeOptions = getDegreeOptions(activeLang);
+  const degreeOptions = getDegreeOptions(activeContentLang);
 
   React.useEffect(() => {
     if (section.type === 'items') {
@@ -72,7 +77,7 @@ export function EduSectionEditor({
       });
       setCustomDegrees(newCustomDegrees);
     }
-  }, [section.items, activeLang]);
+  }, [section.items, activeContentLang]);
 
   const toggleCustomDegree = (itemId: string) => {
     setCustomDegrees(prev => {
@@ -84,7 +89,7 @@ export function EduSectionEditor({
     });
   };
 
-  const theme = getSectionTheme(section.title, lang);
+  const theme = getSectionTheme(section.title, contentLang);
 
   return (
     <div 
@@ -126,14 +131,14 @@ export function EduSectionEditor({
                   <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{t.textLabel}</label>
                 </div>
                 <div className="flex flex-col mt-1">
-                  <FormTextareaToolbar textareaId={section.id} value={section.textValue || ''} onChange={onTextChange!} lang={lang} />
+                  <FormTextareaToolbar textareaId={section.id} value={section.textValue || ''} onChange={onTextChange!} lang={lang} contentLang={contentLang} />
                   <SmartMarkdownTextarea
                     id={section.id} 
                     value={section.textValue || ''} 
                     onChange={(val) => onTextChange!(val)} 
                     minRows={5}
                     className="w-full p-3.5 text-xs font-mono leading-relaxed bg-slate-50/10 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-750 rounded-b-lg rounded-t-none border-t-0 text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 shadow-[inset_0_1.5px_3px_rgba(15,23,42,0.04)] focus:shadow-none transition-all duration-200"
-                    placeholder={t.textPlaceholder}
+                    placeholder={contentT.textPlaceholder}
                   />
                 </div>
               </div>
@@ -227,7 +232,7 @@ export function EduSectionEditor({
                             value={item.org || ''}
                             onChange={(e) => onItemChange(item.id, 'org', e.target.value)}
                             className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input"
-                            placeholder={t.schoolPlaceholder}
+                            placeholder={contentT.schoolPlaceholder}
                           />
                         </div>
 
@@ -239,8 +244,9 @@ export function EduSectionEditor({
                             value={item.time || ''}
                             onChange={(val) => onItemChange(item.id, 'time', val)}
                             className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input font-mono"
-                            placeholder={t.timePlaceholder}
+                            placeholder={contentT.timePlaceholder}
                             lang={lang}
+                            contentLang={contentLang}
                             marketRegion={marketRegion}
                           />
                         </div>
@@ -266,7 +272,7 @@ export function EduSectionEditor({
                               value={item.degree || ''}
                               onChange={(e) => onItemChange(item.id, 'degree', e.target.value)}
                               className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input"
-                              placeholder={t.degreePlaceholder}
+                              placeholder={contentT.degreePlaceholder}
                             />
                           ) : (
                             <CustomSelect
@@ -286,7 +292,7 @@ export function EduSectionEditor({
                               size="sm"
                               className="w-full"
                               triggerClassName="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input bg-white dark:bg-slate-900"
-                              placeholder={t.degreePlaceholder}
+                              placeholder={contentT.degreePlaceholder}
                             />
                           )}
                         </div>
@@ -301,7 +307,7 @@ export function EduSectionEditor({
                             value={item.role || ''}
                             onChange={(e) => onItemChange(item.id, 'role', e.target.value)}
                             className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input"
-                            placeholder={t.majorPlaceholder}
+                            placeholder={contentT.majorPlaceholder}
                           />
                         </div>
                       </div>
@@ -316,7 +322,7 @@ export function EduSectionEditor({
                           value={item.gpa || ''} 
                           onChange={(e) => onItemChange(item.id, 'gpa', e.target.value)} 
                           className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input" 
-                          placeholder={t.gpaPlaceholder} 
+                          placeholder={contentT.gpaPlaceholder} 
                         />
                       </div>
 
@@ -327,7 +333,7 @@ export function EduSectionEditor({
                           value={item.courses || ''} 
                           onChange={(e) => onItemChange(item.id, 'courses', e.target.value)} 
                           className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input" 
-                          placeholder={t.coursesPlaceholder} 
+                          placeholder={contentT.coursesPlaceholder} 
                         />
                       </div>
 
@@ -338,7 +344,7 @@ export function EduSectionEditor({
                           value={item.honors || ''} 
                           onChange={(e) => onItemChange(item.id, 'honors', e.target.value)} 
                           className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input" 
-                          placeholder={t.honorsPlaceholder} 
+                          placeholder={contentT.honorsPlaceholder} 
                         />
                       </div>
                     </div>
@@ -349,14 +355,14 @@ export function EduSectionEditor({
                         <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{t.descLabel}</label>
                       </div>
                       <div className="flex flex-col mt-1">
-                        <FormTextareaToolbar textareaId={item.id} value={item.content || ''} onChange={(val) => onItemChange(item.id, 'content', val)} lang={lang} />
+                        <FormTextareaToolbar textareaId={item.id} value={item.content || ''} onChange={(val) => onItemChange(item.id, 'content', val)} lang={lang} contentLang={contentLang} />
                         <SmartMarkdownTextarea 
                           id={item.id}
                           value={item.content || ''}
                           onChange={(val) => onItemChange(item.id, 'content', val)}
                           minRows={3}
                           className="w-full p-2.5 text-xs font-mono leading-relaxed bg-slate-50/10 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-750 rounded-b-lg rounded-t-none border-t-0 text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 shadow-[inset_0_1.5px_3px_rgba(15,23,42,0.04)] focus:shadow-none transition-all duration-200"
-                          placeholder={t.descPlaceholder}
+                          placeholder={contentT.descPlaceholder}
                         />
                       </div>
                     </div>

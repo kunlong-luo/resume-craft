@@ -86,6 +86,50 @@ test.describe('international market flows', () => {
     ).toBe('zh');
   });
 
+  test('Chinese UI writes English resume values in form mode', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'resume-markdown',
+        [
+          '# Alex Chen',
+          'Software Engineer | alex@example.com',
+          '',
+          '## Work Experience',
+          '### Acme Corp | Software Engineer | Jan 2024 – Jun 2024',
+          '- Built a production service.',
+        ].join('\n'),
+      );
+      window.localStorage.setItem(
+        'resume-settings',
+        JSON.stringify({
+          lang: 'en',
+          marketRegion: 'us',
+          paperSize: 'letter',
+          dateStyle: 'month-short',
+        }),
+      );
+    });
+
+    await page.goto('/');
+
+    await page
+      .getByRole('group', { name: 'Interface language' })
+      .getByRole('button', { name: 'Switch interface language to Chinese' })
+      .click();
+
+    await expect(page.getByRole('group', { name: '界面语言' })).toBeVisible();
+    await expect.poll(() =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}').lang),
+    ).toBe('en');
+
+    const presentToggle = page.getByRole('button', { name: '至今', exact: true }).first();
+    await expect(presentToggle).toBeVisible();
+    await presentToggle.click();
+
+    await expect.poll(() => readActiveMarkdown(page)).toContain('Present');
+    await expect(page.getByRole('group', { name: '界面语言' })).toBeVisible();
+  });
+
   test('download menu keeps Chinese Canada market label on one line', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem(

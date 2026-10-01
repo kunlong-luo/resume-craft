@@ -33,7 +33,7 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
       mode === 'clone' 
         ? `${isEn ? 'Tailored Profile' : '定制简历档案'} ${profiles.length + 1}`
         : mode === 'template'
-        ? TEMPLATES.find(t => t.id === selectedTemplateId)?.name || '岗位模板档案'
+        ? TEMPLATES.find(t => t.id === selectedTemplateId)?.name || (isEn ? 'Template Resume' : '岗位模板档案')
         : (isEn ? 'Blank Resume' : '空白简历')
     );
 

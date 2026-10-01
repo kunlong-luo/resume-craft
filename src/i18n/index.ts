@@ -12,6 +12,12 @@ export function getTranslation(lang: string = 'zh'): TranslationSchema {
 }
 
 export function useTranslation() {
+  const lang = useResumeStore((s) => s.uiLanguage || 'zh');
+  const t = locales[lang] || zh;
+  return { t, lang };
+}
+
+export function useResumeTranslation() {
   const lang = useResumeStore((s) => s.settings?.lang || 'zh');
   const t = locales[lang] || zh;
   return { t, lang };

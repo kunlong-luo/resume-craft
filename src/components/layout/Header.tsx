@@ -228,7 +228,7 @@ export function Header({
       : (isEn ? 'Light' : '浅色');
 
   return (
-    <header className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/90 relative z-50 shadow-[0_1px_3px_rgba(15,23,42,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.4)] transition-colors duration-200">
+    <header className="bg-white/95 dark:bg-slate-900/95 md:bg-white/90 md:dark:bg-slate-900/90 md:backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/90 relative z-50 shadow-[0_1px_3px_rgba(15,23,42,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.4)] transition-colors duration-200">
       {/* Mobile Top Bar (< md) */}
       <div className="flex md:hidden items-center justify-between px-2.5 min-[390px]:px-3.5 h-12 w-full gap-2">
         <div className="flex min-w-0 items-center gap-1.5 min-[390px]:gap-2 shrink-0">

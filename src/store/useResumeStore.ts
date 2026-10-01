@@ -267,14 +267,23 @@ const getInitialProfiles = (
     return { profiles: firstVisitProfiles, activeId: defaultProfile.id };
   }
 
-  const frontendTemplate = TEMPLATES.find(t => t.id === 'frontend')?.content || defaultMd.replace('AI后端开发工程师', '资深前端工程师');
+  const frontendTemplateRecord = TEMPLATES.find(t => t.id === 'frontend');
+  const frontendTemplate = frontendTemplateRecord?.content || defaultMd.replace('AI后端开发工程师', '资深前端工程师');
+  const frontendMarket: MarketRegion = frontendTemplateRecord?.targetMarket || 'cn';
   const frontendProfile: ResumeProfile = {
     id: 'profile_frontend',
     name: '前端与全栈架构版',
     targetRole: 'Web/全栈',
     markdown: frontendTemplate,
-    settings: { ...defaultSettings, themeColor: 'indigo' },
-    templateId: 'frontend',
+    settings: {
+      ...defaultSettings,
+      lang: frontendTemplateRecord?.suggestedLang || 'zh',
+      themeColor: 'indigo',
+      marketRegion: frontendMarket,
+      paperSize: frontendTemplateRecord?.defaultPaperSize || resolveDefaultPaperSize(frontendMarket),
+      dateStyle: frontendTemplateRecord?.dateStyle || getMarketProfile(frontendMarket).dateStyle,
+    },
+    templateId: frontendTemplateRecord?.id || getInitialTemplateId(frontendTemplate),
     customFileName: '',
     updatedAt: now,
     createdAt: now,

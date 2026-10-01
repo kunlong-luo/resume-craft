@@ -150,6 +150,16 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
       expect(presentationEn.group).toBe('uk');
     });
 
+    it('standardizes Chinese template preview section names in English mode', () => {
+      const cnTemplate = TEMPLATES.find(t => t.id === 'cn_demo')!;
+      const preview = getTemplatePreview(cnTemplate.content, 'en');
+
+      expect(preview.sections).toContain('Summary');
+      expect(preview.sections).toContain('Work Experience');
+      expect(preview.sections).toContain('Education');
+      expect(preview.sections.some(section => /[\u4e00-\u9fa5]/.test(section))).toBe(false);
+    });
+
     it('extracts template preview information cleanly', () => {
       const usTemplate = TEMPLATES.find(t => t.id === 'us_swe')!;
       const preview = getTemplatePreview(usTemplate.content);

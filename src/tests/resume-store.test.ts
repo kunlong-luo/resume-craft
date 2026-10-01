@@ -218,6 +218,25 @@ describe('resume store state consistency', () => {
     expect(after.currentTemplateId).toBe(before.currentTemplateId);
   });
 
+  it('rebuilds undo history when language switching translates content', () => {
+    useResumeStore.setState({
+      markdown: '# 张三\n\n## 工作经历\n- 示例',
+      history: ['older content', '# 张三\n\n## 工作经历\n- 示例'],
+      historyIndex: 1,
+      settings: {
+        ...useResumeStore.getState().settings,
+        lang: 'zh',
+      },
+    });
+
+    useResumeStore.getState().updateSetting('lang', 'en');
+
+    const state = useResumeStore.getState();
+    expect(state.settings.lang).toBe('en');
+    expect(state.history).toEqual([state.markdown]);
+    expect(state.historyIndex).toBe(0);
+  });
+
   it('clears a previous filename when switching to a profile without one', () => {
     const first = buildProfile('profile_first', 'first content', 'first-file');
     const second = buildProfile('profile_second', 'second content');

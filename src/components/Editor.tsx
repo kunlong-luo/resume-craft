@@ -8,7 +8,8 @@ import { FormEditor } from './form/FormEditor';
 import { SectionSorter } from './layout/SectionSorter';
 import { useResumeStore } from '../store/useResumeStore';
 import { useConfirm } from '../context/ConfirmContext';
-import { DEFAULT_MARKDOWN } from '../data';
+import { TEMPLATES } from '../data';
+import { getMarketProfile, resolveDefaultPaperSize } from '../lib/market-profile';
 
 import { autoFormatAndCleanResume } from '../lib/resume-auto-fixer';
 import { getWordCount } from '../lib/word-count';
@@ -111,6 +112,9 @@ export const Editor = React.memo(function Editor() {
     history,
     settings,
     updateSetting,
+    updateSettings,
+    currentTemplateId,
+    setCurrentTemplateId,
   } = useResumeStore();
 
   const deferredValue = useDeferredValue(value);
@@ -122,18 +126,41 @@ export const Editor = React.memo(function Editor() {
 
   const onReset = async () => {
     const isEn = settings.lang === 'en';
+    const fallbackTemplateId = isEn ? 'english' : 'cn_demo';
+    const resetTemplate =
+      TEMPLATES.find((template) => template.id === currentTemplateId) ??
+      TEMPLATES.find((template) => template.id === fallbackTemplateId) ??
+      TEMPLATES[0];
+
+    if (!resetTemplate) return;
+
+    const targetMarket =
+      resetTemplate.targetMarket ??
+      (resetTemplate.suggestedLang === 'zh' ? 'cn' : 'international');
+    const targetPaperSize =
+      resetTemplate.defaultPaperSize ?? resolveDefaultPaperSize(targetMarket);
+    const targetDateStyle =
+      resetTemplate.dateStyle ?? getMarketProfile(targetMarket).dateStyle;
+
     const confirmed = await confirm({
-      title: isEn ? 'Reset Template' : '重置模板',
+      title: isEn ? 'Reset current template' : '重置当前模板',
       message: isEn
-        ? 'Are you sure you want to reset to the default template? Your current changes will be lost.'
-        : '确定要重置为默认模板吗？当前的修改将会丢失。',
-      confirmText: isEn ? 'Reset' : '确定重置',
+        ? `Restore "${resetTemplate.name}" to its original example content and sync its target market, paper size, and date format? Your current content changes will be lost.`
+        : `恢复「${resetTemplate.name}」的原始示例内容，并同步目标市场、纸张和日期格式？当前内容修改将会丢失。`,
+      confirmText: isEn ? 'Reset template' : '重置模板',
       cancelText: isEn ? 'Cancel' : '取消',
       type: 'danger'
     });
-    if (confirmed) {
-      onChange(DEFAULT_MARKDOWN, true);
-    }
+
+    if (!confirmed) return;
+
+    onChange(resetTemplate.content, true);
+    setCurrentTemplateId(resetTemplate.id);
+    updateSettings({
+      marketRegion: targetMarket,
+      paperSize: targetPaperSize,
+      dateStyle: targetDateStyle,
+    });
   };
 
   const [copied, setCopied] = useState(false);
@@ -430,7 +457,7 @@ export const Editor = React.memo(function Editor() {
           </Tooltip>
 
           {/* 重置模板 */}
-          <Tooltip content={settings.lang === 'en' ? 'Reset to default template' : '重置为默认模板'}>
+          <Tooltip content={settings.lang === 'en' ? 'Reset current template and market format' : '重置当前模板并同步市场格式'}>
             <button 
               type="button"
               onClick={onReset}

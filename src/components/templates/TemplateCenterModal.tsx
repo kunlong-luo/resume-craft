@@ -329,8 +329,8 @@ export function TemplateCenterModal({
               className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-500 dark:text-slate-400"
             >
               {isEn
-                ? 'Browse by job-seeking scenario and preview first. Applying a template replaces resume content only; Layout and Style stay unchanged.'
-                : '按求职场景浏览并先预览。应用模板只替换简历内容；排版和样式保持不变。'}
+                ? 'Browse by job-seeking scenario and preview first. Applying a template replaces the resume content and syncs its target market, paper size, and date format; visual Layout and Style stay unchanged.'
+                : '按求职场景浏览并先预览。应用模板会替换简历内容，并同步目标市场、纸张和日期格式；视觉排版与样式设置保持不变。'}
             </p>
           </div>
           <button

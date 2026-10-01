@@ -31,7 +31,7 @@ export function PdfExportMenu({
   const fileNameId = useId();
   const { markdown, settings, customFileName, setCustomFileName } = useResumeStore();
 
-  const market = settings.marketRegion || 'cn';
+  const market = settings.marketRegion || (isEn ? 'international' : 'cn');
   const marketProfile = getMarketProfile(market);
   const paperSpec = getPaperSpec(settings.paperSize || marketProfile.defaultPaperSize);
   const compactPaperLabel = paperSpec.id === 'letter' ? 'Letter' : 'A4';

@@ -87,10 +87,12 @@ export function SettingsPopover({
             aria-modal="true"
             aria-label={title}
             tabIndex={-1}
-            initial={{ opacity: 0, scale: isMobile ? 0.99 : 0.97, y: isMobile ? 24 : -6 }}
+            initial={{ opacity: 0, scale: isMobile ? 1 : 0.97, y: isMobile ? 0 : -6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: isMobile ? 0.99 : 0.97, y: isMobile ? 24 : -6 }}
-            transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+            exit={{ opacity: 0, scale: isMobile ? 1 : 0.97, y: isMobile ? 0 : -6 }}
+            transition={isMobile
+              ? { duration: 0.16 }
+              : { type: 'spring', stiffness: 450, damping: 32 }}
             style={isMobile
               ? {
                   position: 'fixed',

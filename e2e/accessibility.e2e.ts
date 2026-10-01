@@ -90,7 +90,7 @@ test.describe('keyboard accessibility', () => {
   test('confirmation dialog traps focus and restores the reset button', async ({ page }) => {
     await page.goto('/');
 
-    const resetButton = page.getByRole('button', { name: /^(Reset to default template|重置为默认模板)$/ });
+    const resetButton = page.getByRole('button', { name: /^(Reset current template|重置当前模板)$/ });
     await expect(resetButton).toBeVisible();
     await resetButton.focus();
     await resetButton.press('Enter');

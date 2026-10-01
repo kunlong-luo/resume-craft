@@ -10,6 +10,7 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
     expect(ids).toContain('uk_cv');
     expect(ids).toContain('ca_tech');
     expect(ids).toContain('english');
+    expect(ids).toContain('cn_demo');
     expect(ids).toContain('ai_backend');
     expect(ids).toContain('frontend');
     expect(ids).toContain('pm_lead');
@@ -63,6 +64,17 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
       expect(ukTemplate.content).toContain('March 2023 – Present');
       expect(ukTemplate.content).toContain('First Class Honours');
       expect(ukTemplate.content).toContain('Professional Profile');
+    });
+
+    it('provides a neutral Chinese demo template with China market metadata', () => {
+      const demo = TEMPLATES.find(t => t.id === 'cn_demo')!;
+      expect(demo).toBeDefined();
+      expect(demo.targetMarket).toBe('cn');
+      expect(demo.defaultPaperSize).toBe('a4');
+      expect(demo.dateStyle).toBe('cn-dot');
+      expect(demo.suggestedLang).toBe('zh');
+      expect(demo.content).toContain('Resume Craft 中文通用 Demo');
+      expect(demo.content).toContain('## 工作经历');
     });
 
     it('configures China AI Backend template with A4 paper and cn-dot date style', () => {

@@ -23,6 +23,34 @@ type TemplatePresentationPair = {
 };
 
 const TEMPLATE_PRESENTATION: Record<string, TemplatePresentationPair> = {
+  cn_demo: {
+    zh: {
+      name: '中文通用示例 (Demo)',
+      category: '中文通用',
+      description: '一份简洁、中性的中文示例简历，用于快速体验编辑、检查、排版和 PDF 导出流程。',
+      tags: ['中文 Demo', 'A4', '通用结构'],
+      language: '中文',
+      group: 'product',
+      experience: '通用 / 社招',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 中文标准 · A4 · Demo',
+    },
+    en: {
+      name: 'Chinese General Demo',
+      category: 'China Market',
+      description: 'A neutral Chinese demo resume for trying editing, checking, layout, and PDF export.',
+      tags: ['Chinese Demo', 'A4', 'General'],
+      language: 'Chinese',
+      group: 'product',
+      experience: 'General',
+      targetMarket: 'cn',
+      defaultPaperSize: 'a4',
+      dateStyle: 'cn-dot',
+      marketBadge: '🇨🇳 CN Standard · A4 · Demo',
+    },
+  },
   ai_backend: {
     zh: {
       name: 'AI 后端架构师',

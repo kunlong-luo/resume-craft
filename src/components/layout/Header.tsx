@@ -54,12 +54,13 @@ export function Header({
     setIsHelpLegalOpen,
     replaceDocument,
     settings,
-    updateSetting
+    uiLanguage,
+    themeMode,
+    setThemeMode
   } = useResumeStore();
 
-  const lang = settings.lang || 'zh';
+  const lang = uiLanguage;
   const isEn = lang === 'en';
-  const themeMode: ThemeMode = settings.themeMode || 'light';
   const [isRawTextModalOpen, setIsRawTextModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -152,7 +153,7 @@ export function Header({
           // Apply the visible theme synchronously. React state remains the source of truth,
           // but the DOM must not wait on a browser-specific View Transition lifecycle.
           syncThemeClass();
-          updateSetting('themeMode', nextMode);
+          setThemeMode(nextMode);
         });
 
         // WebKit can expose startViewTransition while failing to finish the custom animation
@@ -192,11 +193,11 @@ export function Header({
       } catch {
         syncThemeClass();
         cleanupTransitionClass();
-        updateSetting('themeMode', nextMode);
+        setThemeMode(nextMode);
       }
     } else {
       syncThemeClass();
-      updateSetting('themeMode', nextMode);
+      setThemeMode(nextMode);
     }
   };
 
@@ -219,7 +220,7 @@ export function Header({
               {isEn ? 'Resume Craft' : '简匠'}
             </span>
           </div>
-          <ProfileDropdown lang={settings.lang} />
+          <ProfileDropdown lang={uiLanguage} />
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -261,7 +262,7 @@ export function Header({
           <div className="w-px h-5 bg-slate-200/90 dark:bg-slate-800 mx-1 shrink-0" />
 
           {/* Multi-Profile Archive Selector */}
-          <ProfileDropdown lang={settings.lang} />
+          <ProfileDropdown lang={uiLanguage} />
 
           {/* Real-time save and storage health indicator */}
           {storageStatus === 'error' ? (

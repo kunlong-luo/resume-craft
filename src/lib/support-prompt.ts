@@ -1,22 +1,19 @@
 export const SUPPORT_REPO_URL = 'https://github.com/kunlong-luo/resume-craft';
-export const SUPPORT_PROMPT_STORAGE_KEY = 'resume-craft.support-prompt.v1';
+export const SUPPORT_PROMPT_STORAGE_KEY = 'resume-craft.support-prompt.v2';
+const LEGACY_SUPPORT_PROMPT_STORAGE_KEY = 'resume-craft.support-prompt.v1';
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-const SUPPORTED_COOLDOWN_MS = 30 * DAY_MS;
-const SKIP_COOLDOWN_MS = 7 * DAY_MS;
-
-export type SupportPromptDecision = 'supported' | 'skip';
+export type SupportPromptDecision = 'supported' | 'dismissed';
 
 interface SupportPromptState {
-  nextPromptAt: number;
+  prompted: boolean;
   exportCount: number;
+  decision?: SupportPromptDecision;
 }
 
 interface ShouldShowSupportPromptOptions {
   hostname: string;
   pathname: string;
-  now?: number;
-  nextPromptAt?: number | null;
+  prompted?: boolean;
   exportCount?: number;
 }
 
@@ -26,51 +23,61 @@ export function isOfficialHostedApp(hostname: string, pathname: string) {
   );
 }
 
-export function getSupportPromptCooldown(decision: SupportPromptDecision) {
-  return decision === 'supported' ? SUPPORTED_COOLDOWN_MS : SKIP_COOLDOWN_MS;
-}
-
 export function shouldShowSupportPrompt({
   hostname,
   pathname,
-  now = Date.now(),
-  nextPromptAt = null,
+  prompted = false,
   exportCount = 0,
 }: ShouldShowSupportPromptOptions) {
-  if (!isOfficialHostedApp(hostname, pathname)) {
-    return false;
-  }
+  if (!isOfficialHostedApp(hostname, pathname)) return false;
+  if (prompted) return false;
 
-  // Never interrupt a user's first export. The support prompt becomes eligible
-  // only after they have already tried exporting once.
-  if (exportCount < 1) {
-    return false;
-  }
-
-  return !nextPromptAt || now >= nextPromptAt;
+  // This function is evaluated only after an export has finished. Keep the
+  // count guard explicit so tests and future call sites cannot accidentally
+  // show the prompt before the user has received value.
+  return exportCount >= 1;
 }
 
-function readSupportPromptState(): SupportPromptState | null {
+function readStateFromStorage(key: string): unknown {
   if (typeof window === 'undefined') return null;
 
   try {
-    const raw = window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY);
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw) as Partial<SupportPromptState>;
-    if (typeof parsed.nextPromptAt !== 'number') {
-      return null;
-    }
-
-    return {
-      nextPromptAt: parsed.nextPromptAt,
-      // Older saved states predate exportCount. Those users have already seen
-      // the prompt, so treat them as having completed the first export.
-      exportCount: typeof parsed.exportCount === 'number' ? parsed.exportCount : 1,
-    };
+    const raw = window.localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
+}
+
+function readSupportPromptState(): SupportPromptState {
+  const current = readStateFromStorage(SUPPORT_PROMPT_STORAGE_KEY) as Partial<SupportPromptState> | null;
+  if (current && typeof current.prompted === 'boolean') {
+    return {
+      prompted: current.prompted,
+      exportCount: typeof current.exportCount === 'number' ? current.exportCount : 0,
+      decision:
+        current.decision === 'supported' || current.decision === 'dismissed'
+          ? current.decision
+          : undefined,
+    };
+  }
+
+  // v1 used cooldown timestamps and could interrupt a later export. If a v1
+  // state exists, treat that user as already prompted so the migration never
+  // causes a surprise repeat reminder.
+  const legacy = readStateFromStorage(LEGACY_SUPPORT_PROMPT_STORAGE_KEY);
+  if (legacy) {
+    return {
+      prompted: true,
+      exportCount: 1,
+      decision: 'dismissed',
+    };
+  }
+
+  return {
+    prompted: false,
+    exportCount: 0,
+  };
 }
 
 function writeSupportPromptState(state: SupportPromptState) {
@@ -83,25 +90,32 @@ function writeSupportPromptState(state: SupportPromptState) {
   }
 }
 
-export function shouldPromptForSupport() {
+export function recordSuccessfulPdfExportAndShouldPrompt() {
   if (typeof window === 'undefined') return false;
 
-  const state = readSupportPromptState();
+  const current = readSupportPromptState();
+  const next: SupportPromptState = {
+    ...current,
+    exportCount: current.exportCount + 1,
+  };
 
-  if (!state) {
-    writeSupportPromptState({
-      nextPromptAt: 0,
-      exportCount: 1,
-    });
-    return false;
-  }
-
-  return shouldShowSupportPrompt({
+  const shouldPrompt = shouldShowSupportPrompt({
     hostname: window.location.hostname,
     pathname: window.location.pathname,
-    nextPromptAt: state.nextPromptAt,
-    exportCount: state.exportCount,
+    prompted: next.prompted,
+    exportCount: next.exportCount,
   });
+
+  // "One-time" means one display attempt, not one completed interaction.
+  // Mark it immediately so reloads/crashes/closing the tab cannot cause a
+  // second reminder after a later export.
+  writeSupportPromptState(
+    shouldPrompt
+      ? { ...next, prompted: true }
+      : next,
+  );
+
+  return shouldPrompt;
 }
 
 export function markSupportPrompt(decision: SupportPromptDecision) {
@@ -109,7 +123,8 @@ export function markSupportPrompt(decision: SupportPromptDecision) {
 
   const current = readSupportPromptState();
   writeSupportPromptState({
-    nextPromptAt: Date.now() + getSupportPromptCooldown(decision),
-    exportCount: Math.max(1, current?.exportCount ?? 1),
+    ...current,
+    prompted: true,
+    decision,
   });
 }

@@ -18,10 +18,8 @@ export function BackupDraftModal() {
     settings,
     isBackupHubOpen: isOpen,
     setIsBackupHubOpen,
-    setSettings,
-    setCurrentTemplateId,
     currentTemplateId,
-    handleMarkdownChange
+    replaceDocument
   } = useResumeStore();
 
   const onClose = () => setIsBackupHubOpen(false);
@@ -36,9 +34,7 @@ export function BackupDraftModal() {
         ? templateId
         : 'custom';
 
-    setCurrentTemplateId(safeTemplateId);
-    setSettings(newSettings);
-    handleMarkdownChange(newMarkdown, true);
+    replaceDocument(newMarkdown, newSettings, safeTemplateId);
   };
 
   const { confirm } = useConfirm();

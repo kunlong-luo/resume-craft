@@ -79,7 +79,7 @@ test.describe('international market flows', () => {
 
   test('reset current template restores its market metadata and download label', async ({ page }) => {
     await page.goto('/');
-    await applyTemplate(page, 'Canadian Cloud & Data Engineer (Resume)');
+    await applyTemplate(page, 'Canadian Cloud & Data Engineer');
 
     let layout = await openLayout(page);
     await layout.getByRole('button', { name: 'US', exact: true }).click();

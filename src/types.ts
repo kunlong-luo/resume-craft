@@ -16,6 +16,7 @@ export type PersonalField = 'photo' | 'age' | 'gender' | 'marital' | 'nationalit
 export interface ResumeSettings {
   themeColor: ThemeColor;
   customColor?: string;
+  /** @deprecated App theme is global; kept only for legacy backup compatibility. */
   themeMode?: ThemeMode;
   fontSize: FontSize;
   fontFamily: FontFamily;
@@ -28,6 +29,7 @@ export interface ResumeSettings {
   letterSpacing: number;
   showPageBreakLine: boolean;
   templateLayout: TemplateLayout;
+  /** Resume content language. UI language is stored globally. */
   lang?: Language;
   paperSize?: PaperSize;
   marketRegion?: MarketRegion;

@@ -751,7 +751,15 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, settings: newSettings, markdown: nextMarkdown, updatedAt: new Date().toISOString() }
         : p
     );
-    set({ settings: newSettings, markdown: nextMarkdown, profiles: updatedProfiles, measuredPageCount: null });
+    set({
+      settings: newSettings,
+      markdown: nextMarkdown,
+      profiles: updatedProfiles,
+      ...(key === 'lang' && value !== prevLang
+        ? { history: [nextMarkdown], historyIndex: 0 }
+        : {}),
+      measuredPageCount: null,
+    });
   },
 
   updateSettings: (partialSettings) => {
@@ -773,6 +781,14 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ? { ...p, settings: newSettings, markdown: nextMarkdown, updatedAt: new Date().toISOString() }
         : p
     );
-    set({ settings: newSettings, markdown: nextMarkdown, profiles: updatedProfiles, measuredPageCount: null });
+    set({
+      settings: newSettings,
+      markdown: nextMarkdown,
+      profiles: updatedProfiles,
+      ...(partialSettings.lang && partialSettings.lang !== prevLang
+        ? { history: [nextMarkdown], historyIndex: 0 }
+        : {}),
+      measuredPageCount: null,
+    });
   }
 }));

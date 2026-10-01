@@ -62,9 +62,11 @@ test.describe('international market flows', () => {
     });
 
     await page.goto('/');
-    await page.evaluate(() => {
-      window.dispatchEvent(new Event('resume-craft:open-pdf-menu'));
+    const exportModeButton = page.getByRole('button', {
+      name: /Choose PDF export mode|选择 PDF 下载方式/,
     });
+    await expect(exportModeButton).toBeVisible();
+    await exportModeButton.click();
 
     const marketLabel = page.getByTestId('export-market-label');
     const paperLabel = page.getByTestId('export-paper-label');

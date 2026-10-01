@@ -14,6 +14,7 @@ import {
   Share2
 } from 'lucide-react';
 import { useResumeStore } from '../../store/useResumeStore';
+import { useShallow } from 'zustand/react/shallow';
 import { ThemeMode } from '../../types';
 import { ProfileDropdown } from '../profile/ProfileDropdown';
 import { Tooltip } from '../ui';
@@ -56,8 +57,27 @@ export function Header({
     settings,
     uiLanguage,
     themeMode,
-    setThemeMode
-  } = useResumeStore();
+    setThemeMode,
+  } = useResumeStore(
+    useShallow((state) => ({
+      lastSaved: state.lastSaved,
+      isSaving: state.isSaving,
+      saveStatus: state.saveStatus,
+      storageStatus: state.storageStatus,
+      storageErrorIsQuota: state.storageErrorIsQuota,
+      isCheckerOpen: state.isCheckerOpen,
+      isExportingPDF: state.isExportingPDF,
+      pdfExportProgress: state.pdfExportProgress,
+      setIsCheckerOpen: state.setIsCheckerOpen,
+      setIsBackupHubOpen: state.setIsBackupHubOpen,
+      setIsHelpLegalOpen: state.setIsHelpLegalOpen,
+      replaceDocument: state.replaceDocument,
+      settings: state.settings,
+      uiLanguage: state.uiLanguage,
+      themeMode: state.themeMode,
+      setThemeMode: state.setThemeMode,
+    })),
+  );
 
   const lang = uiLanguage;
   const isEn = lang === 'en';

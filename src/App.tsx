@@ -53,6 +53,7 @@ export default function App() {
     markdown,
     settings,
     profiles,
+    currentTemplateId,
     setLastSaved,
     isHelpLegalOpen,
     setIsHelpLegalOpen,
@@ -242,6 +243,7 @@ export default function App() {
             title: new Date().toLocaleTimeString(isEn ? 'en-US' : 'zh-CN', { hour12: false }),
             markdown,
             settings,
+            templateId: currentTemplateId,
             timestamp: new Date().toLocaleString(isEn ? 'en-US' : 'zh-CN', { hour12: false }),
             isAutoSave: true,
           };
@@ -257,7 +259,7 @@ export default function App() {
     }, 180000);
 
     return () => clearInterval(interval);
-  }, [markdown, settings]);
+  }, [markdown, settings, currentTemplateId]);
 
   // Dark mode / Studio Dark synchronization
   useEffect(() => {

@@ -122,10 +122,15 @@ test.describe('template center', () => {
     });
     await dialog.getByRole('button', { name: /Chinese General Demo|中文通用示例/ }).click();
 
-    await expect(dialog.getByTestId('selected-template-sections')).toContainText('个人优势');
-    await expect(dialog.getByTestId('selected-template-sections')).toContainText('专业技能');
-    await expect(dialog.getByTestId('selected-template-sections')).toContainText('工作经历');
-    await expect(dialog.getByTestId('selected-template-sections')).not.toContainText('Work Experience');
+    const sections = dialog.getByTestId('selected-template-sections');
+    await expect(sections).toContainText('个人简介');
+    await expect(sections).toContainText('核心能力');
+    await expect(sections).toContainText('工作经历');
+    await expect(sections).toContainText('项目经历');
+    await expect(sections).not.toContainText('Summary');
+    await expect(sections).not.toContainText('Skills');
+    await expect(sections).not.toContainText('Work Experience');
+    await expect(sections).not.toContainText('Projects');
   });
 
   test('previews a template without changing the active resume', async ({ page }) => {

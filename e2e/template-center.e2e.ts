@@ -80,6 +80,33 @@ test.describe('template center', () => {
     ).toBeVisible();
   });
 
+  test('shows all China-market templates under CN Standard', async ({ page }) => {
+    await page.goto('/');
+
+    await page
+      .getByRole('button', { name: /Browse resume templates|浏览与切换简历模板/ })
+      .click();
+
+    const dialog = page.getByRole('dialog', {
+      name: /Choose a content template|选择内容模板/,
+    });
+
+    await dialog.getByRole('button', { name: /CN Standard|中文标准/ }).click();
+
+    await expect(
+      dialog.getByRole('button', { name: /Chinese General Demo|中文通用示例/ }),
+    ).toBeVisible();
+    await expect(
+      dialog.getByRole('button', { name: /AI Frontend Developer|AI 前端工程师/ }),
+    ).toBeVisible();
+    await expect(
+      dialog.getByRole('button', { name: /Graduate \/ Campus Engineering|应届生 \/ 校园研发/ }),
+    ).toBeVisible();
+    await expect(
+      dialog.getByRole('button', { name: /US Software Engineer/ }),
+    ).toHaveCount(0);
+  });
+
   test('previews a template without changing the active resume', async ({ page }) => {
     await page.goto('/');
 

@@ -4,6 +4,7 @@ import { Preview } from './components/preview/Preview';
 import { Header } from './components/layout/Header';
 import { Toolbar } from './components/layout/Toolbar';
 import { useResumeStore } from './store/useResumeStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useResumeActions } from './hooks/useResumeActions';
 import { getSharePayloadFromLocation, parseSharePayload } from './lib/share-utils';
 import { useToast } from './components/ui/Toast';
@@ -50,17 +51,26 @@ export default function App() {
   }
 
   const {
-    markdown,
-    settings,
     uiLanguage,
     themeMode,
-    profiles,
-    currentTemplateId,
+    layoutMode,
+    paperSize,
     setLastSaved,
     isHelpLegalOpen,
     setIsHelpLegalOpen,
-    setStorageHealth
-  } = useResumeStore();
+    setStorageHealth,
+  } = useResumeStore(
+    useShallow((state) => ({
+      uiLanguage: state.uiLanguage,
+      themeMode: state.themeMode,
+      layoutMode: state.layoutMode,
+      paperSize: state.paperSize,
+      setLastSaved: state.setLastSaved,
+      isHelpLegalOpen: state.isHelpLegalOpen,
+      setIsHelpLegalOpen: state.setIsHelpLegalOpen,
+      setStorageHealth: state.setStorageHealth,
+    })),
+  );
 
   const contentRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
@@ -80,16 +90,16 @@ export default function App() {
   }, []);
 
 
-  const initialMarkdownRef = useRef(markdown);
   const hasTrackedEditingRef = useRef(false);
 
   useEffect(() => {
-    if (hasTrackedEditingRef.current) return;
-    if (markdown === initialMarkdownRef.current) return;
-
-    hasTrackedEditingRef.current = true;
-    trackAnalyticsEvent('editing_started');
-  }, [markdown]);
+    const initialMarkdown = useResumeStore.getState().markdown;
+    return useResumeStore.subscribe((state) => {
+      if (hasTrackedEditingRef.current || state.markdown === initialMarkdown) return;
+      hasTrackedEditingRef.current = true;
+      trackAnalyticsEvent('editing_started');
+    });
+  }, []);
 
 
   // Resizable split ratio (percentage for editor width)
@@ -236,16 +246,22 @@ export default function App() {
       void (async () => {
         try {
           const currentDrafts = await resumeRepository.getDrafts();
-          const hasDuplicate = currentDrafts.some((draft) => draft.markdown === markdown);
+          const {
+            markdown: currentMarkdown,
+            settings: currentSettings,
+            currentTemplateId: currentTemplate,
+            uiLanguage: currentUiLanguage,
+          } = useResumeStore.getState();
+          const hasDuplicate = currentDrafts.some((draft) => draft.markdown === currentMarkdown);
           if (hasDuplicate) return;
 
-          const isEn = uiLanguage === 'en';
+          const isEn = currentUiLanguage === 'en';
           const newAutoDraft = {
             id: `draft_auto_${Date.now()}`,
             title: new Date().toLocaleTimeString(isEn ? 'en-US' : 'zh-CN', { hour12: false }),
-            markdown,
-            settings,
-            templateId: currentTemplateId,
+            markdown: currentMarkdown,
+            settings: currentSettings,
+            templateId: currentTemplate,
             timestamp: new Date().toLocaleString(isEn ? 'en-US' : 'zh-CN', { hour12: false }),
             isAutoSave: true,
           };
@@ -261,7 +277,7 @@ export default function App() {
     }, 180000);
 
     return () => clearInterval(interval);
-  }, [markdown, settings, currentTemplateId]);
+  }, []);
 
   // Dark mode / Studio Dark synchronization
   useEffect(() => {
@@ -290,7 +306,6 @@ export default function App() {
   }, [themeMode]);
 
   const { showToast } = useToast() || {};
-  const { updateSetting } = useResumeStore();
 
   useEffect(() => {
     if (typeof BroadcastChannel === 'undefined') return;
@@ -376,10 +391,11 @@ export default function App() {
       // Cmd/Ctrl + S -> Manual Save trigger Toast
       if (isCmdOrCtrl && (e.key === 's' || e.key === 'S')) {
         e.preventDefault();
+        const currentState = useResumeStore.getState();
         void resumeRepository.saveSnapshot({
-          markdown,
-          profiles,
-          jdText: useResumeStore.getState().jdText,
+          markdown: currentState.markdown,
+          profiles: currentState.profiles,
+          jdText: currentState.jdText,
         }).then(() => {
           const now = new Date();
           const pad = (num: number) => String(num).padStart(2, '0');
@@ -415,7 +431,8 @@ export default function App() {
       // Cmd/Ctrl + Shift + F -> Auto Fit One Page
       if (isCmdOrCtrl && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
         e.preventDefault();
-        smartAutoFit(settings, updateSetting);
+        const currentState = useResumeStore.getState();
+        smartAutoFit(currentState.settings, currentState.updateSetting);
         trackAnalyticsEvent('auto_fit_used');
         showToast?.({
           title: '已触发一键贴合控页',
@@ -428,7 +445,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [markdown, profiles, settings, setLastSaved, setStorageHealth, showToast, handleExportVectorPrint, updateSetting]);
+  }, [setLastSaved, setStorageHealth, showToast, handleExportVectorPrint, uiLanguage]);
 
   return (
     <div className={`flex flex-col h-[100dvh] overflow-hidden bg-[#f8fafc] dark:bg-[#070a13] text-slate-900 dark:text-slate-100 relative transition-colors duration-200 ${isDragging ? 'select-none cursor-col-resize' : ''}`}>
@@ -453,12 +470,12 @@ export default function App() {
             <section 
               id="editor-pane" 
               style={{
-                width: !isMobile ? (settings.layoutMode === 'split' ? `${splitRatio}%` : settings.layoutMode === 'editor' ? '100%' : '0%') : '100%'
+                width: !isMobile ? (layoutMode === 'split' ? `${splitRatio}%` : layoutMode === 'editor' ? '100%' : '0%') : '100%'
               }}
               className={`z-10 relative h-full ${
                 isDragging ? 'transition-none' : 'transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]'
               } ${
-                !isMobile && settings.layoutMode === 'preview' ? 'hidden' : 'w-full'
+                !isMobile && layoutMode === 'preview' ? 'hidden' : 'w-full'
               } border-r border-slate-200/90 dark:border-slate-800`}
             >
               <Editor />
@@ -466,7 +483,7 @@ export default function App() {
           )}
 
           {/* Draggable Divider for Split Mode on Desktop */}
-          {!isMobile && settings.layoutMode === 'split' && (
+          {!isMobile && layoutMode === 'split' && (
             <Tooltip
               content={uiLanguage === 'en' ? 'Drag to resize (Double click to reset 50%)' : '拖拽调节左右宽度（双击复位 50%）'}
               side="top"
@@ -495,14 +512,14 @@ export default function App() {
           {/* Preview Pane */}
           <section 
             style={{
-              width: !isMobile ? (settings.layoutMode === 'split' ? `${100 - splitRatio}%` : settings.layoutMode === 'preview' ? '100%' : '0%') : '100%',
+              width: !isMobile ? (layoutMode === 'split' ? `${100 - splitRatio}%` : layoutMode === 'preview' ? '100%' : '0%') : '100%',
             }}
             className={`h-full ${
               isDragging ? 'transition-none' : 'transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]'
             } ${
               isMobile 
                 ? (mobileTab === 'preview' ? 'w-full relative' : 'absolute -left-[9999px] top-0 w-[210mm] pointer-events-none opacity-0 select-none')
-                : (settings.layoutMode === 'editor' ? 'absolute -left-[9999px] top-0 w-[210mm] pointer-events-none opacity-0 select-none' : 'relative')
+                : (layoutMode === 'editor' ? 'absolute -left-[9999px] top-0 w-[210mm] pointer-events-none opacity-0 select-none' : 'relative')
             }`}
           >
             <Preview 
@@ -540,7 +557,7 @@ export default function App() {
             >
               <Eye className="w-3.5 h-3.5" />
               <span>
-                {settings.paperSize === 'letter'
+                {paperSize === 'letter'
                   ? uiLanguage === 'en'
                     ? 'Letter Preview'
                     : 'Letter 预览'

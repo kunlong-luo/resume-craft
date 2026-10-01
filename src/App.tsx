@@ -11,7 +11,7 @@ import { useToast } from './components/ui/Toast';
 import { smartAutoFit } from './lib/preview-utils';
 import { Edit3, Eye, Printer } from 'lucide-react';
 import { Tooltip } from './components/ui/Tooltip';
-import { markSupportPrompt, shouldPromptForSupport } from './lib/support-prompt';
+import { markSupportPrompt, recordSuccessfulPdfExportAndShouldPrompt } from './lib/support-prompt';
 import { trackAnalyticsEvent } from './lib/analytics';
 import { storage, STORAGE_HEALTH_EVENT, STORAGE_KEYS, type StorageHealthDetail } from './lib/storage';
 import { resumeRepository } from './lib/resume-repository';
@@ -74,7 +74,6 @@ export default function App() {
 
   const contentRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
-  const pendingExportActionRef = useRef<(() => void | Promise<void>) | null>(null);
   const [isSupportProjectOpen, setIsSupportProjectOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(() => {
     return (
@@ -183,59 +182,30 @@ export default function App() {
     };
   }, [isDragging, splitRatio]);
 
+  const handlePdfExportComplete = useCallback(() => {
+    if (recordSuccessfulPdfExportAndShouldPrompt()) {
+      setIsSupportProjectOpen(true);
+    }
+  }, []);
+
   const {
-    handleExportPDF: exportPDFNow,
-    handleExportDirectPDF: exportDirectPDFNow,
-    handleExportVectorPrint: exportVectorPrintNow,
+    handleExportPDF,
+    handleExportDirectPDF,
+    handleExportVectorPrint,
     handleExportMarkdown,
-    handleImportMarkdown
+    handleImportMarkdown,
   } = useResumeActions({
-    contentRef
+    contentRef,
+    onPdfExportComplete: handlePdfExportComplete,
   });
-
-  const runExportWithSupportPrompt = useCallback((action: () => void | Promise<void>) => {
-    if (!shouldPromptForSupport()) {
-      void action();
-      return;
-    }
-
-    pendingExportActionRef.current = action;
-    setIsSupportProjectOpen(true);
-  }, []);
-
-  const handleExportPDF = useCallback(() => {
-    runExportWithSupportPrompt(exportPDFNow);
-  }, [exportPDFNow, runExportWithSupportPrompt]);
-
-  const handleExportDirectPDF = useCallback(() => {
-    runExportWithSupportPrompt(exportDirectPDFNow);
-  }, [exportDirectPDFNow, runExportWithSupportPrompt]);
-
-  const handleExportVectorPrint = useCallback(() => {
-    runExportWithSupportPrompt(exportVectorPrintNow);
-  }, [exportVectorPrintNow, runExportWithSupportPrompt]);
-
-  const continuePendingExport = useCallback(() => {
-    const action = pendingExportActionRef.current;
-    pendingExportActionRef.current = null;
-    setIsSupportProjectOpen(false);
-
-    if (action) {
-      void action();
-    }
-  }, []);
 
   const handleSupportProject = useCallback(() => {
     markSupportPrompt('supported');
+    setIsSupportProjectOpen(false);
   }, []);
 
-  const handleSkipSupport = useCallback(() => {
-    markSupportPrompt('skip');
-    continuePendingExport();
-  }, [continuePendingExport]);
-
-  const handleCloseSupportPrompt = useCallback(() => {
-    pendingExportActionRef.current = null;
+  const handleDismissSupportPrompt = useCallback(() => {
+    markSupportPrompt('dismissed');
     setIsSupportProjectOpen(false);
   }, []);
 
@@ -586,10 +556,8 @@ export default function App() {
           <SupportProjectModal
             isOpen={isSupportProjectOpen}
             lang={uiLanguage}
-            onClose={handleCloseSupportPrompt}
+            onClose={handleDismissSupportPrompt}
             onSupportClick={handleSupportProject}
-            onContinue={continuePendingExport}
-            onSkip={handleSkipSupport}
           />
           <OnboardingTour
             isOpen={isOnboardingOpen}

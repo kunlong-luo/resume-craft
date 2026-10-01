@@ -112,13 +112,14 @@ test.describe('international responsive UX', () => {
     await expect(resumeSwitcher).toBeHidden();
 
     await page.getByRole('button', {
-      name: /Choose PDF export mode|选择 PDF 下载方式/,
+      name: /Open header download options|打开顶部下载选项/,
     }).click();
     const downloadDialog = page.getByRole('dialog', {
       name: /Download options|下载选项/,
     });
     await expectInsideViewport(downloadDialog, 390, 844);
     await expect(downloadDialog.getByLabel(/PDF file name|PDF 文件名/)).toBeVisible();
+    await expect(downloadDialog.getByRole('button', { name: /Quick PDF|快速 PDF/ })).toBeVisible();
   });
 
   test('mobile: month picker fits the viewport and exposes older experience years', async ({ page }) => {

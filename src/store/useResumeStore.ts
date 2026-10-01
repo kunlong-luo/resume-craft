@@ -537,12 +537,16 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       } else {
         storage.remove(STORAGE_KEYS.CUSTOM_FILE_NAME);
       }
-      set({ 
+      set({
         profiles: updated,
         activeProfileId: nextActive.id,
         markdown: nextActive.markdown,
         settings: nextActive.settings,
         customFileName: nextActive.customFileName || '',
+        history: [nextActive.markdown],
+        historyIndex: 0,
+        currentTemplateId: nextActive.templateId || getInitialTemplateId(nextActive.markdown),
+        lastSaved: new Date().toLocaleTimeString(),
         measuredPageCount: null
       });
     } else {

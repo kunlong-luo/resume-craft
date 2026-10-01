@@ -20,7 +20,6 @@ import {
   type TemplateGroup,
 } from '../../lib/template-presentation';
 import { useResumeStore } from '../../store/useResumeStore';
-import { getMarketProfile, resolveDefaultPaperSize } from '../../lib/market-profile';
 
 interface TemplateCenterModalProps {
   isOpen: boolean;
@@ -173,9 +172,7 @@ export function TemplateCenterModal({
     markdown,
     settings,
     currentTemplateId,
-    setCurrentTemplateId,
-    handleMarkdownChange,
-    updateSettings,
+    applyTemplate,
   } = useResumeStore();
   const { confirm } = useConfirm();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -269,7 +266,7 @@ export function TemplateCenterModal({
           selectedPresentation.name +
           '」会替换当前简历内容，并自动同步目标市场格式与纸张规格（' +
           (selectedTemplate.defaultPaperSize?.toUpperCase() || 'A4') +
-          '）。应用后仍可撤销。',
+          '）。',
       confirmText: isEn ? 'Use content template' : '使用内容模板',
       cancelText: isEn ? 'Cancel' : '取消',
       type: 'warning',
@@ -277,21 +274,7 @@ export function TemplateCenterModal({
 
     if (!confirmed) return;
 
-    setCurrentTemplateId(selectedTemplate.id);
-    handleMarkdownChange(selectedTemplate.content, true);
-
-    if (selectedTemplate.targetMarket) {
-      updateSettings({
-        marketRegion: selectedTemplate.targetMarket,
-        paperSize:
-          selectedTemplate.defaultPaperSize ??
-          resolveDefaultPaperSize(selectedTemplate.targetMarket),
-        dateStyle:
-          selectedTemplate.dateStyle ??
-          getMarketProfile(selectedTemplate.targetMarket).dateStyle,
-      });
-    }
-
+    applyTemplate(selectedTemplate.id);
     onClose();
   };
 

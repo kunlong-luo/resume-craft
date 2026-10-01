@@ -107,7 +107,7 @@ export function Toolbar() {
             aria-haspopup="dialog"
             aria-expanded={isLayoutOpen}
             aria-label={isEn ? 'Open layout settings' : '打开排版设置'}
-            className={`flex h-8 items-center justify-center gap-1 px-2.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+            className={`flex h-9 md:h-8 items-center justify-center gap-1 px-2.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               isLayoutOpen
                 ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20'
                 : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200/90 dark:border-slate-700 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-750'
@@ -130,7 +130,7 @@ export function Toolbar() {
             aria-haspopup="dialog"
             aria-expanded={isStyleOpen}
             aria-label={isEn ? 'Open style settings' : '打开样式设置'}
-            className={`flex h-8 items-center justify-center gap-1 px-2.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+            className={`flex h-9 md:h-8 items-center justify-center gap-1 px-2.5 rounded-lg text-xs font-bold border transition-all cursor-pointer shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               isStyleOpen
                 ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20'
                 : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200/90 dark:border-slate-700 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-750'

@@ -137,7 +137,14 @@ export function PdfExportMenu({
     <div ref={rootRef} className="relative flex shrink-0">
       <button
         type="button"
-        onClick={onExportAts}
+        onClick={() => {
+          if (compact) {
+            setIsOpen(true);
+            return;
+          }
+          onExportAts();
+        }}
+        aria-label={compact ? (isEn ? 'Open header download options' : '打开顶部下载选项') : undefined}
         disabled={isExporting}
         className={`flex min-h-10 sm:min-h-0 items-center gap-1.5 rounded-l-xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-blue-600 px-3 py-1.5 text-xs font-bold text-white shadow-md shadow-indigo-500/20 transition-all hover:from-indigo-500 hover:to-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-75 ${compact ? 'px-2.5' : ''}`}
       >

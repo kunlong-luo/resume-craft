@@ -23,8 +23,8 @@ const steps = [
 ] as const;
 
 export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
-  const { settings, applyTemplate, replaceDocument } = useResumeStore();
-  const isEn = settings.lang === 'en';
+  const { settings, uiLanguage, applyTemplate, replaceDocument } = useResumeStore();
+  const isEn = uiLanguage === 'en';
   const [step, setStep] = useState(0);
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
   const [pendingReplacement, setPendingReplacement] = useState<'example' | 'starter' | 'blank' | null>(null);

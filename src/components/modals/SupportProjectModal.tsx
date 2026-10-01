@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { ExternalLink, FileDown, Star, X } from 'lucide-react';
+import React, { useRef } from 'react';
+import { ExternalLink, Star, X } from 'lucide-react';
 import { SUPPORT_REPO_URL } from '../../lib/support-prompt';
 import { useDialogFocus } from '../../hooks/useDialogFocus';
 
@@ -8,8 +8,6 @@ interface SupportProjectModalProps {
   lang?: string;
   onClose: () => void;
   onSupportClick: () => void;
-  onContinue: () => void;
-  onSkip: () => void;
 }
 
 export function SupportProjectModal({
@@ -17,26 +15,15 @@ export function SupportProjectModal({
   lang = 'zh',
   onClose,
   onSupportClick,
-  onContinue,
-  onSkip,
 }: SupportProjectModalProps) {
-  const [visitedGitHub, setVisitedGitHub] = useState(false);
   const isEn = lang === 'en';
-
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocus({ isOpen, dialogRef, onClose });
-
-  useEffect(() => {
-    if (!isOpen) {
-      setVisitedGitHub(false);
-    }
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const openGitHub = () => {
     window.open(SUPPORT_REPO_URL, '_blank', 'noopener,noreferrer');
-    setVisitedGitHub(true);
     onSupportClick();
   };
 
@@ -81,48 +68,35 @@ export function SupportProjectModal({
 
             <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-600 dark:text-slate-300">
               {isEn
-                ? 'Resume Craft is free and open source. If it has made building your resume easier, a GitHub Star helps support continued improvements and helps more people discover the project.'
-                : 'Resume Craft 是一个免费开源项目。如果它让你更轻松地完成简历，欢迎在 GitHub 点一个 Star，支持项目持续改进，也让更多人发现它。'}
+                ? 'Your PDF export is already complete. Resume Craft is free and open source; if it helped, a GitHub Star supports continued improvements and helps more people discover the project.'
+                : '你的 PDF 导出已经完成。Resume Craft 是免费开源项目；如果它对你有帮助，欢迎在 GitHub 点一个 Star，支持项目持续改进，也让更多人发现它。'}
             </p>
           </div>
 
           <div className="mt-5 flex flex-col gap-2.5">
-            {!visitedGitHub ? (
-              <>
-                <button
-                  type="button"
-                  onClick={openGitHub}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 active:scale-[0.99] dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 cursor-pointer"
-                >
-                  <Star className="h-4 w-4" />
-                  <span>{isEn ? 'Support on GitHub' : '去 GitHub 支持项目'}</span>
-                  <ExternalLink className="h-3.5 w-3.5 opacity-70" />
-                </button>
+            <button
+              type="button"
+              onClick={openGitHub}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 active:scale-[0.99] dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 cursor-pointer"
+            >
+              <Star className="h-4 w-4" />
+              <span>{isEn ? 'Star on GitHub' : '去 GitHub 点个 Star'}</span>
+              <ExternalLink className="h-3.5 w-3.5 opacity-70" />
+            </button>
 
-                <button
-                  type="button"
-                  onClick={onSkip}
-                  className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
-                >
-                  {isEn ? 'Continue export' : '继续导出'}
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={onContinue}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-sm shadow-indigo-500/20 transition-all hover:bg-indigo-500 active:scale-[0.99] cursor-pointer"
-              >
-                <FileDown className="h-4 w-4" />
-                <span>{isEn ? 'Continue export' : '继续导出'}</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
+            >
+              {isEn ? 'No thanks' : '不用了'}
+            </button>
           </div>
 
           <p className="mt-3 text-center text-[11px] leading-5 text-slate-400 dark:text-slate-500">
             {isEn
-              ? 'After visiting GitHub, we will not show this reminder again for a while.'
-              : '访问 GitHub 后，一段时间内不再提示。'}
+              ? 'Shown once after your first completed PDF export.'
+              : '仅在第一次完成 PDF 导出后提示一次。'}
           </p>
         </div>
       </div>

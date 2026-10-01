@@ -140,9 +140,9 @@ test.describe('international market flows', () => {
     await expect(page.getByRole('group', { name: '界面语言' })).toBeVisible();
     await expect(page.locator('input[value="Work Experience"]')).toBeVisible();
     await expect(page.locator('#resume-print-content h2').filter({ hasText: /^Work Experience$/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: '工作经历', exact: true }).first()).toBeVisible();
-    await expect(page.getByRole('button', { name: '个人优势', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: '专业技能', exact: true })).toBeVisible();
+    await expect(page.getByRole('button').filter({ hasText: '工作经历' }).first()).toBeVisible();
+    await expect(page.getByRole('button').filter({ hasText: '个人优势' }).first()).toBeVisible();
+    await expect(page.getByRole('button').filter({ hasText: '专业技能' }).first()).toBeVisible();
   });
 
   test('Chinese UI writes English resume values in form mode', async ({ page }) => {

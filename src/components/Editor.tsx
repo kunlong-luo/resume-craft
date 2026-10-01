@@ -308,7 +308,7 @@ export const Editor = React.memo(function Editor() {
   return (
     <div className="flex flex-col h-full bg-[#fdfdfd] dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 shadow-[inset_-4px_0_12px_rgb(0,0,0,0.02)] min-w-0 overflow-hidden">
       {/* Editor Header */}
-      <div className="flex items-center justify-between px-2.5 sm:px-6 py-1.5 sm:py-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 gap-1.5 sm:gap-3 relative overflow-x-auto scrollbar-none flex-nowrap">
+      <div className="mobile-editor-header flex items-center justify-between px-2.5 sm:px-6 py-1.5 sm:py-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 gap-1.5 sm:gap-3 relative overflow-x-auto scrollbar-none flex-nowrap">
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 dark:bg-indigo-500 rounded-r"></div>
         
         {/* Toggle Mode Segmented Control: Form | Markdown */}
@@ -511,7 +511,7 @@ export const Editor = React.memo(function Editor() {
               className="flex-1 flex flex-col min-h-0 w-full h-full"
             >
           {/* Formatting Help Toolbar */}
-          <div className="flex items-center flex-wrap gap-1 px-4 py-1.5 bg-gray-50/70 dark:bg-slate-850 border-b border-gray-100 dark:border-slate-800">
+          <div className="mobile-editor-format-toolbar flex items-center flex-nowrap gap-1 px-2 sm:px-4 py-1.5 bg-gray-50/70 overflow-x-auto overscroll-x-contain scrollbar-none shrink-0 dark:bg-slate-850 border-b border-gray-100 dark:border-slate-800">
             <Tooltip content={isUiEn ? 'Heading 1' : '一级大标题'} shortcut="# text" side="bottom">
               <button
                 onClick={() => insertMarkdown('# text')}

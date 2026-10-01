@@ -113,6 +113,7 @@ export const Editor = React.memo(function Editor() {
     updateSetting,
     currentTemplateId,
     applyTemplate,
+    replaceDocument,
   } = useResumeStore();
 
   const deferredValue = useDeferredValue(value);
@@ -132,10 +133,11 @@ export const Editor = React.memo(function Editor() {
       ie: 'english',
       international: 'english',
     } as const;
-    const fallbackTemplateId =
-      fallbackTemplateIdByMarket[settings.marketRegion || (isEn ? 'international' : 'cn')];
+    const currentMarket = settings.marketRegion || (isEn ? 'international' : 'cn');
+    const fallbackTemplateId = fallbackTemplateIdByMarket[currentMarket];
+    const isCustomReset = currentTemplateId === 'custom';
     const resetTemplate =
-      (currentTemplateId !== 'custom'
+      (!isCustomReset
         ? TEMPLATES.find((template) => template.id === currentTemplateId)
         : undefined) ??
       TEMPLATES.find((template) => template.id === fallbackTemplateId) ??
@@ -155,6 +157,20 @@ export const Editor = React.memo(function Editor() {
     });
 
     if (!confirmed) return;
+
+    const fallbackReusesAnotherMarket =
+      isCustomReset &&
+      resetTemplate.targetMarket &&
+      resetTemplate.targetMarket !== currentMarket;
+
+    if (fallbackReusesAnotherMarket) {
+      // Some markets (for example Ireland) intentionally reuse a generic content
+      // example. Keep the user's explicit market/paper/date settings instead of
+      // silently switching them to the source template's market.
+      replaceDocument(resetTemplate.content, settings, 'custom');
+      return;
+    }
+
     applyTemplate(resetTemplate.id);
   };
 

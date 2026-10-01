@@ -70,8 +70,8 @@ export function HelpLegalModal({ isOpen, onClose }: HelpLegalModalProps) {
       icon: SlidersHorizontal,
       title: isEn ? 'Adjust layout' : '调整排版',
       body: isEn
-        ? 'Choose columns, typography, margins, and spacing. Keep readability ahead of forcing everything onto one page.'
-        : '调整单双栏、字体、边距和间距。优先保证可读性，不要为了强行一页而过度压缩。',
+        ? 'Set resume language and target market first, then choose columns, typography, margins, and spacing. Keep readability ahead of forcing everything onto one page.'
+        : '先确认简历语言与目标市场，再调整单双栏、字体、边距和间距。优先保证可读性，不要为了强行一页而过度压缩。',
     },
     {
       icon: Palette,
@@ -156,6 +156,18 @@ export function HelpLegalModal({ isOpen, onClose }: HelpLegalModalProps) {
                   <p className="mt-1 text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
                     {isEn ? 'Content → Layout → Style → Check → Download / Share. Keep the workflow simple and iterate from real feedback.' : '内容 → 排版 → 样式 → 检查 → 下载 / 分享。先完成主流程，再根据真实反馈迭代。'}
                   </p>
+                </div>
+
+                <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4 dark:border-sky-900/60 dark:bg-sky-950/25">
+                  <h3 className="text-xs font-black text-sky-800 dark:text-sky-200">
+                    {isEn ? 'Language, market, and paper are separate settings' : '界面语言、简历语言、市场与纸张是独立设置'}
+                  </h3>
+                  <div className="mt-2 grid gap-1.5 text-[10px] leading-relaxed text-sky-700/90 dark:text-sky-300/90 sm:grid-cols-2">
+                    <div>{isEn ? '🌐 Top 中 / EN: changes the app interface only.' : '🌐 顶部 中 / EN：只切换应用界面。'}</div>
+                    <div>{isEn ? 'Layout → Resume language: controls resume content language.' : '排版 → 简历语言：控制简历内容语言。'}</div>
+                    <div>{isEn ? 'Layout → Target market: changes market guidance and recommended defaults.' : '排版 → 目标市场：控制市场规则与推荐默认值。'}</div>
+                    <div>{isEn ? 'Paper size and date style remain independently editable.' : '纸张规格和日期风格仍可单独修改。'}</div>
+                  </div>
                 </div>
 
                 <div className="space-y-2.5">

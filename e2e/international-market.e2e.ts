@@ -48,6 +48,44 @@ async function applyTemplate(
 }
 
 test.describe('international market flows', () => {
+  test('interface language and resume language stay independent in the UI', async ({ page }) => {
+    await page.goto('/');
+
+    const preview = page.locator('#resume-print-content');
+    await expect(preview).toBeVisible();
+    const originalPreviewText = await preview.textContent();
+    expect(originalPreviewText).not.toBeNull();
+    const languageGroup = page.getByRole('group', { name: 'Interface language' });
+    await expect(languageGroup).toBeVisible();
+
+    await languageGroup
+      .getByRole('button', { name: 'Switch interface language to Chinese' })
+      .click();
+
+    await expect(page.getByRole('group', { name: '界面语言' })).toBeVisible();
+    await expect.poll(() =>
+      page.evaluate(() => window.localStorage.getItem('resume_ui_language')),
+    ).toBe('zh');
+    await expect.poll(() =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}').lang),
+    ).toBe('en');
+    await expect.poll(() => preview.textContent()).toBe(originalPreviewText);
+
+    const layout = await openLayout(page);
+    await expect(layout.getByTestId('language-independence-note')).toContainText(
+      '简历语言与目标市场彼此独立',
+    );
+    await layout.getByRole('button', { name: '中文', exact: true }).click();
+
+    await expect.poll(() =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}').lang),
+    ).toBe('zh');
+    await expect.poll(() => preview.textContent()).not.toBe(originalPreviewText);
+    await expect.poll(() =>
+      page.evaluate(() => window.localStorage.getItem('resume_ui_language')),
+    ).toBe('zh');
+  });
+
   test('download menu keeps Chinese Canada market label on one line', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem(

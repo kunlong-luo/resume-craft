@@ -105,7 +105,7 @@ export const en: TranslationSchema = {
       expLabel: 'Work Experience',
       expPlaceholder: 'e.g., 5',
       expSuffix: 'yrs',
-      studentGradBadge: 'Student / New Grad',
+      studentGradBadge: 'Graduate',
       studentGradTooltip: 'Toggle student or new graduate status',
       degreeLabel: 'Highest Degree',
       degreePlaceholder: 'e.g., Master or Bachelor',

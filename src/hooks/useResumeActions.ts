@@ -19,7 +19,8 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
     setIsIframeModalOpen,
     setIsExportingPDF,
     setPdfExportProgress,
-    handleMarkdownChange
+    handleMarkdownChange,
+    setCurrentTemplateId
   } = useResumeStore();
   
   const getExportTitle = () => {
@@ -134,6 +135,7 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
     reader.onload = (event) => {
       const result = event.target?.result;
       if (typeof result === 'string') {
+        setCurrentTemplateId('custom');
         handleMarkdownChange(result, true);
       }
     };

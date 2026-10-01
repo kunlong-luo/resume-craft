@@ -77,6 +77,43 @@ test.describe('international market flows', () => {
     await expect(paperLabel).toHaveCSS('white-space', 'nowrap');
   });
 
+  test('reset current template restores its market metadata and download label', async ({ page }) => {
+    await page.goto('/');
+    await applyTemplate(page, 'Canadian Cloud & Data Engineer (Resume)');
+
+    let layout = await openLayout(page);
+    await layout.getByRole('button', { name: 'US', exact: true }).click();
+    await layout.getByRole('button', { name: 'Close Layout' }).click();
+
+    await expect.poll(() =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}')),
+    ).toMatchObject({
+      marketRegion: 'us',
+      paperSize: 'letter',
+      dateStyle: 'month-short',
+    });
+
+    await page.getByRole('button', { name: 'Reset current template' }).click();
+
+    const confirm = page.getByRole('dialog', { name: 'Reset current template' });
+    await expect(confirm).toBeVisible();
+    await confirm.getByRole('button', { name: 'Reset template' }).click();
+
+    await expect.poll(() =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}')),
+    ).toMatchObject({
+      marketRegion: 'ca',
+      paperSize: 'letter',
+      dateStyle: 'month-short',
+    });
+
+    await page.getByRole('button', { name: 'Choose PDF export mode' }).click();
+    await expect(page.getByTestId('export-market-label')).toHaveText('Canada');
+    await expect(page.getByTestId('export-paper-label')).toHaveText(
+      'Letter · 215.9 × 279.4 mm',
+    );
+  });
+
   test('US template synchronizes Letter market settings and survives reload', async ({ page }) => {
     await page.goto('/');
     await applyTemplate(page, 'US Software Engineer (Resume)');

@@ -89,7 +89,7 @@ export function EduSectionEditor({
     });
   };
 
-  const theme = getSectionTheme(section.title, contentLang);
+  const theme = getSectionTheme(section.title, activeUiLang);
 
   return (
     <div 
@@ -114,6 +114,7 @@ export function EduSectionEditor({
         onDelete={onDelete}
         onTypeChange={onTypeChange}
         lang={lang}
+        contentLang={contentLang}
       />
       
       <AnimatePresence initial={false}>

@@ -13,10 +13,9 @@ interface SectionPresetsProps {
 
 export function SectionPresets({ onAddPreset, sections = [], lang = 'zh', contentLang = 'zh' }: SectionPresetsProps) {
   const activeUiLang = lang === 'en' ? 'en' : 'zh';
-  const activeContentLang = contentLang === 'en' ? 'en' : 'zh';
+  void contentLang;
   const translations = getTranslation(activeUiLang);
   const isUiEn = activeUiLang === 'en';
-  const isContentEn = activeContentLang === 'en';
   const t = translations.form.section;
 
   const presets = [

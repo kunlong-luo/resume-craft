@@ -194,8 +194,8 @@ export function LayoutDrawer({
               <Globe2 className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <span>
                 {isEn
-                  ? `Interface: ${uiLanguage === 'en' ? 'English' : 'Chinese'} (top globe control). Resume language and target market are independent.`
-                  : `界面：${uiLanguage === 'en' ? 'English' : '中文'}（顶部地球图标切换）。简历语言与目标市场彼此独立。`}
+                  ? 'Interface: English (top globe control). Resume language and target market are independent.'
+                  : '界面：中文（顶部地球图标切换）。简历语言与目标市场彼此独立。'}
               </span>
             </div>
           </div>

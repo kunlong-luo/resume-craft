@@ -535,7 +535,15 @@ export default function App() {
               }`}
             >
               <Eye className="w-3.5 h-3.5" />
-              <span>{settings.lang === 'en' ? 'A4 Preview' : 'A4 预览'}</span>
+              <span>
+                {settings.paperSize === 'letter'
+                  ? settings.lang === 'en'
+                    ? 'Letter Preview'
+                    : 'Letter 预览'
+                  : settings.lang === 'en'
+                    ? 'A4 Preview'
+                    : 'A4 预览'}
+              </span>
             </button>
 
             <div className="w-px h-4 bg-slate-700 mx-0.5" />

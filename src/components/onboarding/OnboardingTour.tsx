@@ -43,8 +43,8 @@ export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
       {
         title: isEn ? 'Step 2 · Adjust layout and tools here' : '第二步 · 在这里调整排版与工具',
         body: isEn
-          ? 'Use the toolbar for templates, one-click Auto Fit, Layout, Style, and view controls.'
-          : '顶部工具栏集中为模板库、智能单页、排版、样式和视图控制。',
+          ? 'Use the toolbar for templates, Auto Fit, Layout, Style, and view controls. The top 中 / EN switch changes only the app interface; resume language and target market live under Layout.'
+          : '顶部工具栏集中为模板库、智能单页、排版、样式和视图控制。顶部 中 / EN 只切换应用界面；简历语言和目标市场在“排版”中独立设置。',
       },
       {
         title: isEn ? 'Step 3 · How would you like to start?' : '第三步 · 你想从哪里开始？',

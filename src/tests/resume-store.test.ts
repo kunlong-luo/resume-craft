@@ -84,6 +84,36 @@ describe('resume store state consistency', () => {
     expect(state.historyIndex).toBe(1);
   });
 
+  it('fully switches template and history state when deleting the active profile', () => {
+    const first = {
+      ...buildProfile('profile_first', 'first content'),
+      templateId: 'ca_tech',
+    };
+    const second = {
+      ...buildProfile('profile_second', 'second content'),
+      templateId: 'cn_demo',
+    };
+
+    useResumeStore.setState({
+      profiles: [first, second],
+      activeProfileId: first.id,
+      markdown: first.markdown,
+      settings: first.settings,
+      currentTemplateId: 'ca_tech',
+      history: ['older', first.markdown],
+      historyIndex: 1,
+    });
+
+    expect(useResumeStore.getState().deleteProfile(first.id)).toBe(true);
+
+    const state = useResumeStore.getState();
+    expect(state.activeProfileId).toBe(second.id);
+    expect(state.markdown).toBe(second.markdown);
+    expect(state.currentTemplateId).toBe('cn_demo');
+    expect(state.history).toEqual([second.markdown]);
+    expect(state.historyIndex).toBe(0);
+  });
+
   it('activates imported data even when the imported profile id matches the current id', () => {
     useResumeStore.setState({
       activeProfileId: 'profile_same',

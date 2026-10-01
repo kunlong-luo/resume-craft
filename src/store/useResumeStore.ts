@@ -56,7 +56,7 @@ interface ResumeState {
 
   // Profile Management Actions
   switchProfile: (profileId: string) => void;
-  createProfile: (data: { name: string; targetRole?: string; markdown?: string; settings?: ResumeSettings }) => ResumeProfile;
+  createProfile: (data: { name: string; targetRole?: string; markdown?: string; settings?: ResumeSettings; templateId?: string }) => ResumeProfile;
   duplicateProfile: (profileId: string) => ResumeProfile;
   renameProfile: (profileId: string, name: string, targetRole?: string) => void;
   deleteProfile: (profileId: string) => boolean;
@@ -209,6 +209,10 @@ const getInitialProfiles = (
         ? migrateStoredMarkdown(p.markdown)
         : defaultMd;
       const settings = sanitizeSettings(p.settings, defaultSettings);
+      const templateId =
+        typeof p.templateId === 'string' && (p.templateId === 'custom' || TEMPLATES.some(t => t.id === p.templateId))
+          ? p.templateId
+          : getInitialTemplateId(markdown);
       const name = p.name || '未命名简历草稿';
       const updatedAt = p.updatedAt || new Date().toISOString();
       const createdAt = p.createdAt || new Date().toISOString();
@@ -218,7 +222,8 @@ const getInitialProfiles = (
         JSON.stringify(settings) !== JSON.stringify(p.settings) ||
         name !== p.name ||
         updatedAt !== p.updatedAt ||
-        createdAt !== p.createdAt
+        createdAt !== p.createdAt ||
+        templateId !== p.templateId
       ) {
         shouldPersistMigration = true;
       }
@@ -227,6 +232,7 @@ const getInitialProfiles = (
         ...p,
         markdown,
         settings,
+        templateId,
         name,
         updatedAt,
         createdAt
@@ -248,6 +254,7 @@ const getInitialProfiles = (
     targetRole: defaultSettings.lang === 'en' ? 'General' : '通用版',
     markdown: defaultMd,
     settings: defaultSettings,
+    templateId: getInitialTemplateId(defaultMd),
     customFileName: storage.getString(STORAGE_KEYS.CUSTOM_FILE_NAME, ''),
     updatedAt: now,
     createdAt: now,
@@ -267,6 +274,7 @@ const getInitialProfiles = (
     targetRole: 'Web/全栈',
     markdown: frontendTemplate,
     settings: { ...defaultSettings, themeColor: 'indigo' },
+    templateId: 'frontend',
     customFileName: '',
     updatedAt: now,
     createdAt: now,
@@ -281,6 +289,7 @@ const getInitialProfiles = (
     name: 'English CV (Global)',
     targetRole: 'Overseas',
     markdown: englishTemplate,
+    templateId: englishTemplateRecord?.id || getInitialTemplateId(englishTemplate),
     settings: {
       ...defaultSettings,
       lang: 'en',
@@ -310,7 +319,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   // Initial States derived from Active Profile
   markdown: activeProfile.markdown,
   settings: activeProfile.settings,
-  currentTemplateId: getInitialTemplateId(activeProfile.markdown),
+  currentTemplateId: activeProfile.templateId || getInitialTemplateId(activeProfile.markdown),
   lastSaved: new Date().toLocaleTimeString(),
   isSaving: false,
   saveStatus: 'saved',
@@ -354,7 +363,15 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     storage.set(STORAGE_KEYS.SETTINGS, settings);
     set({ settings, profiles: updatedProfiles, measuredPageCount: null });
   },
-  setCurrentTemplateId: (currentTemplateId) => set({ currentTemplateId }),
+  setCurrentTemplateId: (currentTemplateId) => {
+    const { profiles, activeProfileId } = get();
+    const updatedProfiles = profiles.map(p =>
+      p.id === activeProfileId
+        ? { ...p, templateId: currentTemplateId, updatedAt: new Date().toISOString() }
+        : p
+    );
+    set({ currentTemplateId, profiles: updatedProfiles });
+  },
   setLastSaved: (lastSaved) => set({ lastSaved }),
   setStorageHealth: (storageStatus, storageErrorIsQuota = false) => set({
     storageStatus,
@@ -422,14 +439,14 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       customFileName: target.customFileName || '',
       history: [target.markdown],
       historyIndex: 0,
-      currentTemplateId: getInitialTemplateId(target.markdown),
+      currentTemplateId: target.templateId || getInitialTemplateId(target.markdown),
       lastSaved: new Date().toLocaleTimeString(),
       measuredPageCount: null
     });
   },
 
-  createProfile: ({ name, targetRole, markdown: newMd, settings: newSettings }) => {
-    const { profiles, settings: curSettings, markdown: curMd } = get();
+  createProfile: ({ name, targetRole, markdown: newMd, settings: newSettings, templateId }) => {
+    const { profiles, settings: curSettings, markdown: curMd, currentTemplateId } = get();
     const now = new Date().toISOString();
     const id = `profile_${Date.now()}`;
     const newProfile: ResumeProfile = {
@@ -438,6 +455,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       targetRole: targetRole?.trim() || '求职版本',
       markdown: newMd !== undefined ? newMd : curMd,
       settings: newSettings || curSettings,
+      templateId: templateId ?? (newMd !== undefined ? getInitialTemplateId(newMd) : currentTemplateId),
       customFileName: '',
       updatedAt: now,
       createdAt: now,
@@ -545,7 +563,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       customFileName: nextActive.customFileName || '',
       history: [nextActive.markdown],
       historyIndex: 0,
-      currentTemplateId: getInitialTemplateId(nextActive.markdown),
+      currentTemplateId: nextActive.templateId || getInitialTemplateId(nextActive.markdown),
       lastSaved: new Date().toLocaleTimeString(),
       isSaving: false,
       saveStatus: 'saved',

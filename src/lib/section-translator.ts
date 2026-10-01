@@ -16,7 +16,7 @@ export const STANDARD_SECTION_MAPPINGS: TitleMapping[] = [
     defaultZh: '个人优势'
   },
   {
-    zh: ['专业技能', '核心技能', '技能特长', '技术栈', '专业技能与技术栈', '技能与专长', '掌握技能'],
+    zh: ['专业技能', '核心技能', '核心能力', '技能特长', '技术栈', '专业技能与技术栈', '技能与专长', '掌握技能'],
     en: 'Skills',
     defaultZh: '专业技能'
   },
@@ -81,6 +81,18 @@ export function translateSectionTitle(title: string, targetLang: 'zh' | 'en'): s
         return mapping.en;
       }
     }
+
+    // Canonicalize common English aliases so templates use one consistent
+    // section vocabulary in English mode.
+    const lower = trimmed.toLowerCase();
+    if (['summary', 'professional profile', 'profile', 'about me'].includes(lower)) return 'Summary';
+    if (['skills', 'technical skills', 'core competencies', 'core technical skills', 'technical competencies'].includes(lower)) return 'Skills';
+    if (['experience', 'work experience', 'professional experience', 'career history', 'employment history'].includes(lower)) return 'Work Experience';
+    if (['projects', 'key projects', 'project experience', 'selected projects'].includes(lower)) return 'Projects';
+    if (['education', 'education & qualifications', 'education and qualifications', 'academic background'].includes(lower)) return 'Education';
+    if (['honors & awards', 'honours & awards', 'awards & honors', 'awards & honours'].includes(lower)) return 'Honors & Awards';
+    if (['certifications', 'certificates', 'licenses & certifications', 'licences & certifications'].includes(lower)) return 'Certifications';
+
     return trimmed;
   } else {
     // English to Chinese

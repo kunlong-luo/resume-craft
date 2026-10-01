@@ -12,12 +12,12 @@ export function IframeWarningModal() {
     setIsIframeModalOpen,
     setIsExportingPDF,
     setPdfExportProgress,
-    settings,
+    uiLanguage,
     customFileName,
     markdown
   } = useResumeStore();
 
-  const isEn = settings.lang === 'en';
+  const isEn = uiLanguage === 'en';
   const onClose = () => setIsIframeModalOpen(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocus({ isOpen, dialogRef, onClose });

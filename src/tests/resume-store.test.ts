@@ -268,6 +268,26 @@ describe('resume store state consistency', () => {
     expect(state.historyIndex).toBe(0);
   });
 
+  it('localizes default profile metadata from the effective profile language', () => {
+    const englishSettings = {
+      ...useResumeStore.getState().settings,
+      lang: 'en' as const,
+    };
+
+    const created = useResumeStore.getState().createProfile({
+      name: '',
+      markdown: '',
+      settings: englishSettings,
+      templateId: 'custom',
+    });
+
+    expect(created.name).toBe('New Resume');
+    expect(created.targetRole).toBe('Target Role');
+    expect(created.settings.lang).toBe('en');
+    expect(created.templateId).toBe('custom');
+    expect(useResumeStore.getState().activeProfileId).toBe(created.id);
+  });
+
   it('clears a previous filename when switching to a profile without one', () => {
     const first = buildProfile('profile_first', 'first content', 'first-file');
     const second = buildProfile('profile_second', 'second content');

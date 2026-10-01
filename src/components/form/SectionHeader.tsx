@@ -19,6 +19,7 @@ interface SectionHeaderProps {
   onDelete?: () => void;
   onTypeChange?: (newType: 'text' | 'items') => void;
   lang?: string;
+  contentLang?: string;
 }
 
 export function SectionHeader({
@@ -32,18 +33,20 @@ export function SectionHeader({
   onApplySpacing,
   onMove,
   onDelete,
-  lang = 'zh'
+  lang = 'zh',
+  contentLang = 'zh'
 }: SectionHeaderProps) {
-  const activeLang = (lang === 'en' ? 'en' : 'zh') as 'zh' | 'en';
-  const translations = getTranslation(activeLang);
+  const activeUiLang = (lang === 'en' ? 'en' : 'zh') as 'zh' | 'en';
+  const activeContentLang = (contentLang === 'en' ? 'en' : 'zh') as 'zh' | 'en';
+  const translations = getTranslation(activeUiLang);
   const t = translations.form.section;
   
-  const theme = getSectionTheme(title, lang);
+  const theme = getSectionTheme(title, activeUiLang);
   const Icon = theme.icon;
   const displaySubtitle = subtitle || theme.subtitle;
-  const isEn = activeLang === 'en';
+  const isUiEn = activeUiLang === 'en';
 
-  const localizedTitle = translateSectionTitle(title, activeLang);
+  const localizedTitle = translateSectionTitle(title, activeContentLang);
 
   return (
     <div 
@@ -65,7 +68,7 @@ export function SectionHeader({
               value={localizedTitle}
               onClick={(e) => e.stopPropagation()} 
               onChange={(e) => onTitleChange(e.target.value)}
-              placeholder={isEn ? 'Section Title' : '模块标题'}
+              placeholder={isUiEn ? 'Section Title' : '模块标题'}
               className="font-bold text-sm text-slate-800 dark:text-slate-100 bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/50 px-1 py-0.5 rounded transition-all w-36 sm:w-48 md:w-56"
             />
           </div>

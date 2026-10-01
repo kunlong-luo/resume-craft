@@ -25,8 +25,8 @@ export function QuickNav({ sections, expandedSections, setExpandedSections, lang
   const lastClickedRef = useRef<{ id: string; time: number } | null>(null);
 
   const getTranslatedTitle = (sectionTitle: string) => {
-    const fallback = activeContentLang === 'en' ? 'Custom Section' : '自定义模块';
-    return translateSectionTitle(sectionTitle, activeContentLang) || sectionTitle || fallback;
+    const fallback = activeUiLang === 'en' ? 'Custom Section' : '自定义模块';
+    return translateSectionTitle(sectionTitle, activeUiLang) || sectionTitle || fallback;
   };
 
   useEffect(() => {

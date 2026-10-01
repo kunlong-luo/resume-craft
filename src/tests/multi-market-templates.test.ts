@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { TEMPLATES } from '../data';
 import { getTemplatePresentation, getTemplatePreview } from '../lib/template-presentation';
-import { translateSectionTitle } from '../lib/section-translator';
+import { translateMarkdownContent, translateSectionTitle } from '../lib/section-translator';
 
 describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
   it('contains comprehensive authentic templates for US, UK, Canada, China and Global markets', () => {
@@ -109,6 +109,13 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
       expect(translateSectionTitle('专业技能', 'en')).toBe('Skills');
       expect(translateSectionTitle('个人简介', 'en')).toBe('Summary');
       expect(translateSectionTitle('自我评价', 'en')).toBe('Summary');
+    });
+
+    it('keeps existing English Markdown headings unchanged while standardizing display labels', () => {
+      const source = '# Candidate\n\n## Experience\n- Built something\n\n## Technical Skills\n- TypeScript';
+      expect(translateMarkdownContent(source, 'en')).toBe(source);
+      expect(translateSectionTitle('Experience', 'en')).toBe('Work Experience');
+      expect(translateSectionTitle('Technical Skills', 'en')).toBe('Skills');
     });
 
     it('normalizes English template aliases into consistent section names', () => {

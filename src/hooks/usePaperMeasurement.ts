@@ -20,6 +20,7 @@ export function usePaperMeasurement(
   const paperSpec = getPaperSpec(paperSize);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [wrapperWidth, setWrapperWidth] = useState<number>(850);
+  const [wrapperHeight, setWrapperHeight] = useState<number>(1100);
   const [unscaledHeight, setUnscaledHeight] = useState<number>(0);
   const [metrics, setMetrics] = useState<PaperMetrics>({
     isOver: false,
@@ -33,14 +34,16 @@ export function usePaperMeasurement(
     onPageCountChangeRef.current = onPageCountChange;
   }, [onPageCountChange]);
 
-  const [zoomMode, setZoomMode] = useState<'fit' | number>(() => {
+  const [zoomMode, setZoomMode] = useState<'fit-width' | 'fit-page' | number>(() => {
     const saved = storage.getString(STORAGE_KEYS.PREVIEW_ZOOM);
     if (saved) {
-      if (saved === 'fit') return 'fit';
+      // Backward compatibility with the previous ambiguous "fit" mode.
+      if (saved === 'fit' || saved === 'fit-width') return 'fit-width';
+      if (saved === 'fit-page') return 'fit-page';
       const parsed = parseFloat(saved);
       if (!isNaN(parsed)) return parsed;
     }
-    return 'fit';
+    return 'fit-width';
   });
 
   // Track wrapper element width. Resize work is coalesced into one animation frame.
@@ -53,7 +56,9 @@ export function usePaperMeasurement(
       if (rafId !== null) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
         const newWidth = element.clientWidth;
+        const newHeight = element.clientHeight;
         setWrapperWidth((prev) => (Math.abs(prev - newWidth) > 1 ? newWidth : prev));
+        setWrapperHeight((prev) => (Math.abs(prev - newHeight) > 1 ? newHeight : prev));
       });
     };
 
@@ -68,14 +73,33 @@ export function usePaperMeasurement(
   }, []);
 
   const calculatedZoom = useMemo(() => {
-    if (zoomMode === 'fit') {
-      const horizontalPadding = wrapperWidth < 640 ? 20 : 64;
-      const targetWidth = Math.max(100, wrapperWidth - horizontalPadding);
-      const scale = targetWidth / paperSpec.baseWidthPx;
-      return Math.max(0.2, Math.min(1.2, scale));
+    const horizontalPadding = wrapperWidth < 640 ? 20 : 64;
+    const verticalPadding = wrapperWidth < 640 ? 20 : 64;
+    const targetWidth = Math.max(100, wrapperWidth - horizontalPadding);
+    const widthScale = targetWidth / paperSpec.baseWidthPx;
+
+    if (zoomMode === 'fit-width') {
+      // Auto-fit should preserve readability and never enlarge beyond 100%.
+      return Math.max(0.2, Math.min(1, widthScale));
     }
+
+    if (zoomMode === 'fit-page') {
+      const paperHeightPx = paperSpec.baseWidthPx * paperSpec.aspectRatio;
+      const targetHeight = Math.max(100, wrapperHeight - verticalPadding);
+      const heightScale = targetHeight / paperHeightPx;
+
+      // Fit one physical page in the available viewport. Multi-page content can still scroll.
+      return Math.max(0.2, Math.min(1, widthScale, heightScale));
+    }
+
     return zoomMode;
-  }, [zoomMode, wrapperWidth, paperSpec.baseWidthPx]);
+  }, [
+    zoomMode,
+    wrapperWidth,
+    wrapperHeight,
+    paperSpec.baseWidthPx,
+    paperSpec.aspectRatio,
+  ]);
 
   // Keep observers stable while the user types. Previously this effect was torn down and
   // recreated for every markdown/settings update. MutationObserver + ResizeObserver now
@@ -176,7 +200,7 @@ export function usePaperMeasurement(
     };
   }, [elementRef, targetPageLimit, paperSpec.aspectRatio]);
 
-  const handleZoomChange = (newMode: 'fit' | number) => {
+  const handleZoomChange = (newMode: 'fit-width' | 'fit-page' | number) => {
     setZoomMode(newMode);
     storage.set(STORAGE_KEYS.PREVIEW_ZOOM, typeof newMode === 'number' ? String(newMode) : newMode);
   };

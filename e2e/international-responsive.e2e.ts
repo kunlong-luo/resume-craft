@@ -122,6 +122,67 @@ test.describe('international responsive UX', () => {
     await expect(downloadDialog.getByRole('button', { name: /Quick PDF|快速 PDF/ })).toBeVisible();
   });
 
+  test('english split view keeps Student / New Grad aligned with Work Experience', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.addInitScript(() => {
+      window.localStorage.setItem('resume_ui_language', 'en');
+      window.localStorage.setItem(
+        'resume-settings',
+        JSON.stringify({
+          lang: 'en',
+          marketRegion: 'international',
+          paperSize: 'a4',
+          dateStyle: 'month-short',
+          layoutMode: 'split',
+        }),
+      );
+      window.localStorage.setItem(
+        'resume-markdown',
+        '# Alex Morgan\nSoftware Engineer\nalex@example.com\nStudent / New Graduate | Bachelor | Seattle\n\n## 核心能力\n- TypeScript, React, Java\n\n## Experience\n\n### Example Labs | Engineering Intern | Jun 2026 – Sep 2026\n- Built and shipped a production feature.\n',
+      );
+    });
+
+    await page.goto('/');
+
+    const formButton = page.getByRole('button', { name: /Form editor|表单编辑/ });
+    if (await formButton.count()) {
+      await formButton.click();
+    }
+
+    const basic = page.locator('#form-sec-basic');
+    await expect(basic).toBeVisible();
+
+    const metaGrid = basic.getByTestId('basic-meta-grid');
+    await expect(metaGrid).toBeVisible();
+    await expect.poll(async () => {
+      const columns = await metaGrid.evaluate((element) =>
+        getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length,
+      );
+      return columns;
+    }).toBe(2);
+
+    const workHeader = basic.getByTestId('work-experience-header');
+    const label = workHeader.getByText('Work Experience', { exact: true });
+    const studentButton = workHeader.getByRole('button', { name: 'Student / New Grad' });
+
+    await expect(label).toBeVisible();
+    await expect(studentButton).toBeVisible();
+
+    await expect(page.locator('input[value="Skills"]')).toBeVisible();
+    await expect(page.locator('#resume-print-content h2').filter({ hasText: /^Skills$/ })).toBeVisible();
+    await expect(page.locator('#resume-print-content h2').filter({ hasText: /^Work Experience$/ })).toBeVisible();
+
+    const labelBox = await label.boundingBox();
+    const buttonBox = await studentButton.boundingBox();
+    expect(labelBox).not.toBeNull();
+    expect(buttonBox).not.toBeNull();
+    expect(labelBox!.x + labelBox!.width).toBeLessThanOrEqual(buttonBox!.x - 4);
+
+    await expect.poll(() =>
+      page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    ).toBe(true);
+  });
+
   test('mobile: month picker fits the viewport and exposes older experience years', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');

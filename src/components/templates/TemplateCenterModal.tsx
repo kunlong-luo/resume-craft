@@ -88,12 +88,14 @@ function MiniResumePreview({
   content,
   paperSize = 'a4',
   compact = false,
+  targetLang,
 }: {
   content: string;
   paperSize?: 'a4' | 'letter';
   compact?: boolean;
+  targetLang?: 'zh' | 'en';
 }) {
-  const preview = getTemplatePreview(content);
+  const preview = getTemplatePreview(content, targetLang);
 
   return (
     <div
@@ -231,7 +233,7 @@ export function TemplateCenterModal({
     selectedTemplate,
     isEn ? 'en' : 'zh',
   );
-  const selectedPreview = getTemplatePreview(selectedTemplate.content);
+  const selectedPreview = getTemplatePreview(selectedTemplate.content, isEn ? 'en' : undefined);
   const isCurrentTemplate = currentTemplateId === selectedTemplate.id;
   const isExactCurrent =
     isCurrentTemplate && markdown === selectedTemplate.content;
@@ -377,7 +379,7 @@ export function TemplateCenterModal({
                         : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900')
                     }
                   >
-                    <MiniResumePreview content={template.content} paperSize={template.defaultPaperSize} compact />
+                    <MiniResumePreview content={template.content} paperSize={template.defaultPaperSize} compact targetLang={isEn ? 'en' : undefined} />
                     <div className="mt-2.5 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 truncate text-[11px] font-black text-slate-800 dark:text-slate-100">
@@ -427,7 +429,7 @@ export function TemplateCenterModal({
 
           <div className="min-h-0 bg-slate-50/80 p-5 dark:bg-slate-950/35 sm:p-6 lg:overflow-y-auto">
             <div className="mx-auto max-w-sm">
-              <MiniResumePreview content={selectedTemplate.content} paperSize={selectedTemplate.defaultPaperSize} />
+              <MiniResumePreview content={selectedTemplate.content} paperSize={selectedTemplate.defaultPaperSize} targetLang={isEn ? 'en' : undefined} />
 
               <div className="mt-5">
                 <div className="flex flex-wrap items-center gap-2">

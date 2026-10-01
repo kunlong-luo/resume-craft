@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { TEMPLATES } from '../data';
 import { getTemplatePresentation, getTemplatePreview } from '../lib/template-presentation';
+import { translateMarkdownContent, translateSectionTitle } from '../lib/section-translator';
 
 describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
   it('contains comprehensive authentic templates for US, UK, Canada, China and Global markets', () => {
@@ -102,6 +103,31 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
     });
   });
 
+  describe('Canonical section title localization', () => {
+    it('translates Chinese capability headings into the standard English vocabulary', () => {
+      expect(translateSectionTitle('核心能力', 'en')).toBe('Skills');
+      expect(translateSectionTitle('专业技能', 'en')).toBe('Skills');
+      expect(translateSectionTitle('个人简介', 'en')).toBe('Summary');
+      expect(translateSectionTitle('自我评价', 'en')).toBe('Summary');
+    });
+
+    it('keeps existing English Markdown headings unchanged while standardizing display labels', () => {
+      const source = '# Candidate\n\n## Experience\n- Built something\n\n## Technical Skills\n- TypeScript';
+      expect(translateMarkdownContent(source, 'en')).toBe(source);
+      expect(translateSectionTitle('Experience', 'en')).toBe('Work Experience');
+      expect(translateSectionTitle('Technical Skills', 'en')).toBe('Skills');
+    });
+
+    it('normalizes English template aliases into consistent section names', () => {
+      expect(translateSectionTitle('Technical Skills', 'en')).toBe('Skills');
+      expect(translateSectionTitle('Core Competencies', 'en')).toBe('Skills');
+      expect(translateSectionTitle('Professional Experience', 'en')).toBe('Work Experience');
+      expect(translateSectionTitle('Career History', 'en')).toBe('Work Experience');
+      expect(translateSectionTitle('Key Projects', 'en')).toBe('Projects');
+      expect(translateSectionTitle('Education & Qualifications', 'en')).toBe('Education');
+    });
+  });
+
   describe('Template Presentation & Badges Localization', () => {
     it('groups US New Grad with graduate templates while retaining US market metadata', () => {
       const template = TEMPLATES.find(t => t.id === 'us_new_grad')!;
@@ -129,6 +155,19 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
       expect(presentationEn.name).toContain('UK Tech Lead');
       expect(presentationEn.marketBadge).toContain('🇬🇧 UK CV');
       expect(presentationEn.group).toBe('uk');
+    });
+
+    it('standardizes Chinese template preview section names in English mode', () => {
+      const cnTemplate = TEMPLATES.find(t => t.id === 'cn_demo')!;
+      const preview = getTemplatePreview(cnTemplate.content, 'en');
+
+      expect(preview.sections).toEqual([
+        'Summary',
+        'Skills',
+        'Work Experience',
+        'Projects',
+      ]);
+      expect(preview.sections.some(section => /[\u4e00-\u9fa5]/.test(section))).toBe(false);
     });
 
     it('extracts template preview information cleanly', () => {

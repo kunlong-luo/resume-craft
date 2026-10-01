@@ -1,9 +1,9 @@
 import React from 'react';
-import { Type, ArrowUp, ArrowDown, Trash2, ChevronUp, ChevronDown, Languages } from 'lucide-react';
+import { Type, ArrowUp, ArrowDown, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { getSectionTheme } from '../../lib/section-themes';
 import { getTranslation } from '../../i18n';
-import { translateSectionTitle, canTranslateSectionTitle } from '../../lib/section-translator';
+import { translateSectionTitle } from '../../lib/section-translator';
 
 interface SectionHeaderProps {
   title: string;
@@ -43,8 +43,7 @@ export function SectionHeader({
   const displaySubtitle = subtitle || theme.subtitle;
   const isEn = activeLang === 'en';
 
-  const canTranslate = canTranslateSectionTitle(title, activeLang);
-  const targetTranslatedTitle = canTranslate ? translateSectionTitle(title, activeLang) : '';
+  const localizedTitle = translateSectionTitle(title, activeLang);
 
   return (
     <div 
@@ -63,27 +62,12 @@ export function SectionHeader({
           <div className="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
             <input 
               type="text"
-              value={title}
+              value={localizedTitle}
               onClick={(e) => e.stopPropagation()} 
               onChange={(e) => onTitleChange(e.target.value)}
               placeholder={isEn ? 'Section Title' : '模块标题'}
               className="font-bold text-sm text-slate-800 dark:text-slate-100 bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/50 px-1 py-0.5 rounded transition-all w-36 sm:w-48 md:w-56"
             />
-            {canTranslate && (
-              <Tooltip content={isEn ? `Translate title to English: "${targetTranslatedTitle}"` : `转为标准中文标题: "${targetTranslatedTitle}"`} side="right">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onTitleChange(targetTranslatedTitle);
-                  }}
-                  className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 border border-indigo-200/60 dark:border-indigo-800/60 rounded-md transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95 shrink-0"
-                >
-                  <Languages className="w-2.5 h-2.5" />
-                  <span>{targetTranslatedTitle}</span>
-                </button>
-              </Tooltip>
-            )}
           </div>
           {displaySubtitle && (
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 px-1 truncate max-w-xs sm:max-w-md">

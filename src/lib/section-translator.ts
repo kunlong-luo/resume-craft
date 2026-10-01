@@ -11,12 +11,12 @@ export interface TitleMapping {
 
 export const STANDARD_SECTION_MAPPINGS: TitleMapping[] = [
   {
-    zh: ['个人优势', '核心优势', '个人亮点', '优势要点', '综合优势', '核心竞争力'],
+    zh: ['个人优势', '核心优势', '个人亮点', '优势要点', '综合优势', '核心竞争力', '个人简介', '个人介绍', '关于我', '自我评价', '个人评价', '自我总结', '个人总结'],
     en: 'Summary',
     defaultZh: '个人优势'
   },
   {
-    zh: ['专业技能', '核心技能', '技能特长', '技术栈', '专业技能与技术栈', '技能与专长', '掌握技能'],
+    zh: ['专业技能', '核心技能', '核心能力', '技能特长', '技术栈', '专业技能与技术栈', '技能与专长', '掌握技能'],
     en: 'Skills',
     defaultZh: '专业技能'
   },
@@ -51,16 +51,6 @@ export const STANDARD_SECTION_MAPPINGS: TitleMapping[] = [
     defaultZh: '资质证书'
   },
   {
-    zh: ['自我评价', '个人评价', '自我总结', '个人总结'],
-    en: 'Summary',
-    defaultZh: '自我评价'
-  },
-  {
-    zh: ['关于我', '个人介绍', '个人简介'],
-    en: 'About Me',
-    defaultZh: '关于我'
-  },
-  {
     zh: ['社交主页', '社交链接', '作品链接'],
     en: 'Links & Portfolio',
     defaultZh: '社交主页'
@@ -81,6 +71,18 @@ export function translateSectionTitle(title: string, targetLang: 'zh' | 'en'): s
         return mapping.en;
       }
     }
+
+    // Canonicalize common English aliases so templates use one consistent
+    // section vocabulary in English mode.
+    const lower = trimmed.toLowerCase();
+    if (['summary', 'professional profile', 'profile', 'about me'].includes(lower)) return 'Summary';
+    if (['skills', 'technical skills', 'core competencies', 'core technical skills', 'technical competencies'].includes(lower)) return 'Skills';
+    if (['experience', 'work experience', 'professional experience', 'career history', 'employment history'].includes(lower)) return 'Work Experience';
+    if (['projects', 'key projects', 'project experience', 'selected projects'].includes(lower)) return 'Projects';
+    if (['education', 'education & qualifications', 'education and qualifications', 'academic background'].includes(lower)) return 'Education';
+    if (['honors & awards', 'honours & awards', 'awards & honors', 'awards & honours'].includes(lower)) return 'Honors & Awards';
+    if (['certifications', 'certificates', 'licenses & certifications', 'licences & certifications'].includes(lower)) return 'Certifications';
+
     return trimmed;
   } else {
     // English to Chinese
@@ -124,7 +126,11 @@ export function translateMarkdownContent(markdown: string, targetLang: 'zh' | 'e
   if (targetLang === 'en') {
     // 1. Section Headings (## <Title>)
     result = result.replace(/^##\s+(.+)$/gm, (match, title) => {
-      const translated = translateSectionTitle(title, 'en');
+      const rawTitle = String(title).trim();
+      // Preserve already-English source headings verbatim. English aliases are
+      // canonicalized only in the UI/preview layer so imports remain lossless.
+      if (!/[\u3400-\u9fff]/.test(rawTitle)) return match;
+      const translated = translateSectionTitle(rawTitle, 'en');
       return `## ${translated}`;
     });
 

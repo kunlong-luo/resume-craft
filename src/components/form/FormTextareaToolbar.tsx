@@ -130,7 +130,7 @@ export function FormTextareaToolbar({ textareaId, value, onChange, lang = 'zh', 
         <button
           type="button"
           onClick={() => {
-            const tableSyntax = isEn 
+            const tableSyntax = isContentEn 
               ? '\n| Header 1 | Header 2 |\n| -------- | -------- |\n| Content 1 | Content 2 |\n' 
               : '\n| 表头1 | 表头2 |\n| ----- | ----- |\n| 内容1 | 内容2 |\n';
             insertMarkdown(tableSyntax);

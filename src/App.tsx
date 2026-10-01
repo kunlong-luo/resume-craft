@@ -11,7 +11,7 @@ import { useToast } from './components/ui/Toast';
 import { smartAutoFit } from './lib/preview-utils';
 import { Edit3, Eye, Printer } from 'lucide-react';
 import { Tooltip } from './components/ui/Tooltip';
-import { markSupportPrompt, recordSuccessfulPdfExportAndShouldPrompt } from './lib/support-prompt';
+import { markSupportPrompt, recordCompletedPdfExportFlowAndShouldPrompt } from './lib/support-prompt';
 import { trackAnalyticsEvent } from './lib/analytics';
 import { storage, STORAGE_HEALTH_EVENT, STORAGE_KEYS, type StorageHealthDetail } from './lib/storage';
 import { resumeRepository } from './lib/resume-repository';
@@ -183,7 +183,7 @@ export default function App() {
   }, [isDragging, splitRatio]);
 
   const handlePdfExportComplete = useCallback(() => {
-    if (recordSuccessfulPdfExportAndShouldPrompt()) {
+    if (recordCompletedPdfExportFlowAndShouldPrompt()) {
       setIsSupportProjectOpen(true);
     }
   }, []);

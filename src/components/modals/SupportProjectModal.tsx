@@ -68,8 +68,8 @@ export function SupportProjectModal({
 
             <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-600 dark:text-slate-300">
               {isEn
-                ? 'Your PDF export is already complete. Resume Craft is free and open source; if it helped, a GitHub Star supports continued improvements and helps more people discover the project.'
-                : '你的 PDF 导出已经完成。Resume Craft 是免费开源项目；如果它对你有帮助，欢迎在 GitHub 点一个 Star，支持项目持续改进，也让更多人发现它。'}
+                ? 'You have just finished a PDF export flow. Resume Craft is free and open source; if it helped, a GitHub Star supports continued improvements and helps more people discover the project.'
+                : '你刚刚完成了一次 PDF 导出流程。Resume Craft 是免费开源项目；如果它对你有帮助，欢迎在 GitHub 点一个 Star，支持项目持续改进，也让更多人发现它。'}
             </p>
           </div>
 
@@ -95,8 +95,8 @@ export function SupportProjectModal({
 
           <p className="mt-3 text-center text-[11px] leading-5 text-slate-400 dark:text-slate-500">
             {isEn
-              ? 'Shown once after your first completed PDF export.'
-              : '仅在第一次完成 PDF 导出后提示一次。'}
+              ? 'Shown once after your first completed PDF export flow.'
+              : '仅在第一次完成 PDF 导出流程后提示一次。'}
           </p>
         </div>
       </div>

@@ -65,9 +65,6 @@ export const HeightGuard = React.memo(function HeightGuard({
 }: HeightGuardProps) {
   const t = lang === 'en' ? TRANSLATIONS.en : TRANSLATIONS.zh;
 
-  const [isHovered, setIsHovered] = React.useState(false);
-  const hoverTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-
   const [isCollapsed, setIsCollapsed] = React.useState(() => {
     try {
       return localStorage.getItem('height-guard-collapsed') === 'true';
@@ -75,18 +72,6 @@ export const HeightGuard = React.memo(function HeightGuard({
       return false;
     }
   });
-
-  const handleMouseEnter = () => {
-    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-    setIsHovered(true);
-  };
-
-  const handleMouseLeave = () => {
-    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-    hoverTimerRef.current = setTimeout(() => {
-      setIsHovered(false);
-    }, 450);
-  };
 
   const toggleCollapse = (e?: React.MouseEvent) => {
     if (e) {
@@ -107,25 +92,21 @@ export const HeightGuard = React.memo(function HeightGuard({
         ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 shadow-xs'
         : 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 shadow-xs';
 
-  const isShowCard = !isCollapsed || isHovered;
-
   return (
-    <div 
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className="absolute bottom-5 right-5 z-40 select-none print:hidden pointer-events-auto"
-    >
+    <div className="absolute bottom-5 right-5 z-40 select-none print:hidden pointer-events-auto">
       <AnimatePresence mode="wait">
-        {!isShowCard ? (
-          <motion.div 
+        {isCollapsed ? (
+          <motion.button
+            type="button"
             key="height-guard-pill"
             initial={{ opacity: 0, scale: 0.9, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 8 }}
             transition={{ type: 'spring', stiffness: 450, damping: 30 }}
-            onClick={() => setIsHovered(true)}
+            onClick={toggleCollapse}
+            aria-label={lang === 'en' ? 'Expand A4 Height Guard' : '展开 A4 高度提醒'}
+            title={lang === 'en' ? 'Expand A4 Height Guard' : '展开 A4 高度提醒'}
             className="flex items-center gap-2.5 h-10 px-3.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 shadow-[0_8px_24px_rgba(15,23,42,0.1)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)] rounded-2xl cursor-pointer hover:shadow-[0_12px_32px_rgba(15,23,42,0.16)] transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600 group"
-            title={lang === 'en' ? 'Hover or click to expand A4 Height Guard' : '悬停或点击展开 A4 高度警报器'}
           >
             <div className="flex items-center gap-1.5">
               <Ruler className={`w-3.5 h-3.5 group-hover:scale-110 transition-transform ${
@@ -150,16 +131,8 @@ export const HeightGuard = React.memo(function HeightGuard({
               {isAutoFitting ? t.autoFitting : metrics.isOver ? (lang === 'en' ? 'Overflow' : '溢出') : metrics.overflowPercent > 92 ? (lang === 'en' ? 'Near Limit' : '临近') : (lang === 'en' ? 'Fit' : '契合')}
             </span>
 
-            {/* Small Expand Button */}
-            <button
-              type="button"
-              onClick={toggleCollapse}
-              className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-750 rounded-full transition-colors cursor-pointer"
-              title={lang === 'en' ? 'Expand' : '展开'}
-            >
-              <Maximize2 className="w-3 h-3" />
-            </button>
-          </motion.div>
+            <Maximize2 className="w-3 h-3 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors" />
+          </motion.button>
         ) : (
           <motion.div 
             key="height-guard-card"
@@ -188,9 +161,11 @@ export const HeightGuard = React.memo(function HeightGuard({
             {isAutoFitting ? t.autoFitting : metrics.isOver ? t.overflow : metrics.overflowPercent > 92 ? t.nearLimit : t.perfectFit}
           </span>
           <button
+            type="button"
             onClick={toggleCollapse}
+            aria-label={lang === 'en' ? 'Collapse A4 Height Guard' : '收起 A4 高度提醒'}
             className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-750 rounded-lg transition-colors cursor-pointer"
-            title={lang === 'en' ? 'Collapse' : '折叠'}
+            title={lang === 'en' ? 'Collapse A4 Height Guard' : '收起 A4 高度提醒'}
           >
             <Minimize2 className="w-3.5 h-3.5" />
           </button>

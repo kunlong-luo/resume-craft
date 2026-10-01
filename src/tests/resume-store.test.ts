@@ -218,6 +218,37 @@ describe('resume store state consistency', () => {
     expect(after.currentTemplateId).toBe(before.currentTemplateId);
   });
 
+  it('replaces an imported or restored document as one consistent state', () => {
+    const replacementSettings = {
+      ...useResumeStore.getState().settings,
+      marketRegion: 'ca' as const,
+      paperSize: 'letter' as const,
+      dateStyle: 'month-short' as const,
+    };
+
+    useResumeStore.setState({
+      markdown: 'old content',
+      currentTemplateId: 'cn_demo',
+      history: ['older', 'old content'],
+      historyIndex: 1,
+    });
+
+    useResumeStore
+      .getState()
+      .replaceDocument('restored content', replacementSettings, 'custom');
+
+    const state = useResumeStore.getState();
+    expect(state.markdown).toBe('restored content');
+    expect(state.settings.marketRegion).toBe('ca');
+    expect(state.settings.paperSize).toBe('letter');
+    expect(state.currentTemplateId).toBe('custom');
+    expect(state.profiles[0].markdown).toBe('restored content');
+    expect(state.profiles[0].settings.marketRegion).toBe('ca');
+    expect(state.profiles[0].templateId).toBe('custom');
+    expect(state.history).toEqual(['restored content']);
+    expect(state.historyIndex).toBe(0);
+  });
+
   it('rebuilds undo history when language switching translates content', () => {
     useResumeStore.setState({
       markdown: '# 张三\n\n## 工作经历\n- 示例',

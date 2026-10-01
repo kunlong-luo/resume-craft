@@ -5,9 +5,9 @@ import { CustomSlider } from '../ui/CustomSlider';
 import { Tooltip } from '../ui/Tooltip';
 
 interface ZoomControlsProps {
-  zoomMode: 'fit' | number;
+  zoomMode: 'fit-width' | 'fit-page' | number;
   calculatedZoom: number;
-  onZoomChange: (zoom: 'fit' | number) => void;
+  onZoomChange: (zoom: 'fit-width' | 'fit-page' | number) => void;
   showPageBreakLine?: boolean;
   onTogglePageBreakLine?: () => void;
   lang?: string;
@@ -40,14 +40,16 @@ export const ZoomControls: React.FC<ZoomControlsProps> = React.memo(({
   const t = isEn ? {
     zoomOut: 'Zoom Out',
     zoomIn: 'Zoom In',
-    zoomFit: 'Fit',
+    zoomFitWidth: 'Fit Width',
+    zoomFitPage: 'Fit Page',
     pageBreakOn: 'Hide A4 Page Cut Line',
     pageBreakOff: 'Show A4 Page Cut Line',
     zoomPillTip: 'Hover or click to adjust zoom & cut lines',
   } : {
     zoomOut: '缩小',
     zoomIn: '放大',
-    zoomFit: '自适应',
+    zoomFitWidth: '适合宽度',
+    zoomFitPage: '整页显示',
     pageBreakOn: '隐藏 A4 分页裁切线',
     pageBreakOff: '显示 A4 分页裁切线',
     zoomPillTip: '悬停或点击调整缩放与裁切线',
@@ -82,7 +84,7 @@ export const ZoomControls: React.FC<ZoomControlsProps> = React.memo(({
             </div>
             
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100/80 dark:border-indigo-800/60">
-              {zoomMode === 'fit' ? t.zoomFit : `${displayZoomPercent}%`}
+              {zoomMode === 'fit-width' ? t.zoomFitWidth : zoomMode === 'fit-page' ? t.zoomFitPage : `${displayZoomPercent}%`}
             </span>
 
             {showPageBreakLine && (
@@ -148,14 +150,26 @@ export const ZoomControls: React.FC<ZoomControlsProps> = React.memo(({
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => onZoomChange('fit')}
+                onClick={() => onZoomChange('fit-width')}
                 className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                  zoomMode === 'fit' 
-                    ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/60 shadow-sm font-sans' 
+                  zoomMode === 'fit-width'
+                    ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/60 shadow-sm font-sans'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent font-sans'
                 }`}
               >
-                {t.zoomFit}
+                {t.zoomFitWidth}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onZoomChange('fit-page')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                  zoomMode === 'fit-page'
+                    ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/60 shadow-sm font-sans'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent font-sans'
+                }`}
+              >
+                {t.zoomFitPage}
               </button>
               
               <button

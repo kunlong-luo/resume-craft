@@ -38,6 +38,7 @@ export interface ResumeSettings {
 export interface ResumeDraft {
   id: string;
   title: string;
+  templateId?: string;
   markdown: string;
   settings: ResumeSettings;
   timestamp: string;

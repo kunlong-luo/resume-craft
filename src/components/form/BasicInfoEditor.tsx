@@ -216,8 +216,8 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
 
   return (
     <div 
-      id="form-sec-basic" 
-      className={`rounded-xl overflow-hidden scroll-mt-20 transition-all duration-300 ${
+      id="form-sec-basic"
+      className={`basic-info-editor rounded-xl overflow-hidden scroll-mt-20 transition-all duration-300 ${
         expanded 
           ? 'tactile-card shadow-[0_16px_36px_rgba(30,41,59,0.06),0_3px_10px_rgba(30,41,59,0.03)] border-indigo-200/50 dark:border-slate-800 scale-[1.002] ring-1 ring-indigo-50/50 dark:ring-slate-800 mb-5' 
           : 'bg-slate-50/60 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800 shadow-[0_2px_6px_rgba(30,41,59,0.015)] opacity-85 hover:opacity-100 scale-[0.995] hover:scale-100 mb-3'
@@ -441,11 +441,11 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
 
                 {/* 2. 国内求职元信息：海外市场默认隐藏空字段，已有数据仍可编辑 */}
                 {showDomesticMeta && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+                <div className="basic-meta-grid" data-testid="basic-meta-grid">
                   {/* 工作经验年限 */}
-                  <div className="space-y-1.5">
-                    <div className="h-6 flex items-center justify-between">
-                      <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none select-none">{t.expLabel}</label>
+                  <div className="space-y-1.5" data-testid="work-experience-field">
+                    <div className="min-h-6 flex items-center justify-between gap-2" data-testid="work-experience-header">
+                      <label className="min-w-0 truncate text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none select-none">{t.expLabel}</label>
                       <Tooltip content={t.studentGradTooltip} side="top">
                         <button
                           type="button"
@@ -456,7 +456,7 @@ export function BasicInfoEditor({ model, onChange, expanded, onToggleExpanded, s
                               handleStructuredFieldChange('workYears', activeContentLang === 'en' ? 'Student / New Graduate' : '在校生/应届生');
                             }
                           }}
-                          className={`h-5 text-[10px] px-2 rounded font-medium cursor-pointer transition-all inline-flex items-center border ${
+                          className={`h-5 shrink-0 whitespace-nowrap text-[10px] px-2 rounded font-medium cursor-pointer transition-all inline-flex items-center border ${
                             isStudentGrad 
                               ? 'bg-blue-50 text-blue-700 font-bold border-blue-200 shadow-xs' 
                               : 'text-slate-500 hover:text-indigo-600 bg-slate-50 hover:bg-slate-100 border-slate-200/60'

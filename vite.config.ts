@@ -62,6 +62,10 @@ export default defineConfig(() => {
       }),
     ],
     build: {
+      modulePreload: {
+        resolveDependencies: (_filename, deps) =>
+          deps.filter((dep) => !/(?:pdf-vendor|pdfjs-vendor|pdf\.worker)/i.test(dep)),
+      },
       rollupOptions: {
         output: {
           manualChunks(id) {

@@ -14,6 +14,7 @@ import { ResumeProfile } from '../../types';
 import { NewProfileModal } from '../profile/NewProfileModal';
 import { useConfirm } from '../../context/ConfirmContext';
 import { Tooltip } from '../ui/Tooltip';
+import { BLANK_MARKDOWN } from '../../data';
 
 interface ProfilesTabProps {
   lang?: string;
@@ -44,15 +45,14 @@ export function ProfilesTab({ lang, showToast }: ProfilesTabProps) {
 
   const handleFastBlank = () => {
     const count = profiles.length + 1;
-    const blankMd = `# 姓名\n求职岗位 ｜ 138-0000-0000 ｜ email@example.com\n\n## 个人优势\n- 掌握核心专业技能与工程实践，具备扎实的专业基础与快速学习能力\n\n## 工作经历\n### 科技企业 · 岗位名称  *2022.06 — 至今*\n- **核心业务贡献**：负责核心系统研发与架构优化，主导关键指标达成\n\n## 教育背景\n### 知名大学 · 本科 ｜ 计算机专业  *2018.09 — 2022.06*\n`;
     const newProfile = createProfile({
       name: `${isEn ? 'Resume Version' : '简历档案'} ${count}`,
       targetRole: isEn ? 'New Role' : '求职版',
-      markdown: blankMd
+      markdown: BLANK_MARKDOWN,
+      templateId: 'custom',
     });
     showToast(isEn ? `Created "${newProfile.name}"` : `已新建「${newProfile.name}」并自动切换`);
   };
-
   const handleStartEdit = (p: ResumeProfile) => {
     setEditingId(p.id);
     setEditName(p.name);

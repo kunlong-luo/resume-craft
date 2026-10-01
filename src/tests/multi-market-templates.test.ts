@@ -154,9 +154,12 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
       const cnTemplate = TEMPLATES.find(t => t.id === 'cn_demo')!;
       const preview = getTemplatePreview(cnTemplate.content, 'en');
 
-      expect(preview.sections).toContain('Summary');
-      expect(preview.sections).toContain('Work Experience');
-      expect(preview.sections).toContain('Education');
+      expect(preview.sections).toEqual([
+        'Summary',
+        'Skills',
+        'Work Experience',
+        'Projects',
+      ]);
       expect(preview.sections.some(section => /[\u4e00-\u9fa5]/.test(section))).toBe(false);
     });
 

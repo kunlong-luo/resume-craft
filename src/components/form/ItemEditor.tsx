@@ -20,6 +20,7 @@ interface ItemEditorProps {
   onDelete: () => void;
   onInsertStarTemplate: () => void;
   lang?: string;
+  contentLang?: string;
   marketRegion?: MarketRegion;
 }
 
@@ -114,16 +115,22 @@ export function ItemEditor({
   item, index, totalItems, category,
   onFieldChange, onContentChange, onMove, onReorderItem, onDelete, onInsertStarTemplate,
   lang = 'zh',
+  contentLang = 'zh',
   marketRegion
 }: ItemEditorProps) {
-  const activeLang = lang === 'en' ? 'en' : 'zh';
-  const translations = getTranslation(activeLang);
+  const activeUiLang = lang === 'en' ? 'en' : 'zh';
+  const activeContentLang = contentLang === 'en' ? 'en' : 'zh';
+  const translations = getTranslation(activeUiLang);
+  const contentTranslations = getTranslation(activeContentLang);
   const secT = translations.form.section;
   const eduT = translations.form.edu;
+  const contentEduT = contentTranslations.form.edu;
   
-  const dict = activeLang === 'en' ? CATEGORY_CONFIGS.en : CATEGORY_CONFIGS.zh;
-  const catKey = (category in dict) ? (category as 'edu' | 'project' | 'work') : 'default';
-  const cat = dict[catKey];
+  const uiDict = activeUiLang === 'en' ? CATEGORY_CONFIGS.en : CATEGORY_CONFIGS.zh;
+  const contentDict = activeContentLang === 'en' ? CATEGORY_CONFIGS.en : CATEGORY_CONFIGS.zh;
+  const catKey = (category in uiDict) ? (category as 'edu' | 'project' | 'work') : 'default';
+  const uiCat = uiDict[catKey];
+  const contentCat = contentDict[catKey];
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('text/plain', String(index));
@@ -163,7 +170,7 @@ export function ItemEditor({
             </div>
           </Tooltip>
         )}
-        <Tooltip content={cat.starTitle} side="top">
+        <Tooltip content={uiCat.starTitle} side="top">
           <button type="button" onClick={onInsertStarTemplate} className="p-1 hover:bg-amber-50 dark:hover:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded transition-colors cursor-pointer">
             <Wand2 className="w-3.5 h-3.5" />
           </button>
@@ -188,11 +195,11 @@ export function ItemEditor({
       <div className="flex flex-col md:flex-row gap-2.5 sm:gap-3 sm:pr-24">
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{cat.orgLabel}</label>
+            <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{uiCat.orgLabel}</label>
             {(item.org || '').length > 20 && (
               <Tooltip content={secT.charCountWarn} side="top">
                 <span className="text-[10px] text-amber-500 font-medium cursor-help">
-                  {activeLang === 'en' ? `${item.org.length} chars` : `${item.org.length}字`}
+                  {activeUiLang === 'en' ? `${item.org.length} chars` : `${item.org.length}字`}
                 </span>
               </Tooltip>
             )}
@@ -203,17 +210,17 @@ export function ItemEditor({
               value={item.org || ''} 
               onChange={(e) => onFieldChange('org', e.target.value)} 
               className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input" 
-              placeholder={cat.orgPlaceholder} 
+              placeholder={contentCat.orgPlaceholder} 
             />
           </div>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{cat.roleLabel}</label>
+            <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{uiCat.roleLabel}</label>
             {(item.role || '').length > 18 && (
               <Tooltip content={secT.charCountWarn} side="top">
                 <span className="text-[10px] text-amber-500 font-medium cursor-help">
-                  {activeLang === 'en' ? `${item.role.length} chars` : `${item.role.length}字`}
+                  {activeUiLang === 'en' ? `${item.role.length} chars` : `${item.role.length}字`}
                 </span>
               </Tooltip>
             )}
@@ -224,7 +231,7 @@ export function ItemEditor({
               value={item.role || ''} 
               onChange={(e) => onFieldChange('role', e.target.value)} 
               className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input" 
-              placeholder={cat.rolePlaceholder} 
+              placeholder={contentCat.rolePlaceholder} 
             />
           </div>
         </div>
@@ -236,8 +243,9 @@ export function ItemEditor({
             value={item.time || ''}
             onChange={(val) => onFieldChange('time', val)}
             className="px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input font-mono"
-            placeholder={cat.timePlaceholder}
+            placeholder={contentCat.timePlaceholder}
             lang={lang}
+            contentLang={contentLang}
             marketRegion={marketRegion}
             showPresentToggle={index === 0 && (category === 'work' || category === 'project')}
           />
@@ -248,15 +256,15 @@ export function ItemEditor({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-1">{eduT.gpaLabel}</label>
-            <input type="text" value={item.gpa || ''} onChange={(e) => onFieldChange('gpa', e.target.value)} className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input" placeholder={eduT.gpaPlaceholder} />
+            <input type="text" value={item.gpa || ''} onChange={(e) => onFieldChange('gpa', e.target.value)} className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input" placeholder={contentEduT.gpaPlaceholder} />
           </div>
           <div>
             <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-1">{eduT.coursesLabel}</label>
-            <input type="text" value={item.courses || ''} onChange={(e) => onFieldChange('courses', e.target.value)} className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input" placeholder={eduT.coursesPlaceholder} />
+            <input type="text" value={item.courses || ''} onChange={(e) => onFieldChange('courses', e.target.value)} className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input" placeholder={contentEduT.coursesPlaceholder} />
           </div>
           <div>
             <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-1">{eduT.honorsLabel}</label>
-            <input type="text" value={item.honors || ''} onChange={(e) => onFieldChange('honors', e.target.value)} className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input" placeholder={eduT.honorsPlaceholder} />
+            <input type="text" value={item.honors || ''} onChange={(e) => onFieldChange('honors', e.target.value)} className="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 tactile-input" placeholder={contentEduT.honorsPlaceholder} />
           </div>
         </div>
       )}
@@ -264,18 +272,18 @@ export function ItemEditor({
       <div>
         <div className="mb-1">
           <label className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">
-            {category === 'edu' ? eduT.descLabel : cat.contentLabel}
+            {category === 'edu' ? eduT.descLabel : uiCat.contentLabel}
           </label>
         </div>
         <div className="flex flex-col mt-1">
-          <FormTextareaToolbar textareaId={item.id} value={item.content} onChange={onContentChange} lang={lang} />
+          <FormTextareaToolbar textareaId={item.id} value={item.content} onChange={onContentChange} lang={lang} contentLang={contentLang} />
           <SmartMarkdownTextarea 
             id={item.id} 
             value={item.content} 
             onChange={onContentChange} 
             minRows={category === 'edu' ? 3 : 5} 
             className="w-full p-2.5 text-xs font-mono leading-relaxed bg-slate-50/10 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-750 rounded-b-lg rounded-t-none border-t-0 text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 shadow-[inset_0_1.5px_3px_rgba(15,23,42,0.04)] focus:shadow-none transition-all duration-200" 
-            placeholder={category === 'edu' ? eduT.descPlaceholder : cat.contentPlaceholder} 
+            placeholder={category === 'edu' ? contentEduT.descPlaceholder : contentCat.contentPlaceholder} 
           />
         </div>
       </div>

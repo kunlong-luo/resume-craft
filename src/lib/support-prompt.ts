@@ -1,6 +1,8 @@
 export const SUPPORT_REPO_URL = 'https://github.com/kunlong-luo/resume-craft';
-export const SUPPORT_PROMPT_STORAGE_KEY = 'resume-craft.support-prompt.v2';
-const LEGACY_SUPPORT_PROMPT_STORAGE_KEY = 'resume-craft.support-prompt.v1';
+import { STORAGE_KEYS } from './storage';
+
+export const SUPPORT_PROMPT_STORAGE_KEY = STORAGE_KEYS.SUPPORT_PROMPT;
+const LEGACY_SUPPORT_PROMPT_STORAGE_KEY = STORAGE_KEYS.SUPPORT_PROMPT_LEGACY;
 
 export type SupportPromptDecision = 'supported' | 'dismissed';
 
@@ -32,9 +34,10 @@ export function shouldShowSupportPrompt({
   if (!isOfficialHostedApp(hostname, pathname)) return false;
   if (prompted) return false;
 
-  // This function is evaluated only after an export has finished. Keep the
-  // count guard explicit so tests and future call sites cannot accidentally
-  // show the prompt before the user has received value.
+  // This function is evaluated only after a PDF export flow has finished.
+  // Browser print APIs cannot tell whether the user actually saved the PDF,
+  // so this tracks completion of the export flow rather than claiming a file
+  // was definitely written.
   return exportCount >= 1;
 }
 
@@ -90,7 +93,7 @@ function writeSupportPromptState(state: SupportPromptState) {
   }
 }
 
-export function recordSuccessfulPdfExportAndShouldPrompt() {
+export function recordCompletedPdfExportFlowAndShouldPrompt() {
   if (typeof window === 'undefined') return false;
 
   const current = readSupportPromptState();

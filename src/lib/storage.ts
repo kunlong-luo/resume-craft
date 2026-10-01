@@ -20,7 +20,8 @@ export const STORAGE_KEYS = {
   ONBOARDING_FIRST_VISIT: 'resume-onboarding-first-visit',
   ONBOARDING_COMPLETE: 'resume-onboarding-v1-complete',
   SPLIT_RATIO: 'resume-split-ratio',
-  SUPPORT_PROMPT: 'resume-craft.support-prompt.v1',
+  SUPPORT_PROMPT: 'resume-craft.support-prompt.v2',
+  SUPPORT_PROMPT_LEGACY: 'resume-craft.support-prompt.v1',
 } as const;
 
 export const STORAGE_HEALTH_EVENT = 'resume-craft:storage-health';

@@ -8,10 +8,12 @@ interface FormTextareaToolbarProps {
   value: string;
   onChange: (newValue: string) => void;
   lang?: string;
+  contentLang?: string;
 }
 
-export function FormTextareaToolbar({ textareaId, value, onChange, lang = 'zh' }: FormTextareaToolbarProps) {
+export function FormTextareaToolbar({ textareaId, value, onChange, lang = 'zh', contentLang = 'zh' }: FormTextareaToolbarProps) {
   const isEn = lang === 'en';
+  const isContentEn = contentLang === 'en';
   const insertMarkdown = (syntax: string) => {
     const textarea = document.getElementById(textareaId) as HTMLTextAreaElement;
     if (!textarea) return;

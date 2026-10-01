@@ -11,7 +11,7 @@ export interface TitleMapping {
 
 export const STANDARD_SECTION_MAPPINGS: TitleMapping[] = [
   {
-    zh: ['个人优势', '核心优势', '个人亮点', '优势要点', '综合优势', '核心竞争力'],
+    zh: ['个人优势', '核心优势', '个人亮点', '优势要点', '综合优势', '核心竞争力', '个人简介', '个人介绍', '关于我', '自我评价', '个人评价', '自我总结', '个人总结'],
     en: 'Summary',
     defaultZh: '个人优势'
   },
@@ -49,16 +49,6 @@ export const STANDARD_SECTION_MAPPINGS: TitleMapping[] = [
     zh: ['资质证书', '证书资质', '专业证书', '资格认证', '职业证书'],
     en: 'Certifications',
     defaultZh: '资质证书'
-  },
-  {
-    zh: ['自我评价', '个人评价', '自我总结', '个人总结'],
-    en: 'Summary',
-    defaultZh: '自我评价'
-  },
-  {
-    zh: ['关于我', '个人介绍', '个人简介'],
-    en: 'About Me',
-    defaultZh: '关于我'
   },
   {
     zh: ['社交主页', '社交链接', '作品链接'],

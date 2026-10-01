@@ -107,7 +107,8 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
     it('translates Chinese capability headings into the standard English vocabulary', () => {
       expect(translateSectionTitle('核心能力', 'en')).toBe('Skills');
       expect(translateSectionTitle('专业技能', 'en')).toBe('Skills');
-      expect(translateSectionTitle('个人简介', 'en')).toBe('About Me');
+      expect(translateSectionTitle('个人简介', 'en')).toBe('Summary');
+      expect(translateSectionTitle('自我评价', 'en')).toBe('Summary');
     });
 
     it('normalizes English template aliases into consistent section names', () => {

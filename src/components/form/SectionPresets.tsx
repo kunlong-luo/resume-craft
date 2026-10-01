@@ -8,12 +8,10 @@ interface SectionPresetsProps {
   onAddPreset: (type: 'summary' | 'skills' | 'work' | 'project' | 'edu' | 'custom_text' | 'custom_items') => void;
   sections?: FormSection[];
   lang?: string;
-  contentLang?: string;
 }
 
-export function SectionPresets({ onAddPreset, sections = [], lang = 'zh', contentLang = 'zh' }: SectionPresetsProps) {
+export function SectionPresets({ onAddPreset, sections = [], lang = 'zh' }: SectionPresetsProps) {
   const activeUiLang = lang === 'en' ? 'en' : 'zh';
-  void contentLang;
   const translations = getTranslation(activeUiLang);
   const isUiEn = activeUiLang === 'en';
   const t = translations.form.section;

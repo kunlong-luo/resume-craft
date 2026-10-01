@@ -63,8 +63,8 @@ export default function App() {
     useShallow((state) => ({
       uiLanguage: state.uiLanguage,
       themeMode: state.themeMode,
-      layoutMode: state.layoutMode,
-      paperSize: state.paperSize,
+      layoutMode: state.settings.layoutMode,
+      paperSize: state.settings.paperSize,
       setLastSaved: state.setLastSaved,
       isHelpLegalOpen: state.isHelpLegalOpen,
       setIsHelpLegalOpen: state.setIsHelpLegalOpen,

@@ -53,7 +53,8 @@ test.describe('international market flows', () => {
 
     const preview = page.locator('#resume-print-content');
     await expect(preview).toBeVisible();
-    const originalPreviewText = await preview.innerText();
+    const originalPreviewText = await preview.textContent();
+    expect(originalPreviewText).not.toBeNull();
     const languageGroup = page.getByRole('group', { name: 'Interface language' });
     await expect(languageGroup).toBeVisible();
 
@@ -68,7 +69,7 @@ test.describe('international market flows', () => {
     await expect.poll(() =>
       page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}').lang),
     ).toBe('en');
-    await expect(preview).toHaveText(originalPreviewText);
+    await expect.poll(() => preview.textContent()).toBe(originalPreviewText);
 
     const layout = await openLayout(page);
     await expect(layout.getByTestId('language-independence-note')).toContainText(
@@ -79,7 +80,7 @@ test.describe('international market flows', () => {
     await expect.poll(() =>
       page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}').lang),
     ).toBe('zh');
-    await expect.poll(() => preview.innerText()).not.toBe(originalPreviewText);
+    await expect.poll(() => preview.textContent()).not.toBe(originalPreviewText);
     await expect.poll(() =>
       page.evaluate(() => window.localStorage.getItem('resume_ui_language')),
     ).toBe('zh');

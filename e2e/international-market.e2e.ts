@@ -77,6 +77,77 @@ test.describe('international market flows', () => {
     await expect(paperLabel).toHaveCSS('white-space', 'nowrap');
   });
 
+  test('reset current template restores its market metadata and download label', async ({ page }) => {
+    await page.goto('/');
+    await applyTemplate(page, 'Canadian Cloud & Data Engineer');
+
+    let layout = await openLayout(page);
+    await layout.getByRole('button', { name: 'US', exact: true }).click();
+    await layout.getByRole('button', { name: 'Close Layout' }).click();
+
+    await expect.poll(() =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}')),
+    ).toMatchObject({
+      marketRegion: 'us',
+      paperSize: 'letter',
+      dateStyle: 'month-short',
+    });
+
+    await page.getByRole('button', { name: 'Reset current template' }).click();
+
+    const confirm = page.getByRole('dialog', { name: 'Reset current template' });
+    await expect(confirm).toBeVisible();
+    await confirm.getByRole('button', { name: 'Reset template' }).click();
+
+    await expect.poll(() =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}')),
+    ).toMatchObject({
+      marketRegion: 'ca',
+      paperSize: 'letter',
+      dateStyle: 'month-short',
+    });
+
+    await page.getByRole('button', { name: 'Choose PDF export mode' }).click();
+    await expect(page.getByTestId('export-market-label')).toHaveText('Canada');
+    await expect(page.getByTestId('export-paper-label')).toHaveText(
+      'Letter · 215.9 × 279.4 mm',
+    );
+  });
+
+  test('resetting custom Canada content restores a Canada template and keeps export metadata aligned', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('resume-onboarding-v1-complete', '1');
+      window.localStorage.setItem('resume-markdown', '# 自定义加拿大简历\n\n## Experience\n- Custom content');
+      window.localStorage.setItem(
+        'resume-settings',
+        JSON.stringify({
+          lang: 'zh',
+          marketRegion: 'ca',
+          paperSize: 'letter',
+          dateStyle: 'month-short',
+        }),
+      );
+    });
+
+    await page.goto('/');
+
+    await page.getByRole('button', { name: '重置当前模板' }).click();
+    const confirm = page.getByRole('dialog', { name: '重置当前模板' });
+    await expect(confirm).toContainText('Canadian Cloud & Data Engineer');
+    await confirm.getByRole('button', { name: '重置模板' }).click();
+
+    await expect(page.locator('#resume-print-content')).toContainText('Marcus Roy');
+
+    await page
+      .getByRole('button', { name: /Choose PDF export mode|选择 PDF 下载方式/ })
+      .click();
+
+    await expect(page.getByTestId('export-market-label')).toHaveText('加拿大');
+    await expect(page.getByTestId('export-paper-label')).toHaveText(
+      'Letter · 215.9 × 279.4 mm',
+    );
+  });
+
   test('US template synchronizes Letter market settings and survives reload', async ({ page }) => {
     await page.goto('/');
     await applyTemplate(page, 'US Software Engineer (Resume)');

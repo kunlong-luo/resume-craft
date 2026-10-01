@@ -8,7 +8,7 @@ import { FormEditor } from './form/FormEditor';
 import { SectionSorter } from './layout/SectionSorter';
 import { useResumeStore } from '../store/useResumeStore';
 import { useConfirm } from '../context/ConfirmContext';
-import { DEFAULT_MARKDOWN } from '../data';
+import { TEMPLATES } from '../data';
 
 import { autoFormatAndCleanResume } from '../lib/resume-auto-fixer';
 import { getWordCount } from '../lib/word-count';
@@ -111,6 +111,9 @@ export const Editor = React.memo(function Editor() {
     history,
     settings,
     updateSetting,
+    currentTemplateId,
+    applyTemplate,
+    replaceDocument,
   } = useResumeStore();
 
   const deferredValue = useDeferredValue(value);
@@ -122,18 +125,53 @@ export const Editor = React.memo(function Editor() {
 
   const onReset = async () => {
     const isEn = settings.lang === 'en';
+    const fallbackTemplateIdByMarket = {
+      cn: 'cn_demo',
+      us: 'us_swe',
+      ca: 'ca_tech',
+      uk: 'uk_cv',
+      ie: 'english',
+      international: 'english',
+    } as const;
+    const currentMarket = settings.marketRegion || (isEn ? 'international' : 'cn');
+    const fallbackTemplateId = fallbackTemplateIdByMarket[currentMarket];
+    const isCustomReset = currentTemplateId === 'custom';
+    const resetTemplate =
+      (!isCustomReset
+        ? TEMPLATES.find((template) => template.id === currentTemplateId)
+        : undefined) ??
+      TEMPLATES.find((template) => template.id === fallbackTemplateId) ??
+      TEMPLATES.find((template) => template.id === (isEn ? 'english' : 'cn_demo')) ??
+      TEMPLATES[0];
+
+    if (!resetTemplate) return;
+
     const confirmed = await confirm({
-      title: isEn ? 'Reset Template' : '重置模板',
+      title: isEn ? 'Reset current template' : '重置当前模板',
       message: isEn
-        ? 'Are you sure you want to reset to the default template? Your current changes will be lost.'
-        : '确定要重置为默认模板吗？当前的修改将会丢失。',
-      confirmText: isEn ? 'Reset' : '确定重置',
+        ? `Restore "${resetTemplate.name}" to its original example content and sync its target market, paper size, and date format? Your current content changes will be lost.`
+        : `恢复「${resetTemplate.name}」的原始示例内容，并同步目标市场、纸张和日期格式？当前内容修改将会丢失。`,
+      confirmText: isEn ? 'Reset template' : '重置模板',
       cancelText: isEn ? 'Cancel' : '取消',
       type: 'danger'
     });
-    if (confirmed) {
-      onChange(DEFAULT_MARKDOWN, true);
+
+    if (!confirmed) return;
+
+    const fallbackReusesAnotherMarket =
+      isCustomReset &&
+      resetTemplate.targetMarket &&
+      resetTemplate.targetMarket !== currentMarket;
+
+    if (fallbackReusesAnotherMarket) {
+      // Some markets (for example Ireland) intentionally reuse a generic content
+      // example. Keep the user's explicit market/paper/date settings instead of
+      // silently switching them to the source template's market.
+      replaceDocument(resetTemplate.content, settings, 'custom');
+      return;
     }
+
+    applyTemplate(resetTemplate.id);
   };
 
   const [copied, setCopied] = useState(false);
@@ -430,11 +468,11 @@ export const Editor = React.memo(function Editor() {
           </Tooltip>
 
           {/* 重置模板 */}
-          <Tooltip content={settings.lang === 'en' ? 'Reset to default template' : '重置为默认模板'}>
+          <Tooltip content={settings.lang === 'en' ? 'Reset current template and market format' : '重置当前模板并同步市场格式'}>
             <button 
               type="button"
               onClick={onReset}
-              aria-label={settings.lang === 'en' ? 'Reset to default template' : '重置为默认模板'}
+              aria-label={settings.lang === 'en' ? 'Reset current template' : '重置当前模板'}
               className="p-1.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               <RotateCcw className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />

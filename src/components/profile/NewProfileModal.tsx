@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Copy, FilePlus, LayoutTemplate, FolderPlus, Check } from 'lucide-react';
 import { useResumeStore } from '../../store/useResumeStore';
-import { TEMPLATES } from '../../data';
+import { BLANK_MARKDOWN, TEMPLATES } from '../../data';
+import { getMarketProfile, resolveDefaultPaperSize } from '../../lib/market-profile';
 
 interface NewProfileModalProps {
   isOpen: boolean;
@@ -16,7 +17,13 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
   const [mode, setMode] = useState<'clone' | 'template' | 'blank'>('clone');
   const [name, setName] = useState('');
   const [targetRole, setTargetRole] = useState('');
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('ai_backend');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(isEn ? 'us_swe' : 'cn_demo');
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedTemplateId(isEn ? 'us_swe' : 'cn_demo');
+    }
+  }, [isOpen, isEn]);
 
   if (!isOpen) return null;
 
@@ -31,20 +38,34 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
     );
 
     let contentToUse: string | undefined = undefined;
+    let settingsToUse = settings;
+    let templateId: string | undefined;
+
     if (mode === 'template') {
       const tpl = TEMPLATES.find(t => t.id === selectedTemplateId);
-      if (tpl) contentToUse = tpl.content;
+      if (tpl) {
+        contentToUse = tpl.content;
+        templateId = tpl.id;
+        const targetMarket =
+          tpl.targetMarket ?? (tpl.suggestedLang === 'zh' ? 'cn' : 'international');
+        settingsToUse = {
+          ...settings,
+          marketRegion: targetMarket,
+          paperSize: tpl.defaultPaperSize ?? resolveDefaultPaperSize(targetMarket),
+          dateStyle: tpl.dateStyle ?? getMarketProfile(targetMarket).dateStyle,
+        };
+      }
     } else if (mode === 'blank') {
-      contentToUse = `# 姓名\n求职意向 ｜ 电话 ｜ 邮箱\n\n## 个人优势\n- 填写核心优势\n\n## 工作经历\n### 公司名称　职位　*2022 — 至今*\n- 核心业绩与职责\n\n## 教育背景\n### 毕业院校　学历 ｜ 专业　*2018 — 2022*\n`;
+      contentToUse = BLANK_MARKDOWN;
+      templateId = 'custom';
     }
 
     createProfile({
       name: finalName,
       targetRole: targetRole.trim() || undefined,
       markdown: contentToUse,
-      settings: mode === 'template' && selectedTemplateId === 'english'
-        ? { ...settings, lang: 'en', themeColor: 'teal' }
-        : undefined
+      settings: mode === 'clone' ? undefined : settingsToUse,
+      templateId,
     });
 
     onClose();

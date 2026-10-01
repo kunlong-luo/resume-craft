@@ -19,7 +19,7 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
     setIsIframeModalOpen,
     setIsExportingPDF,
     setPdfExportProgress,
-    handleMarkdownChange
+    replaceDocument
   } = useResumeStore();
   
   const getExportTitle = () => {
@@ -134,7 +134,7 @@ export function useResumeActions({ contentRef }: UseResumeActionsProps) {
     reader.onload = (event) => {
       const result = event.target?.result;
       if (typeof result === 'string') {
-        handleMarkdownChange(result, true);
+        replaceDocument(result, settings, 'custom');
       }
     };
     reader.readAsText(file);

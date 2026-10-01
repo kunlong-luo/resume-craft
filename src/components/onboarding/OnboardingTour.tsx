@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, FilePlus2, FileText, MousePointer2, Sliders, Upload, X } from 'lucide-react';
-import { BLANK_MARKDOWN, STARTER_MARKDOWN, STARTER_MARKDOWN_EN, TEMPLATES } from '../../data';
+import { BLANK_MARKDOWN, STARTER_MARKDOWN, STARTER_MARKDOWN_EN } from '../../data';
 import { storage, STORAGE_KEYS } from '../../lib/storage';
 import { useResumeStore } from '../../store/useResumeStore';
 
@@ -23,7 +23,7 @@ const steps = [
 ] as const;
 
 export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
-  const { settings, handleMarkdownChange, updateSettings, setCurrentTemplateId } = useResumeStore();
+  const { settings, applyTemplate, replaceDocument } = useResumeStore();
   const isEn = settings.lang === 'en';
   const [step, setStep] = useState(0);
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
@@ -153,32 +153,21 @@ export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
     storage.getString(STORAGE_KEYS.ONBOARDING_COMPLETE) !== '1';
 
   const applyExample = () => {
-    const templateId = isEn ? 'us_swe' : 'ai_backend';
-    const template = TEMPLATES.find((item) => item.id === templateId);
-    if (template) {
-      setCurrentTemplateId(templateId);
-      handleMarkdownChange(template.content, true);
-      if (template.targetMarket) {
-        updateSettings({
-          marketRegion: template.targetMarket,
-          paperSize: template.defaultPaperSize || settings.paperSize,
-          dateStyle: template.dateStyle || settings.dateStyle,
-          lang: template.suggestedLang || settings.lang,
-        });
-      }
-    }
+    applyTemplate(isEn ? 'us_swe' : 'ai_backend');
     complete();
   };
 
   const applyStarter = () => {
-    setCurrentTemplateId('custom');
-    handleMarkdownChange(isEn ? STARTER_MARKDOWN_EN : STARTER_MARKDOWN, true);
+    replaceDocument(
+      isEn ? STARTER_MARKDOWN_EN : STARTER_MARKDOWN,
+      settings,
+      'custom',
+    );
     complete();
   };
 
   const applyBlank = () => {
-    setCurrentTemplateId('custom');
-    handleMarkdownChange(BLANK_MARKDOWN, true);
+    replaceDocument(BLANK_MARKDOWN, settings, 'custom');
     complete();
   };
 

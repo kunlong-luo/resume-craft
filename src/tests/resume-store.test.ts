@@ -84,6 +84,36 @@ describe('resume store state consistency', () => {
     expect(state.historyIndex).toBe(1);
   });
 
+  it('fully switches template and history state when deleting the active profile', () => {
+    const first = {
+      ...buildProfile('profile_first', 'first content'),
+      templateId: 'ca_tech',
+    };
+    const second = {
+      ...buildProfile('profile_second', 'second content'),
+      templateId: 'cn_demo',
+    };
+
+    useResumeStore.setState({
+      profiles: [first, second],
+      activeProfileId: first.id,
+      markdown: first.markdown,
+      settings: first.settings,
+      currentTemplateId: 'ca_tech',
+      history: ['older', first.markdown],
+      historyIndex: 1,
+    });
+
+    expect(useResumeStore.getState().deleteProfile(first.id)).toBe(true);
+
+    const state = useResumeStore.getState();
+    expect(state.activeProfileId).toBe(second.id);
+    expect(state.markdown).toBe(second.markdown);
+    expect(state.currentTemplateId).toBe('cn_demo');
+    expect(state.history).toEqual([second.markdown]);
+    expect(state.historyIndex).toBe(0);
+  });
+
   it('activates imported data even when the imported profile id matches the current id', () => {
     useResumeStore.setState({
       activeProfileId: 'profile_same',
@@ -92,7 +122,10 @@ describe('resume store state consistency', () => {
       customFileName: 'stale-name',
     });
 
-    const imported = buildProfile('profile_same', 'restored imported content');
+    const imported = {
+      ...buildProfile('profile_same', 'restored imported content'),
+      templateId: 'removed-template',
+    };
 
     useResumeStore.getState().importProfiles([imported]);
 
@@ -103,6 +136,156 @@ describe('resume store state consistency', () => {
     expect(state.customFileName).toBe('');
     expect(state.history).toEqual(['restored imported content']);
     expect(state.historyIndex).toBe(0);
+  });
+
+
+  it('persists template identity independently from edited markdown', () => {
+    const source = {
+      ...buildProfile('profile_source', 'template content'),
+      templateId: 'ca_tech',
+    };
+    const other = {
+      ...buildProfile('profile_other', 'other content'),
+      templateId: 'custom',
+    };
+
+    useResumeStore.setState({
+      profiles: [source, other],
+      activeProfileId: source.id,
+      markdown: source.markdown,
+      settings: source.settings,
+      currentTemplateId: 'ca_tech',
+      history: [source.markdown],
+      historyIndex: 0,
+    });
+
+    useResumeStore.getState().handleMarkdownChange('edited template content', true);
+    useResumeStore.getState().switchProfile(other.id);
+    useResumeStore.getState().switchProfile(source.id);
+
+    const state = useResumeStore.getState();
+    expect(state.currentTemplateId).toBe('ca_tech');
+    expect(state.markdown).toBe('edited template content');
+    expect(state.profiles.find(profile => profile.id === source.id)?.templateId).toBe('ca_tech');
+  });
+
+  it('stores an explicitly selected template id on the active profile', () => {
+    useResumeStore.getState().setCurrentTemplateId('cn_demo');
+
+    const state = useResumeStore.getState();
+    expect(state.currentTemplateId).toBe('cn_demo');
+    expect(state.profiles[0].templateId).toBe('cn_demo');
+  });
+
+  it('applies a template atomically with market metadata and a fresh history baseline', () => {
+    useResumeStore.setState({
+      markdown: 'old custom content',
+      currentTemplateId: 'custom',
+      history: ['older', 'old custom content'],
+      historyIndex: 1,
+      settings: {
+        ...useResumeStore.getState().settings,
+        marketRegion: 'ca',
+        paperSize: 'letter',
+        dateStyle: 'month-short',
+      },
+    });
+
+    const applied = useResumeStore.getState().applyTemplate('cn_demo');
+    expect(applied).toBe(true);
+
+    const state = useResumeStore.getState();
+    expect(state.currentTemplateId).toBe('cn_demo');
+    expect(state.settings.marketRegion).toBe('cn');
+    expect(state.settings.paperSize).toBe('a4');
+    expect(state.settings.dateStyle).toBe('cn-dot');
+    expect(state.markdown).toContain('Resume Craft 中文通用 Demo');
+    expect(state.profiles[0].templateId).toBe('cn_demo');
+    expect(state.profiles[0].settings.marketRegion).toBe('cn');
+    expect(state.history).toEqual([state.markdown]);
+    expect(state.historyIndex).toBe(0);
+  });
+
+  it('does not partially mutate state when applying an unknown template', () => {
+    const before = useResumeStore.getState();
+
+    const applied = useResumeStore.getState().applyTemplate('missing-template');
+
+    expect(applied).toBe(false);
+    const after = useResumeStore.getState();
+    expect(after.markdown).toBe(before.markdown);
+    expect(after.settings).toEqual(before.settings);
+    expect(after.currentTemplateId).toBe(before.currentTemplateId);
+  });
+
+  it('replaces an imported or restored document as one consistent state', () => {
+    const replacementSettings = {
+      ...useResumeStore.getState().settings,
+      marketRegion: 'ca' as const,
+      paperSize: 'letter' as const,
+      dateStyle: 'month-short' as const,
+    };
+
+    useResumeStore.setState({
+      markdown: 'old content',
+      currentTemplateId: 'cn_demo',
+      history: ['older', 'old content'],
+      historyIndex: 1,
+    });
+
+    useResumeStore
+      .getState()
+      .replaceDocument('restored content', replacementSettings, 'custom');
+
+    const state = useResumeStore.getState();
+    expect(state.markdown).toBe('restored content');
+    expect(state.settings.marketRegion).toBe('ca');
+    expect(state.settings.paperSize).toBe('letter');
+    expect(state.currentTemplateId).toBe('custom');
+    expect(state.profiles[0].markdown).toBe('restored content');
+    expect(state.profiles[0].settings.marketRegion).toBe('ca');
+    expect(state.profiles[0].templateId).toBe('custom');
+    expect(state.history).toEqual(['restored content']);
+    expect(state.historyIndex).toBe(0);
+  });
+
+  it('rebuilds undo history when language switching translates content', () => {
+    useResumeStore.setState({
+      markdown: '# 张三\n\n## 工作经历\n- 示例',
+      history: ['older content', '# 张三\n\n## 工作经历\n- 示例'],
+      historyIndex: 1,
+      settings: {
+        ...useResumeStore.getState().settings,
+        lang: 'zh',
+      },
+    });
+
+    useResumeStore.getState().updateSetting('lang', 'en');
+
+    const state = useResumeStore.getState();
+    expect(state.settings.lang).toBe('en');
+    expect(state.history).toEqual([state.markdown]);
+    expect(state.historyIndex).toBe(0);
+  });
+
+  it('localizes default profile metadata from the effective profile language', () => {
+    const englishSettings = {
+      ...useResumeStore.getState().settings,
+      lang: 'en' as const,
+    };
+
+    const created = useResumeStore.getState().createProfile({
+      name: '',
+      markdown: '',
+      settings: englishSettings,
+      templateId: 'custom',
+    });
+
+    expect(created.name).toBe('New Resume');
+    expect(created.targetRole).toBe('Target Role');
+    expect(created.settings.lang).toBe('en');
+    expect(created.templateId).toBe('custom');
+    expect(useResumeStore.getState().activeProfileId).toBe(created.id);
   });
 
   it('clears a previous filename when switching to a profile without one', () => {

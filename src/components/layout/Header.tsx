@@ -52,7 +52,7 @@ export function Header({
     setIsCheckerOpen,
     setIsBackupHubOpen,
     setIsHelpLegalOpen,
-    handleMarkdownChange,
+    replaceDocument,
     settings,
     updateSetting
   } = useResumeStore();
@@ -485,7 +485,7 @@ export function Header({
             isOpen={isRawTextModalOpen}
             onClose={() => setIsRawTextModalOpen(false)}
             onImport={(newMd) => {
-              handleMarkdownChange(newMd, true);
+              replaceDocument(newMd, settings, 'custom');
             }}
             onImportFile={handleImportMarkdown}
             lang={lang}

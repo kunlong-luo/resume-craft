@@ -86,9 +86,11 @@ const FILTERS: Array<{
 
 function MiniResumePreview({
   content,
+  paperSize = 'a4',
   compact = false,
 }: {
   content: string;
+  paperSize?: 'a4' | 'letter';
   compact?: boolean;
 }) {
   const preview = getTemplatePreview(content);
@@ -97,9 +99,10 @@ function MiniResumePreview({
     <div
       className={
         compact
-          ? 'aspect-[210/297] w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-2 shadow-sm'
-          : 'aspect-[210/297] w-full overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-sm'
+          ? 'w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-2 shadow-sm'
+          : 'w-full overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-sm'
       }
+      style={{ aspectRatio: paperSize === 'letter' ? '8.5 / 11' : '210 / 297' }}
       aria-hidden="true"
     >
       <div
@@ -169,9 +172,7 @@ export function TemplateCenterModal({
     markdown,
     settings,
     currentTemplateId,
-    setCurrentTemplateId,
-    handleMarkdownChange,
-    updateSettings,
+    applyTemplate,
   } = useResumeStore();
   const { confirm } = useConfirm();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -179,7 +180,7 @@ export function TemplateCenterModal({
 
   useDialogFocus({ isOpen, dialogRef, onClose });
 
-  const [selectedId, setSelectedId] = useState('ai_backend');
+  const [selectedId, setSelectedId] = useState('cn_demo');
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
 
   const localizedTemplates = useMemo(
@@ -193,7 +194,7 @@ export function TemplateCenterModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    const fallbackId = isEn ? 'us_swe' : 'ai_backend';
+    const fallbackId = isEn ? 'us_swe' : 'cn_demo';
     setSelectedId(
       TEMPLATES.some((template) => template.id === currentTemplateId)
         ? currentTemplateId
@@ -265,7 +266,7 @@ export function TemplateCenterModal({
           selectedPresentation.name +
           '」会替换当前简历内容，并自动同步目标市场格式与纸张规格（' +
           (selectedTemplate.defaultPaperSize?.toUpperCase() || 'A4') +
-          '）。应用后仍可撤销。',
+          '）。',
       confirmText: isEn ? 'Use content template' : '使用内容模板',
       cancelText: isEn ? 'Cancel' : '取消',
       type: 'warning',
@@ -273,17 +274,7 @@ export function TemplateCenterModal({
 
     if (!confirmed) return;
 
-    setCurrentTemplateId(selectedTemplate.id);
-    handleMarkdownChange(selectedTemplate.content, true);
-
-    if (selectedTemplate.targetMarket) {
-      updateSettings({
-        marketRegion: selectedTemplate.targetMarket,
-        paperSize: selectedTemplate.defaultPaperSize || settings.paperSize,
-        dateStyle: selectedTemplate.dateStyle || settings.dateStyle,
-      });
-    }
-
+    applyTemplate(selectedTemplate.id);
     onClose();
   };
 
@@ -324,8 +315,8 @@ export function TemplateCenterModal({
               className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-500 dark:text-slate-400"
             >
               {isEn
-                ? 'Browse by job-seeking scenario and preview first. Applying a template replaces resume content only; Layout and Style stay unchanged.'
-                : '按求职场景浏览并先预览。应用模板只替换简历内容；排版和样式保持不变。'}
+                ? 'Browse by job-seeking scenario and preview first. Applying a template replaces the resume content and syncs its target market, paper size, and date format; visual Layout and Style stay unchanged.'
+                : '按求职场景浏览并先预览。应用模板会替换简历内容，并同步目标市场、纸张和日期格式；视觉排版与样式设置保持不变。'}
             </p>
           </div>
           <button
@@ -386,7 +377,7 @@ export function TemplateCenterModal({
                         : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900')
                     }
                   >
-                    <MiniResumePreview content={template.content} compact />
+                    <MiniResumePreview content={template.content} paperSize={template.defaultPaperSize} compact />
                     <div className="mt-2.5 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 truncate text-[11px] font-black text-slate-800 dark:text-slate-100">
@@ -436,7 +427,7 @@ export function TemplateCenterModal({
 
           <div className="min-h-0 bg-slate-50/80 p-5 dark:bg-slate-950/35 sm:p-6 lg:overflow-y-auto">
             <div className="mx-auto max-w-sm">
-              <MiniResumePreview content={selectedTemplate.content} />
+              <MiniResumePreview content={selectedTemplate.content} paperSize={selectedTemplate.defaultPaperSize} />
 
               <div className="mt-5">
                 <div className="flex flex-wrap items-center gap-2">

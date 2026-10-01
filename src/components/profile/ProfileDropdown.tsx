@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useResumeStore } from '../../store/useResumeStore';
 import { Tooltip } from '../ui/Tooltip';
+import { BLANK_MARKDOWN } from '../../data';
 
 interface ProfileDropdownProps {
   lang?: string;
@@ -86,13 +87,11 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
   const handleFastBlank = (e: React.MouseEvent) => {
     e.stopPropagation();
     const count = profiles.length + 1;
-    const blankMd = isEn
-      ? '# Name\\n'
-      : '# 姓名\\n';
     const newProfile = createProfile({
       name: `${isEn ? 'Resume' : '简历'} ${count}`,
       targetRole: isEn ? 'New resume' : '新简历',
-      markdown: blankMd
+      markdown: BLANK_MARKDOWN,
+      templateId: 'custom',
     });
     setEditingId(newProfile.id);
     setEditName(newProfile.name);

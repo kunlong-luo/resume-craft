@@ -118,6 +118,7 @@ describe('import validation', () => {
           fontSize: 'relaxed',
           margin: 'compact',
         },
+        templateId: 'ca_tech',
         exportedAt: '2026-09-25',
       },
       fallbackSettings,
@@ -126,6 +127,7 @@ describe('import validation', () => {
     expect(backup?.markdown).toBe('# Resume');
     expect(backup?.settings.fontSize).toBe('relaxed');
     expect(backup?.settings.margin).toBe('compact');
+    expect(backup?.templateId).toBe('ca_tech');
   });
 
   it('rejects malformed profiles and duplicate ids', () => {
@@ -170,6 +172,7 @@ describe('import validation', () => {
           id: 'profile-imported',
           name: 'Imported Resume',
           targetRole: 'Frontend',
+          templateId: 'us_swe',
           markdown: '# Imported',
           settings: {
             themeColor: 'teal',
@@ -185,6 +188,7 @@ describe('import validation', () => {
       id: 'profile-imported',
       name: 'Imported Resume',
       targetRole: 'Frontend',
+      templateId: 'us_swe',
       markdown: '# Imported',
     });
     expect(profiles?.[0].settings.themeColor).toBe('teal');

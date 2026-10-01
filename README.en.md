@@ -21,7 +21,6 @@
 </p>
 
 <p align="center">
-  <a href="https://kunlong-luo.github.io/resume-craft/"><img src="https://img.shields.io/badge/Live%20Demo-Try%20Now-4F46E5?style=flat-square&logo=github" alt="Live Demo" /></a>
   <a href="https://github.com/kunlong-luo/resume-craft/actions/workflows/ci.yml"><img src="https://github.com/kunlong-luo/resume-craft/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/kunlong-luo/resume-craft/releases/latest"><img src="https://img.shields.io/github/v/release/kunlong-luo/resume-craft?style=flat-square&logo=github" alt="Latest Release" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License" /></a>
@@ -168,12 +167,12 @@ When creating resumes, candidates frequently suffer from **Word layout nightmare
 
 | Category | Technology | Description |
 | :--- | :--- | :--- |
-| **Frontend** | [React 19](https://react.dev/) + [TypeScript 7](https://www.typescriptlang.org/) | Type-safe, high-performance UI rendering |
-| **Bundler** | [Vite 8](https://vite.dev/) | Instant HMR & fast production builds |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Atomic styling with modern CSS variables |
-| **State** | [Zustand 5](https://github.com/pmndrs/zustand) | Lightweight reactive runtime state |
-| **Local Persistence** | [Dexie 4](https://dexie.org/) + IndexedDB | Durable storage for core resumes, profiles, drafts / backups, and JD data |
-| **Animations** | [Motion 13](https://github.com/framer/motion) | Smooth drag-and-drop & modal transitions |
+| **Frontend** | React 19 + TypeScript 7 | Type-safe, high-performance UI rendering |
+| **Bundler** | Vite 8 | Instant HMR & fast production builds |
+| **Styling** | Tailwind CSS v4 | Atomic styling with modern CSS variables |
+| **State** | Zustand 5 | Lightweight reactive runtime state |
+| **Local Persistence** | Dexie 4 + IndexedDB | Durable storage for core resumes, profiles, drafts / backups, and JD data |
+| **Animations** | Motion 13 | Smooth drag-and-drop & modal transitions |
 | **Markdown** | `react-markdown` + `remark-gfm` | GFM-compliant markdown parsing |
 | **PDF Import / Export** | `pdfjs-dist` + browser print + `html2canvas-pro` + `jspdf` | Local text extraction and readability feedback plus ATS-friendly Save as PDF and image-based Quick PDF fallback |
 
@@ -196,7 +195,7 @@ pnpm install
 ```bash
 pnpm dev
 ```
-Open your browser at [http://localhost:3000](http://localhost:3000) to start editing.
+Open `http://localhost:3000` in your browser to start editing.
 
 ### 4. Scripts Overview
 

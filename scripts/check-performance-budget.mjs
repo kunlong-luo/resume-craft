@@ -8,11 +8,11 @@ const reportOnly = process.argv.includes('--report-only');
 
 const KiB = 1024;
 const budgets = {
-  appGzipKiB: 120,
-  vendorGzipKiB: 180,
-  cssGzipKiB: 35,
-  initialJsGzipKiB: 500,
-  precacheRawKiB: 3072,
+  appGzipKiB: 115,
+  vendorGzipKiB: 90,
+  cssGzipKiB: 32,
+  initialJsGzipKiB: 260,
+  precacheRawKiB: 2300,
 };
 
 if (!existsSync(distDir)) {
@@ -41,7 +41,7 @@ function fmt(bytes) {
 
 const files = walk(distDir).map((path) => ({
   path,
-  rel: relative(distDir, path).replaceAll('\\\\', '/'),
+  rel: relative(distDir, path).replaceAll('\\', '/'),
   name: basename(path),
   raw: statSync(path).size,
   gzip: gzipBytes(path),

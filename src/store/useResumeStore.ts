@@ -61,6 +61,7 @@ interface ResumeState {
   renameProfile: (profileId: string, name: string, targetRole?: string) => void;
   deleteProfile: (profileId: string) => boolean;
   importProfiles: (profiles: ResumeProfile[]) => void;
+  replaceDocument: (markdown: string, settings?: ResumeSettings, templateId?: string) => void;
   applyTemplate: (templateId: string) => boolean;
   
   handleMarkdownChange: (newVal: string, immediate?: boolean) => void;
@@ -586,6 +587,47 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       history: [nextActive.markdown],
       historyIndex: 0,
       currentTemplateId: nextActive.templateId || getInitialTemplateId(nextActive.markdown),
+      lastSaved: new Date().toLocaleTimeString(),
+      isSaving: false,
+      saveStatus: 'saved',
+      measuredPageCount: null,
+    });
+  },
+
+  replaceDocument: (nextMarkdown: string, nextSettingsInput?: ResumeSettings, templateId?: string) => {
+    const { settings, profiles, activeProfileId } = get();
+    const nextSettings = nextSettingsInput ?? settings;
+    const safeTemplateId =
+      templateId === 'custom' || TEMPLATES.some(template => template.id === templateId)
+        ? (templateId as string)
+        : getInitialTemplateId(nextMarkdown);
+    const now = new Date().toISOString();
+
+    const updatedProfiles = profiles.map(profile =>
+      profile.id === activeProfileId
+        ? {
+            ...profile,
+            markdown: nextMarkdown,
+            settings: nextSettings,
+            templateId: safeTemplateId,
+            updatedAt: now,
+          }
+        : profile
+    );
+
+    storage.set(STORAGE_KEYS.SETTINGS, nextSettings);
+
+    if (debounceTimer) clearTimeout(debounceTimer);
+    if (typingTimer) clearTimeout(typingTimer);
+    if (saveStatusTimer) clearTimeout(saveStatusTimer);
+
+    set({
+      markdown: nextMarkdown,
+      settings: nextSettings,
+      currentTemplateId: safeTemplateId,
+      profiles: updatedProfiles,
+      history: [nextMarkdown],
+      historyIndex: 0,
       lastSaved: new Date().toLocaleTimeString(),
       isSaving: false,
       saveStatus: 'saved',

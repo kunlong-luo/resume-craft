@@ -105,6 +105,45 @@ describe('resume store state consistency', () => {
     expect(state.historyIndex).toBe(0);
   });
 
+
+  it('persists template identity independently from edited markdown', () => {
+    const source = {
+      ...buildProfile('profile_source', 'template content'),
+      templateId: 'ca_tech',
+    };
+    const other = {
+      ...buildProfile('profile_other', 'other content'),
+      templateId: 'custom',
+    };
+
+    useResumeStore.setState({
+      profiles: [source, other],
+      activeProfileId: source.id,
+      markdown: source.markdown,
+      settings: source.settings,
+      currentTemplateId: 'ca_tech',
+      history: [source.markdown],
+      historyIndex: 0,
+    });
+
+    useResumeStore.getState().handleMarkdownChange('edited template content', true);
+    useResumeStore.getState().switchProfile(other.id);
+    useResumeStore.getState().switchProfile(source.id);
+
+    const state = useResumeStore.getState();
+    expect(state.currentTemplateId).toBe('ca_tech');
+    expect(state.markdown).toBe('edited template content');
+    expect(state.profiles.find(profile => profile.id === source.id)?.templateId).toBe('ca_tech');
+  });
+
+  it('stores an explicitly selected template id on the active profile', () => {
+    useResumeStore.getState().setCurrentTemplateId('cn_demo');
+
+    const state = useResumeStore.getState();
+    expect(state.currentTemplateId).toBe('cn_demo');
+    expect(state.profiles[0].templateId).toBe('cn_demo');
+  });
+
   it('clears a previous filename when switching to a profile without one', () => {
     const first = buildProfile('profile_first', 'first content', 'first-file');
     const second = buildProfile('profile_second', 'second content');

@@ -11,6 +11,8 @@
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "node scripts/generate-og-card.mjs && vite build",
+    "perf:report": "node scripts/check-performance-budget.mjs --report-only",
+    "perf:budget": "node scripts/check-performance-budget.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "clean": "rm -rf dist server.js",

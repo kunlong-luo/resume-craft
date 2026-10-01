@@ -47,7 +47,8 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
         sections={localModel.sections} 
         expandedSections={expandedSections} 
         setExpandedSections={setExpandedSections} 
-        lang={uiLanguage} 
+        lang={uiLanguage}
+        contentLang={contentLanguage}
       />
 
       <div className="p-6 space-y-6">

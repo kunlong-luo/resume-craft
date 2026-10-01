@@ -107,6 +107,32 @@ test.describe('template center', () => {
     ).toHaveCount(0);
   });
 
+  test('English interface preserves Chinese template preview language', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('resume_ui_language', 'en');
+    });
+    await page.goto('/');
+
+    await page
+      .getByRole('button', { name: /Browse resume templates|浏览与切换简历模板/ })
+      .click();
+
+    const dialog = page.getByRole('dialog', {
+      name: /Choose a content template|选择内容模板/,
+    });
+    await dialog.getByRole('button', { name: /Chinese General Demo|中文通用示例/ }).click();
+
+    const sections = dialog.getByTestId('selected-template-sections');
+    await expect(sections).toContainText('个人简介');
+    await expect(sections).toContainText('核心能力');
+    await expect(sections).toContainText('工作经历');
+    await expect(sections).toContainText('项目经历');
+    await expect(sections).not.toContainText('Summary');
+    await expect(sections).not.toContainText('Skills');
+    await expect(sections).not.toContainText('Work Experience');
+    await expect(sections).not.toContainText('Projects');
+  });
+
   test('previews a template without changing the active resume', async ({ page }) => {
     await page.goto('/');
 

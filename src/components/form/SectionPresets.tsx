@@ -11,17 +11,17 @@ interface SectionPresetsProps {
 }
 
 export function SectionPresets({ onAddPreset, sections = [], lang = 'zh' }: SectionPresetsProps) {
-  const activeLang = lang === 'en' ? 'en' : 'zh';
-  const translations = getTranslation(activeLang);
-  const isEn = activeLang === 'en';
+  const activeUiLang = lang === 'en' ? 'en' : 'zh';
+  const translations = getTranslation(activeUiLang);
+  const isUiEn = activeUiLang === 'en';
   const t = translations.form.section;
 
   const presets = [
-    { type: 'summary' as const, label: isEn ? 'Strengths' : '个人优势' },
-    { type: 'skills' as const, label: isEn ? 'Skills' : '专业技能' },
-    { type: 'work' as const, label: isEn ? 'Work Experience' : '工作经历' },
-    { type: 'project' as const, label: isEn ? 'Projects' : '代表项目' },
-    { type: 'edu' as const, label: isEn ? 'Education' : '教育背景' },
+    { type: 'summary' as const, label: isUiEn ? 'Summary' : '个人优势' },
+    { type: 'skills' as const, label: isUiEn ? 'Skills' : '专业技能' },
+    { type: 'work' as const, label: isUiEn ? 'Work Experience' : '工作经历' },
+    { type: 'project' as const, label: isUiEn ? 'Projects' : '代表项目' },
+    { type: 'edu' as const, label: isUiEn ? 'Education' : '教育背景' },
   ];
 
   return (
@@ -33,7 +33,7 @@ export function SectionPresets({ onAddPreset, sections = [], lang = 'zh' }: Sect
         </span>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
           {presets.map(item => {
-            const theme = getPresetTheme(item.type, lang);
+            const theme = getPresetTheme(item.type, activeUiLang);
             const Icon = theme.icon;
 
             const isAdded = sections.some(sec => {
@@ -50,7 +50,7 @@ export function SectionPresets({ onAddPreset, sections = [], lang = 'zh' }: Sect
               <button
                 key={item.type}
                 onClick={() => onAddPreset(item.type)}
-                title={isAdded ? (isEn ? 'Already in resume (Click to locate)' : '已添加（点击滚动定位）') : ''}
+                title={isAdded ? (isUiEn ? 'Already in resume (Click to locate)' : '已添加（点击滚动定位）') : ''}
                 className={`flex flex-col items-center justify-center gap-1.5 p-3 relative bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-850 dark:to-slate-900 border rounded-xl text-center transition-all cursor-pointer shadow-[0_1.5px_3px_rgba(15,23,42,0.01),inset_0_1.5px_2px_rgba(255,255,255,0.95)] dark:shadow-none active:translate-y-px group ${
                   isAdded
                     ? 'border-emerald-500/40 dark:border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-950/20'
@@ -60,7 +60,7 @@ export function SectionPresets({ onAddPreset, sections = [], lang = 'zh' }: Sect
                 {isAdded && (
                   <span className="absolute top-1.5 right-1.5 flex items-center gap-0.5 px-1 py-0.2 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[9px] font-extrabold rounded border border-emerald-500/20">
                     <Check className="w-2.5 h-2.5" />
-                    <span className="hidden sm:inline">{isEn ? 'Added' : '已添加'}</span>
+                    <span className="hidden sm:inline">{isUiEn ? 'Added' : '已添加'}</span>
                   </span>
                 )}
                 <div className={`p-1.5 ${theme.iconBg} ${theme.iconColor} rounded-lg transition-colors`}>

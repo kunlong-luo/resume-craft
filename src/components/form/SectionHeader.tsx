@@ -19,6 +19,7 @@ interface SectionHeaderProps {
   onDelete?: () => void;
   onTypeChange?: (newType: 'text' | 'items') => void;
   lang?: string;
+  contentLang?: string;
 }
 
 export function SectionHeader({
@@ -32,18 +33,20 @@ export function SectionHeader({
   onApplySpacing,
   onMove,
   onDelete,
-  lang = 'zh'
+  lang = 'zh',
+  contentLang = 'zh'
 }: SectionHeaderProps) {
-  const activeLang = (lang === 'en' ? 'en' : 'zh') as 'zh' | 'en';
-  const translations = getTranslation(activeLang);
+  const activeUiLang = (lang === 'en' ? 'en' : 'zh') as 'zh' | 'en';
+  const activeContentLang = (contentLang === 'en' ? 'en' : 'zh') as 'zh' | 'en';
+  const translations = getTranslation(activeUiLang);
   const t = translations.form.section;
   
-  const theme = getSectionTheme(title, lang);
+  const theme = getSectionTheme(title, activeContentLang);
   const Icon = theme.icon;
   const displaySubtitle = subtitle || theme.subtitle;
-  const isEn = activeLang === 'en';
+  const isEn = activeUiLang === 'en';
 
-  const localizedTitle = translateSectionTitle(title, activeLang);
+  const localizedTitle = translateSectionTitle(title, activeContentLang);
 
   return (
     <div 

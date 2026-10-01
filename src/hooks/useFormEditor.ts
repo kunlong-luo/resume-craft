@@ -6,6 +6,7 @@ import { getPresetSection, getStarTemplate, scrollToSectionElement } from '../li
 import { useConfirm } from '../context/ConfirmContext';
 import { useToast } from '../components/ui/Toast';
 import { getTranslation } from '../i18n';
+import { translateSectionTitle } from '../lib/section-translator';
 
 export function useFormEditor(
   value: string,
@@ -214,13 +215,14 @@ export function useFormEditor(
       if (existing) {
         scrollToSectionElement(existing.id, (id) => setExpandedSections(prev => ({ ...prev, [id]: true })));
         const isEn = interfaceLang === 'en';
+        const displayTitle = translateSectionTitle(existing.title, isEn ? 'en' : 'zh');
 
         showToast({
           type: 'info',
           title: isEn ? 'Module Already Exists' : '常用模块已存在',
           message: isEn
-            ? `"${existing.title}" module is already in your resume. Navigated to it.`
-            : `简历中已存在“${existing.title}”模块，已为您滚动并定位到该模块。`
+            ? `"${displayTitle}" module is already in your resume. Navigated to it.`
+            : `简历中已存在“${displayTitle}”模块，已为您滚动并定位到该模块。`
         });
         return;
       }
@@ -238,10 +240,11 @@ export function useFormEditor(
     handleModelChange({ ...localModel, sections: updatedSections });
 
     const isEn = interfaceLang === 'en';
+    const displayTitle = translateSectionTitle(newSection.title, isEn ? 'en' : 'zh');
     showToast({
       type: 'success',
       title: isEn ? 'Module Added' : '常用模块添加成功',
-      message: isEn ? `Added "${newSection.title}" module.` : `已新增“${newSection.title}”模块`
+      message: isEn ? `Added "${displayTitle}" module.` : `已新增“${displayTitle}”模块`
     });
 
     scrollToSectionElement(newSection.id);

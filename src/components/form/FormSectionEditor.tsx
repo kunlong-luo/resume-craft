@@ -78,7 +78,7 @@ export function FormSectionEditor({
       <SectionHeader 
         title={sec.title} type={sec.type} isExpanded={isExpanded} isFirst={secIndex === 0} isLast={secIndex === totalSectionsCount - 1}
         onToggle={onToggle} onTitleChange={onTitleChange} onApplySpacing={onApplySpacing} onMove={onMove} onDelete={onDelete}
-        onTypeChange={hideTypeSwitcher ? undefined : onTypeChange} lang={lang}
+        onTypeChange={hideTypeSwitcher ? undefined : onTypeChange} lang={lang} contentLang={contentLang}
       />
 
       <AnimatePresence initial={false}>

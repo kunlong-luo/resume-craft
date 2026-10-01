@@ -114,6 +114,7 @@ export function EduSectionEditor({
         onDelete={onDelete}
         onTypeChange={onTypeChange}
         lang={lang}
+        contentLang={contentLang}
       />
       
       <AnimatePresence initial={false}>

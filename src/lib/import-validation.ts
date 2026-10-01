@@ -58,6 +58,7 @@ const HEX_COLOR_RE = /^#[0-9a-f]{6}$/i;
 
 export interface ResumeBackupV1 {
   version: 'markdown-resume-backup-v1';
+  templateId?: string;
   markdown: string;
   settings: ResumeSettings;
   exportedAt?: string;
@@ -201,6 +202,9 @@ export function normalizeResumeBackup(
     settings,
   };
 
+  const templateId = optionalString(value.templateId);
+  if (templateId !== undefined) backup.templateId = templateId;
+
   if (typeof value.exportedAt === 'string') {
     backup.exportedAt = value.exportedAt.slice(0, MAX_PROFILE_TEXT_LENGTH);
   }
@@ -240,6 +244,9 @@ export function normalizeImportedProfile(
     createdAt: normalizedString(value.createdAt, now),
     isDefault: typeof value.isDefault === 'boolean' ? value.isDefault : false,
   };
+
+  const templateId = optionalString(value.templateId);
+  if (templateId !== undefined) profile.templateId = templateId;
 
   const targetRole = optionalString(value.targetRole);
   if (targetRole !== undefined) profile.targetRole = targetRole;

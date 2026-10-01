@@ -48,6 +48,11 @@ export interface ResumeProfile {
   id: string;
   name: string;
   targetRole?: string;
+  /**
+   * The content template this profile originated from.
+   * Kept separately from markdown so edits do not erase template identity.
+   */
+  templateId?: string;
   markdown: string;
   settings: ResumeSettings;
   customFileName?: string;

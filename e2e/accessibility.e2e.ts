@@ -96,7 +96,7 @@ test.describe('keyboard accessibility', () => {
     await resetButton.press('Enter');
 
     const dialog = page.getByRole('dialog', {
-      name: /Reset Template|重置模板/,
+      name: /Reset current template|重置当前模板/,
     });
     await expect(dialog).toBeVisible();
 

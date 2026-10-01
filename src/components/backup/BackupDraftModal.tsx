@@ -19,7 +19,7 @@ export function BackupDraftModal() {
     isBackupHubOpen: isOpen,
     setIsBackupHubOpen,
     currentTemplateId,
-    replaceDocument
+    replaceDocument,
     uiLanguage,
   } = useResumeStore();
 

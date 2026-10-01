@@ -24,7 +24,7 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
   const onUpdateMarkdown = props.onUpdateMarkdown ?? store.handleMarkdownChange;
   const isOpen = props.isOpen ?? store.isCheckerOpen;
   const onClose = props.onClose ?? (() => store.setIsCheckerOpen(false));
-  const lang = props.lang ?? store.settings.lang;
+  const lang = props.lang ?? store.uiLanguage;
   const marketRegion = store.settings.marketRegion;
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocus({ isOpen, dialogRef, onClose });

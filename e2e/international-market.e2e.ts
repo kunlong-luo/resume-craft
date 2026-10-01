@@ -86,6 +86,66 @@ test.describe('international market flows', () => {
     ).toBe('zh');
   });
 
+  test('English UI keeps Chinese resume content in Chinese while UI controls stay English', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('resume_ui_language', 'en');
+      window.localStorage.setItem(
+        'resume-settings',
+        JSON.stringify({
+          lang: 'zh',
+          marketRegion: 'cn',
+          paperSize: 'a4',
+          dateStyle: 'cn-dot',
+        }),
+      );
+      window.localStorage.setItem(
+        'resume-markdown',
+        '# 张三\n后端工程师\n\n## 工作经历\n### 示例公司 | Java 工程师 | 2024.03 — 至今\n- 负责核心服务。\n',
+      );
+    });
+
+    await page.goto('/');
+    await page.getByRole('button', { name: /Form editor|表单编辑/ }).click();
+
+    await expect(page.getByRole('group', { name: 'Interface language' })).toBeVisible();
+    await expect(page.locator('input[value="工作经历"]')).toBeVisible();
+    await expect(page.locator('#resume-print-content h2').filter({ hasText: /^工作经历$/ })).toBeVisible();
+
+    const quickNav = page.locator('#form-sec-basic').locator('xpath=ancestor::*[contains(@class,"overflow-y-auto")][1]').locator('..');
+    await expect(page.getByRole('button', { name: /Work Experience/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Summary', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Skills', exact: true })).toBeVisible();
+  });
+
+  test('Chinese UI keeps English resume content in English while UI controls stay Chinese', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('resume_ui_language', 'zh');
+      window.localStorage.setItem(
+        'resume-settings',
+        JSON.stringify({
+          lang: 'en',
+          marketRegion: 'us',
+          paperSize: 'letter',
+          dateStyle: 'month-short',
+        }),
+      );
+      window.localStorage.setItem(
+        'resume-markdown',
+        '# Alex Chen\nSoftware Engineer\n\n## Work Experience\n### Acme | Engineer | Mar 2024 – Present\n- Built a production service.\n',
+      );
+    });
+
+    await page.goto('/');
+    await page.getByRole('button', { name: /Form editor|表单编辑/ }).click();
+
+    await expect(page.getByRole('group', { name: '界面语言' })).toBeVisible();
+    await expect(page.locator('input[value="Work Experience"]')).toBeVisible();
+    await expect(page.locator('#resume-print-content h2').filter({ hasText: /^Work Experience$/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: '工作经历', exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: '个人优势', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: '专业技能', exact: true })).toBeVisible();
+  });
+
   test('Chinese UI writes English resume values in form mode', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem(

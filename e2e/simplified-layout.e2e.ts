@@ -80,6 +80,29 @@ test.describe('simplified workspace actions', () => {
       .toBe('210mm');
   });
 
+  test('A4 height guard can collapse, stay collapsed, and expand again', async ({ page }) => {
+    await page.goto('/');
+
+    const collapse = page.getByRole('button', { name: 'Collapse A4 Height Guard' });
+    await expect(collapse).toBeVisible();
+    await collapse.click();
+
+    const expand = page.getByRole('button', { name: 'Expand A4 Height Guard' });
+    await expect(expand).toBeVisible();
+    await expect(collapse).toHaveCount(0);
+
+    await page.mouse.move(1200, 850);
+    await page.mouse.move(1180, 820);
+    await expect(expand).toBeVisible();
+    await expect(collapse).toHaveCount(0);
+
+    await page.reload();
+    await expect(expand).toBeVisible();
+
+    await expand.click();
+    await expect(page.getByRole('button', { name: 'Collapse A4 Height Guard' })).toBeVisible();
+  });
+
   test('keeps page break guide with view controls', async ({ page }) => {
     await page.goto('/');
 

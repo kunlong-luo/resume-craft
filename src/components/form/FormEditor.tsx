@@ -47,7 +47,8 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
         sections={localModel.sections} 
         expandedSections={expandedSections} 
         setExpandedSections={setExpandedSections} 
-        lang={uiLanguage} 
+        lang={uiLanguage}
+        contentLang={contentLanguage}
       />
 
       <div className="p-6 space-y-6">
@@ -121,7 +122,12 @@ export const FormEditor = React.memo(function FormEditor({ value, onChange, sett
           );
         })}
 
-        <SectionPresets onAddPreset={addPresetSection} sections={localModel.sections} lang={uiLanguage} />
+        <SectionPresets
+          onAddPreset={addPresetSection}
+          sections={localModel.sections}
+          lang={uiLanguage}
+          contentLang={contentLanguage}
+        />
       </div>
     </div>
   );

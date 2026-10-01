@@ -43,8 +43,9 @@ export function SectionHeader({
   const displaySubtitle = subtitle || theme.subtitle;
   const isEn = activeLang === 'en';
 
+  const localizedTitle = translateSectionTitle(title, activeLang);
   const canTranslate = canTranslateSectionTitle(title, activeLang);
-  const targetTranslatedTitle = canTranslate ? translateSectionTitle(title, activeLang) : '';
+  const targetTranslatedTitle = canTranslate ? localizedTitle : '';
 
   return (
     <div 
@@ -63,7 +64,7 @@ export function SectionHeader({
           <div className="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
             <input 
               type="text"
-              value={title}
+              value={localizedTitle}
               onClick={(e) => e.stopPropagation()} 
               onChange={(e) => onTitleChange(e.target.value)}
               placeholder={isEn ? 'Section Title' : '模块标题'}

@@ -111,7 +111,6 @@ test.describe('international market flows', () => {
     await expect(page.locator('input[value="工作经历"]')).toBeVisible();
     await expect(page.locator('#resume-print-content h2').filter({ hasText: /^工作经历$/ })).toBeVisible();
 
-    const quickNav = page.locator('#form-sec-basic').locator('xpath=ancestor::*[contains(@class,"overflow-y-auto")][1]').locator('..');
     await expect(page.getByRole('button', { name: /Work Experience/ }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Summary', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Skills', exact: true })).toBeVisible();

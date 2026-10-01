@@ -85,6 +85,15 @@ test.describe('international responsive UX', () => {
     });
     await expectInsideViewport(dock, 390, 844);
 
+    await dock.getByRole('button', { name: /Open mobile download options|打开移动端下载选项/ }).click();
+    const dockDownloadDialog = page.getByRole('dialog', {
+      name: /Download options|下载选项/,
+    });
+    await expectInsideViewport(dockDownloadDialog, 390, 844);
+    await expect(dockDownloadDialog.getByRole('button', { name: /Quick PDF|快速 PDF/ })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dockDownloadDialog).toBeHidden();
+
     await dock.getByRole('button', { name: /Preview|预览/ }).click();
     await expect(page.locator('#resume-preview-wrapper')).toBeVisible();
     await expect.poll(() =>

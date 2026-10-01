@@ -26,7 +26,7 @@ export function LanguageToggle() {
           aria-label={isEn ? 'Switch interface language to Chinese' : '将界面语言切换为中文'}
           aria-pressed={!isEn}
           onClick={() => setUiLanguage('zh')}
-          className={`relative px-2 py-0.5 text-[10px] font-bold rounded-md transition-colors cursor-pointer z-10 ${
+          className={`relative min-h-8 min-w-8 px-2 py-0.5 text-[10px] font-bold rounded-md transition-colors cursor-pointer z-10 ${
             !isEn ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
@@ -44,7 +44,7 @@ export function LanguageToggle() {
           aria-label={isEn ? 'Switch interface language to English' : '将界面语言切换为英文'}
           aria-pressed={isEn}
           onClick={() => setUiLanguage('en')}
-          className={`relative px-2 py-0.5 text-[10px] font-bold rounded-md transition-colors cursor-pointer z-10 ${
+          className={`relative min-h-8 min-w-8 px-2 py-0.5 text-[10px] font-bold rounded-md transition-colors cursor-pointer z-10 ${
             isEn ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >

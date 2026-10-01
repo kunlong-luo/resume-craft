@@ -230,8 +230,8 @@ export function Header({
   return (
     <header className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/90 relative z-50 shadow-[0_1px_3px_rgba(15,23,42,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.4)] transition-colors duration-200">
       {/* Mobile Top Bar (< md) */}
-      <div className="flex md:hidden items-center justify-between px-3.5 h-12 w-full">
-        <div className="flex items-center gap-2 shrink-0">
+      <div className="flex md:hidden items-center justify-between px-2.5 min-[390px]:px-3.5 h-12 w-full gap-2">
+        <div className="flex min-w-0 items-center gap-1.5 min-[390px]:gap-2 shrink-0">
           <div className="w-7 h-7 bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 rounded-lg text-white flex items-center justify-center shadow-xs font-black text-xs tracking-tighter">
             RC
           </div>
@@ -243,7 +243,7 @@ export function Header({
           <ProfileDropdown lang={uiLanguage} />
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <PdfExportMenu
             isEn={isEn}
             isExporting={isExportingPDF}
@@ -255,7 +255,7 @@ export function Header({
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-1.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+            className="min-h-10 min-w-10 inline-flex items-center justify-center p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer active:scale-95"
             aria-label={isEn ? 'Open quick actions menu' : '打开快捷功能菜单'}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-quick-actions"
@@ -415,13 +415,20 @@ export function Header({
 
       {/* Mobile Drawer Overlay */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex flex-col justify-end animate-in fade-in duration-200">
-          <div id="mobile-quick-actions" className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 rounded-t-2xl p-4 flex flex-col gap-3 shadow-2xl max-h-[80vh] overflow-y-auto">
+        <div
+          className="md:hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex flex-col justify-end animate-in fade-in duration-200"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <div
+            id="mobile-quick-actions"
+            className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 rounded-t-3xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex flex-col gap-3 shadow-2xl max-h-[82dvh] overflow-y-auto overscroll-contain"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
               <span className="font-extrabold text-sm text-slate-900 dark:text-white">{isEn ? 'Quick Actions' : '快捷功能菜单'}</span>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                className="min-h-10 min-w-10 inline-flex items-center justify-center p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer rounded-xl active:scale-95"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -430,7 +437,7 @@ export function Header({
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={(e) => { toggleThemeMode(e); setIsMobileMenuOpen(false); }}
-                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
+                className="min-h-12 flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
               >
                 {themeMode === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
                 <span>{isEn ? 'Theme' : '外观主题'}: {themeLabel}</span>
@@ -438,7 +445,7 @@ export function Header({
 
               <button
                 onClick={() => { setIsCheckerOpen(!isCheckerOpen); setIsMobileMenuOpen(false); }}
-                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
+                className="min-h-12 flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
               >
                 <ClipboardCheck className="w-4 h-4 text-indigo-500" />
                 <span>{isEn ? 'Check' : '检查'}</span>
@@ -446,7 +453,7 @@ export function Header({
 
               <button
                 onClick={() => { setIsBackupHubOpen(true); setIsMobileMenuOpen(false); }}
-                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
+                className="min-h-12 flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
               >
                 <Database className="w-4 h-4 text-indigo-500" />
                 <span>{isEn ? 'Resume management' : '简历管理'}</span>
@@ -454,7 +461,7 @@ export function Header({
 
               <button
                 onClick={() => { setIsRawTextModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
+                className="min-h-12 flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
               >
                 <Upload className="w-4 h-4 text-indigo-500" />
                 <span>{isEn ? 'Import' : '导入'}</span>
@@ -462,7 +469,7 @@ export function Header({
 
               <button
                 onClick={() => { setIsShareModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
+                className="min-h-12 flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
               >
                 <Share2 className="w-4 h-4 text-indigo-500" />
                 <span>{isEn ? 'Share' : '分享简历'}</span>
@@ -470,7 +477,7 @@ export function Header({
 
               <button
                 onClick={() => { setIsHelpLegalOpen(true); setIsMobileMenuOpen(false); }}
-                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
+                className="min-h-12 flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-95"
               >
                 <HelpCircle className="w-4 h-4 text-indigo-500" />
                 <span>{isEn ? 'Help' : '帮助'}</span>

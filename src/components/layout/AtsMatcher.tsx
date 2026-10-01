@@ -5,8 +5,8 @@ import { extractKeywordsFromJd, analyzeResumeMatch } from '../../lib/ats-utils';
 import { trackAnalyticsEvent } from '../../lib/analytics';
 
 export function AtsMatcher() {
-  const { markdown, atsKeywords, setAtsKeywords, jdText, setJdText, settings } = useResumeStore();
-  const isEn = settings.lang === 'en';
+  const { markdown, atsKeywords, setAtsKeywords, jdText, setJdText, uiLanguage } = useResumeStore();
+  const isEn = uiLanguage === 'en';
 
   const [localJd, setLocalJd] = useState(jdText);
 

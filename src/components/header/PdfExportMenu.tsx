@@ -34,6 +34,7 @@ export function PdfExportMenu({
   const market = settings.marketRegion || 'cn';
   const marketProfile = getMarketProfile(market);
   const paperSpec = getPaperSpec(settings.paperSize || marketProfile.defaultPaperSize);
+  const compactPaperLabel = paperSpec.id === 'letter' ? 'Letter' : 'A4';
 
   const defaultFileName = getMarketDefaultFileName({
     markdown,
@@ -170,13 +171,19 @@ export function PdfExportMenu({
       {isOpen && (
         <div className="absolute right-0 top-full z-[100] mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
           {/* Target market & paper badge */}
-          <div className="mb-2 flex items-center justify-between rounded-xl bg-indigo-50/70 px-2.5 py-1.5 dark:bg-indigo-950/40">
-            <span className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
-              <Globe className="h-3.5 w-3.5 text-indigo-500" />
+          <div className="mb-2 flex items-center justify-between gap-2 rounded-xl bg-indigo-50/70 px-2.5 py-1.5 dark:bg-indigo-950/40">
+            <span
+              data-testid="export-market-label"
+              className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] font-bold text-indigo-700 dark:text-indigo-300"
+            >
+              <Globe className="h-3.5 w-3.5 shrink-0 text-indigo-500" />
               {isEn ? marketProfile.labelEn : marketProfile.labelZh}
             </span>
-            <span className="rounded-md bg-white/80 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 shadow-xs dark:bg-slate-800 dark:text-slate-300">
-              {isEn ? paperSpec.labelEn : paperSpec.labelZh} ({paperSpec.widthMm}×{paperSpec.heightMm}mm)
+            <span
+              data-testid="export-paper-label"
+              className="shrink-0 whitespace-nowrap rounded-md bg-white/80 px-1.5 py-0.5 text-right text-[10px] font-semibold text-slate-600 shadow-xs dark:bg-slate-800 dark:text-slate-300"
+            >
+              {compactPaperLabel} · {paperSpec.widthMm} × {paperSpec.heightMm} mm
             </span>
           </div>
 

@@ -122,7 +122,7 @@ test.describe('international responsive UX', () => {
     await expect(downloadDialog.getByRole('button', { name: /Quick PDF|快速 PDF/ })).toBeVisible();
   });
 
-  test('english split view keeps Student / New Grad aligned with Work Experience', async ({ page }) => {
+  test('english split view keeps Graduate aligned with Work Experience', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.addInitScript(() => {
       window.localStorage.setItem('resume_ui_language', 'en');
@@ -163,7 +163,7 @@ test.describe('international responsive UX', () => {
 
     const workHeader = basic.getByTestId('work-experience-header');
     const label = workHeader.getByText('Work Experience', { exact: true });
-    const studentButton = workHeader.getByRole('button', { name: 'Student / New Grad' });
+    const studentButton = workHeader.getByRole('button', { name: 'Graduate' });
 
     await expect(label).toBeVisible();
     await expect(studentButton).toBeVisible();

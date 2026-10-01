@@ -124,10 +124,22 @@ export const Editor = React.memo(function Editor() {
 
   const onReset = async () => {
     const isEn = settings.lang === 'en';
-    const fallbackTemplateId = isEn ? 'english' : 'cn_demo';
+    const fallbackTemplateIdByMarket = {
+      cn: 'cn_demo',
+      us: 'us_swe',
+      ca: 'ca_tech',
+      uk: 'uk_cv',
+      ie: 'english',
+      international: 'english',
+    } as const;
+    const fallbackTemplateId =
+      fallbackTemplateIdByMarket[settings.marketRegion || (isEn ? 'international' : 'cn')];
     const resetTemplate =
-      TEMPLATES.find((template) => template.id === currentTemplateId) ??
+      (currentTemplateId !== 'custom'
+        ? TEMPLATES.find((template) => template.id === currentTemplateId)
+        : undefined) ??
       TEMPLATES.find((template) => template.id === fallbackTemplateId) ??
+      TEMPLATES.find((template) => template.id === (isEn ? 'english' : 'cn_demo')) ??
       TEMPLATES[0];
 
     if (!resetTemplate) return;

@@ -20,11 +20,11 @@ export function SectionPresets({ onAddPreset, sections = [], lang = 'zh', conten
   const t = translations.form.section;
 
   const presets = [
-    { type: 'summary' as const, label: isContentEn ? 'Summary' : '个人优势' },
-    { type: 'skills' as const, label: isContentEn ? 'Skills' : '专业技能' },
-    { type: 'work' as const, label: isContentEn ? 'Work Experience' : '工作经历' },
-    { type: 'project' as const, label: isContentEn ? 'Projects' : '代表项目' },
-    { type: 'edu' as const, label: isContentEn ? 'Education' : '教育背景' },
+    { type: 'summary' as const, label: isUiEn ? 'Summary' : '个人优势' },
+    { type: 'skills' as const, label: isUiEn ? 'Skills' : '专业技能' },
+    { type: 'work' as const, label: isUiEn ? 'Work Experience' : '工作经历' },
+    { type: 'project' as const, label: isUiEn ? 'Projects' : '代表项目' },
+    { type: 'edu' as const, label: isUiEn ? 'Education' : '教育背景' },
   ];
 
   return (
@@ -36,7 +36,7 @@ export function SectionPresets({ onAddPreset, sections = [], lang = 'zh', conten
         </span>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
           {presets.map(item => {
-            const theme = getPresetTheme(item.type, activeContentLang);
+            const theme = getPresetTheme(item.type, activeUiLang);
             const Icon = theme.icon;
 
             const isAdded = sections.some(sec => {

@@ -138,7 +138,7 @@ test.describe('international responsive UX', () => {
       );
       window.localStorage.setItem(
         'resume-markdown',
-        '# Alex Morgan\nSoftware Engineer\nalex@example.com\nStudent / New Graduate | Bachelor | Seattle\n\n## Experience\n\n### Example Labs | Engineering Intern | Jun 2026 – Sep 2026\n- Built and shipped a production feature.\n',
+        '# Alex Morgan\nSoftware Engineer\nalex@example.com\nStudent / New Graduate | Bachelor | Seattle\n\n## 核心能力\n- TypeScript, React, Java\n\n## Experience\n\n### Example Labs | Engineering Intern | Jun 2026 – Sep 2026\n- Built and shipped a production feature.\n',
       );
     });
 
@@ -167,6 +167,10 @@ test.describe('international responsive UX', () => {
 
     await expect(label).toBeVisible();
     await expect(studentButton).toBeVisible();
+
+    await expect(page.getByDisplayValue('Skills')).toBeVisible();
+    await expect(page.locator('#resume-print-content h2').filter({ hasText: /^Skills$/ })).toBeVisible();
+    await expect(page.locator('#resume-print-content h2').filter({ hasText: /^Work Experience$/ })).toBeVisible();
 
     const labelBox = await label.boundingBox();
     const buttonBox = await studentButton.boundingBox();

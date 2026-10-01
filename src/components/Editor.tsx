@@ -9,7 +9,6 @@ import { SectionSorter } from './layout/SectionSorter';
 import { useResumeStore } from '../store/useResumeStore';
 import { useConfirm } from '../context/ConfirmContext';
 import { TEMPLATES } from '../data';
-import { getMarketProfile, resolveDefaultPaperSize } from '../lib/market-profile';
 
 import { autoFormatAndCleanResume } from '../lib/resume-auto-fixer';
 import { getWordCount } from '../lib/word-count';
@@ -112,9 +111,8 @@ export const Editor = React.memo(function Editor() {
     history,
     settings,
     updateSetting,
-    updateSettings,
     currentTemplateId,
-    setCurrentTemplateId,
+    applyTemplate,
   } = useResumeStore();
 
   const deferredValue = useDeferredValue(value);
@@ -134,14 +132,6 @@ export const Editor = React.memo(function Editor() {
 
     if (!resetTemplate) return;
 
-    const targetMarket =
-      resetTemplate.targetMarket ??
-      (resetTemplate.suggestedLang === 'zh' ? 'cn' : 'international');
-    const targetPaperSize =
-      resetTemplate.defaultPaperSize ?? resolveDefaultPaperSize(targetMarket);
-    const targetDateStyle =
-      resetTemplate.dateStyle ?? getMarketProfile(targetMarket).dateStyle;
-
     const confirmed = await confirm({
       title: isEn ? 'Reset current template' : '重置当前模板',
       message: isEn
@@ -153,14 +143,7 @@ export const Editor = React.memo(function Editor() {
     });
 
     if (!confirmed) return;
-
-    onChange(resetTemplate.content, true);
-    setCurrentTemplateId(resetTemplate.id);
-    updateSettings({
-      marketRegion: targetMarket,
-      paperSize: targetPaperSize,
-      dateStyle: targetDateStyle,
-    });
+    applyTemplate(resetTemplate.id);
   };
 
   const [copied, setCopied] = useState(false);

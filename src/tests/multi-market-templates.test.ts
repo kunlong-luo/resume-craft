@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { TEMPLATES } from '../data';
 import { getTemplatePresentation, getTemplatePreview } from '../lib/template-presentation';
 import { translateMarkdownContent, translateSectionTitle } from '../lib/section-translator';
+import { getMarketProfile } from '../lib/market-profile';
 
 describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
   it('contains comprehensive authentic templates for US, UK, Canada, China and Global markets', () => {
@@ -17,6 +18,44 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
     expect(ids).toContain('pm_lead');
     expect(ids).toContain('operations');
     expect(ids).toContain('campus');
+  });
+
+  describe('Template content and metadata contract', () => {
+    it('keeps every template aligned with its target market defaults', () => {
+      for (const template of TEMPLATES) {
+        expect(template.targetMarket, template.id).toBeTruthy();
+        expect(template.defaultPaperSize, template.id).toBe(
+          getMarketProfile(template.targetMarket).defaultPaperSize,
+        );
+        expect(template.dateStyle, template.id).toBe(
+          getMarketProfile(template.targetMarket).dateStyle,
+        );
+      }
+    });
+
+    it('keeps template headings and ongoing-date vocabulary aligned with suggested language', () => {
+      for (const template of TEMPLATES) {
+        const h2Headings = template.content
+          .split('\n')
+          .filter((line) => line.startsWith('## '))
+          .map((line) => line.slice(3).trim());
+
+        expect(h2Headings.length, template.id).toBeGreaterThan(0);
+
+        if (template.suggestedLang === 'en') {
+          for (const heading of h2Headings) {
+            expect(heading, template.id).not.toMatch(/[\u4e00-\u9fff]/);
+          }
+          expect(template.content, template.id).not.toContain('至今');
+        } else {
+          expect(
+            h2Headings.some((heading) => /[\u4e00-\u9fff]/.test(heading)),
+            template.id,
+          ).toBe(true);
+          expect(template.content, template.id).not.toMatch(/\bPresent\b/i);
+        }
+      }
+    });
   });
 
   describe('Template Market Metadata Integrity', () => {

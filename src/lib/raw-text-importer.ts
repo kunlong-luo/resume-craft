@@ -132,7 +132,8 @@ export function parseRawTextToResumeMarkdown(
 ): string {
   if (!rawText || rawText.trim() === '') return '';
 
-  const resolvedLang = contentLang ?? detectResumeLanguage(rawText, 'zh');
+  const inferredFallback: Language = /[\u4e00-\u9fff]/.test(rawText) ? 'zh' : 'en';
+  const resolvedLang = contentLang ?? detectResumeLanguage(rawText, inferredFallback);
   const isEn = resolvedLang === 'en';
 
   const lines = rawText

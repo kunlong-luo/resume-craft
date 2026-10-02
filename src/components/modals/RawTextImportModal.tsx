@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangle, ArrowRight, Check, Clipboard, FileCode2, FileInput, FileText, Loader2, ScanText, ShieldCheck, Trash2, Upload, Wand2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { parseRawTextToResumeMarkdown, detectResumeLanguage, detectResumeMarket } from '../../lib/raw-text-importer';
+import { parseRawTextToResumeMarkdown, detectResumeMarket } from '../../lib/raw-text-importer';
+import { detectResumeLanguage } from '../../lib/resume-language';
 import {
   extractResumeTextFromPdf,
   MAX_PDF_FILE_SIZE,

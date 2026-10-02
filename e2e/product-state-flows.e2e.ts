@@ -41,6 +41,52 @@ test.describe('product state flows', () => {
     await expect.poll(() => readActiveMarkdown(page)).toBe(markdown);
   });
 
+  test('keeps English TXT import in English even with a Chinese UI', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('resume_ui_language', 'zh');
+      window.localStorage.setItem(
+        'resume-settings',
+        JSON.stringify({
+          lang: 'en',
+          marketRegion: 'us',
+          paperSize: 'letter',
+          dateStyle: 'month-short',
+        }),
+      );
+    });
+
+    await page.goto('/');
+
+    await page.getByRole('button', { name: /更多操作|More actions/ }).click();
+    await page.getByRole('button', { name: /^(导入|Import)$/ }).click();
+
+    const rawEnglishResume = [
+      'Alex Morgan',
+      'Software Engineer',
+      'alex@example.com | Seattle, WA',
+      'Work Experience',
+      'Example Technologies | Senior Engineer | 2023.01 - Present',
+      '- Built distributed services for production systems.',
+      'Skills',
+      'TypeScript, Java, PostgreSQL',
+    ].join('\n');
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: 'english-resume.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from(rawEnglishResume),
+    });
+
+    await expect(page.getByText('english-resume.txt')).toBeVisible();
+    await page.getByRole('button', { name: /Import This File|确认导入/ }).click();
+
+    await expect.poll(() => readActiveMarkdown(page)).toContain('## Work Experience');
+    await expect.poll(() => readActiveMarkdown(page)).toContain('## Skills');
+    await expect.poll(() => readActiveMarkdown(page)).not.toMatch(
+      /求职者姓名|工作经历|专业技能|个人简介|经历概述/,
+    );
+  });
+
   test('imports uppercase JSON Resume with its own market metadata intact', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem(

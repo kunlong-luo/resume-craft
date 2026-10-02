@@ -427,7 +427,9 @@ export function Header({
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
               <span className="font-extrabold text-sm text-slate-900 dark:text-white">{isEn ? 'Quick Actions' : '快捷功能菜单'}</span>
               <button 
+                type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
+                aria-label={isEn ? 'Close quick actions menu' : '关闭快捷功能菜单'}
                 className="min-h-10 min-w-10 inline-flex items-center justify-center p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer rounded-xl active:scale-95"
               >
                 <X className="w-5 h-5" />

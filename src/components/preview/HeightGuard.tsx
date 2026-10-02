@@ -14,18 +14,18 @@ interface HeightGuardProps {
   onSmartAutoFit?: () => void;
   isAutoFitting?: boolean;
   lang?: string;
+  paperLabel?: string;
 }
 
 const TRANSLATIONS = {
   zh: {
-    title: 'A4 高度提醒',
+    title: '纸张高度提醒',
     autoFitting: '正在排版缩合',
     overflow: '内容溢出 ⚠️',
     nearLimit: '临近边界 ⚠️',
     perfectFit: '高度契合 ✅',
     targetLimit: '目标限制',
-    pages: '页 A4',
-    overflowWarningTitle: '内容已超出 {pages} 页高度！',
+     overflowWarningTitle: '内容已超出 {pages} 页 {paper} 高度！',
     overflowWarningDesc: '建议调整页边距、行高、模块间距或字号，使排版更契合。',
     nearLimitDesc: '内容接近分页线，打印时可能会产生多余的空白页。',
     perfectFitDesc: '布局合理，已完美契合目标页数，无跨页截断风险。',
@@ -36,14 +36,13 @@ const TRANSLATIONS = {
     optimizeBtn: '优化排版间距'
   },
   en: {
-    title: 'A4 Height Guard',
+    title: 'Paper Height Guard',
     autoFitting: 'Auto Fitting',
     overflow: 'Overflow ⚠️',
     nearLimit: 'Near Limit ⚠️',
     perfectFit: 'Perfect Fit ✅',
     targetLimit: 'Target Limit',
-    pages: 'A4 Page(s)',
-    overflowWarningTitle: 'Content exceeds {pages} A4 page(s)!',
+     overflowWarningTitle: 'Content exceeds {pages} {paper} page(s)!',
     overflowWarningDesc: 'Adjust margin, line height, spacing, or font size to make it fit.',
     nearLimitDesc: 'Very close to page boundary. Printing might spill over slightly.',
     perfectFitDesc: 'Perfect size. Fits within the target page count without spilling.',
@@ -61,7 +60,8 @@ export const HeightGuard = React.memo(function HeightGuard({
   setTargetPageLimit, 
   onSmartAutoFit, 
   isAutoFitting,
-  lang = 'zh'
+  lang = 'zh',
+  paperLabel = 'A4'
 }: HeightGuardProps) {
   const t = lang === 'en' ? TRANSLATIONS.en : TRANSLATIONS.zh;
 
@@ -104,8 +104,8 @@ export const HeightGuard = React.memo(function HeightGuard({
             exit={{ opacity: 0, scale: 0.9, y: 8 }}
             transition={{ type: 'spring', stiffness: 450, damping: 30 }}
             onClick={toggleCollapse}
-            aria-label={lang === 'en' ? 'Expand A4 Height Guard' : '展开 A4 高度提醒'}
-            title={lang === 'en' ? 'Expand A4 Height Guard' : '展开 A4 高度提醒'}
+            aria-label={lang === 'en' ? `Expand ${paperLabel} Height Guard` : `展开 ${paperLabel} 高度提醒`}
+            title={lang === 'en' ? `Expand ${paperLabel} Height Guard` : `展开 ${paperLabel} 高度提醒`}
             className="flex items-center gap-2.5 h-10 px-3.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 shadow-[0_8px_24px_rgba(15,23,42,0.1)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)] rounded-2xl cursor-pointer hover:shadow-[0_12px_32px_rgba(15,23,42,0.16)] transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600 group"
           >
             <div className="flex items-center gap-1.5">
@@ -146,7 +146,7 @@ export const HeightGuard = React.memo(function HeightGuard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Ruler className="w-4 h-4 text-rose-500 dark:text-rose-400" />
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">{t.title}</span>
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">{lang === 'en' ? `${paperLabel} Height Guard` : `${paperLabel} 高度提醒`}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border transition-colors ${
@@ -163,9 +163,9 @@ export const HeightGuard = React.memo(function HeightGuard({
           <button
             type="button"
             onClick={toggleCollapse}
-            aria-label={lang === 'en' ? 'Collapse A4 Height Guard' : '收起 A4 高度提醒'}
+            aria-label={lang === 'en' ? `Collapse ${paperLabel} Height Guard` : `收起 ${paperLabel} 高度提醒`}
             className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-750 rounded-lg transition-colors cursor-pointer"
-            title={lang === 'en' ? 'Collapse A4 Height Guard' : '收起 A4 高度提醒'}
+            title={lang === 'en' ? `Collapse ${paperLabel} Height Guard` : `收起 ${paperLabel} 高度提醒`}
           >
             <Minimize2 className="w-3.5 h-3.5" />
           </button>
@@ -204,13 +204,13 @@ export const HeightGuard = React.memo(function HeightGuard({
           <div className="flex items-start gap-1.5">
             <AlertTriangle className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
             <p className="text-[11px] font-bold text-rose-700 dark:text-rose-300 leading-normal">
-              {t.overflowWarningTitle.replace('{pages}', String(targetPageLimit))}
+              {t.overflowWarningTitle.replace('{pages}', String(targetPageLimit)).replace('{paper}', paperLabel)}
             </p>
           </div>
           <p className="text-[10px] text-rose-600 dark:text-rose-300/90 leading-relaxed pl-5 font-medium">
             {lang === 'en'
-              ? `Over A4 boundary by approx. ${Math.round(metrics.overflowPixels || 0)}px. Try switching to "Compact" margin, reducing line spacing, or clicking "Auto-Fit" below.`
-              : `内容已超出 A4 边界约 ${Math.round(metrics.overflowPixels || 0)} 像素。建议启用“紧凑”边距、微调字号或点击下方按钮进行自动缩合。`
+              ? `Over ${paperLabel} boundary by approx. ${Math.round(metrics.overflowPixels || 0)}px. Try switching to "Compact" margin, reducing line spacing, or clicking "Auto-Fit" below.`
+              : `内容已超出 ${paperLabel} 边界约 ${Math.round(metrics.overflowPixels || 0)} 像素。建议启用“紧凑”边距、微调字号或点击下方按钮进行自动缩合。`
             }
           </p>
         </div>

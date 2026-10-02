@@ -410,7 +410,7 @@ export function BackupDraftModal() {
                 onClick={onClose}
                 className="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition-all cursor-pointer shadow-sm active:scale-98"
               >
-                {uiLanguage === 'en' ? 'Close Hub' : '关闭 Hub'}
+                {uiLanguage === 'en' ? 'Close' : '关闭'}
               </button>
             </div>
           </motion.div>

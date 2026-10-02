@@ -311,6 +311,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
                         <Tooltip content={isEn ? 'Duplicate' : '复制档案'} side="top">
                           <button
                             type="button"
+                            aria-label={isEn ? `Duplicate ${p.name}` : `复制简历 ${p.name}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               duplicateProfile(p.id);
@@ -324,6 +325,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
                         <Tooltip content={isEn ? 'Rename' : '重命名'} side="top">
                           <button
                             type="button"
+                            aria-label={isEn ? `Rename ${p.name}` : `重命名简历 ${p.name}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               setEditingId(p.id);
@@ -339,6 +341,7 @@ export function ProfileDropdown({ lang, isCompact }: ProfileDropdownProps) {
                           <Tooltip content={isEn ? 'Delete' : '删除档案'} side="top">
                             <button
                               type="button"
+                              aria-label={isEn ? `Delete ${p.name}` : `删除简历 ${p.name}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setConfirmDeleteId(p.id);

@@ -70,7 +70,7 @@ describe('i18n language contract', () => {
 
   it('formats ongoing dates from the resume language rather than the UI language', () => {
     expect(formatDateRange('2024.03 - 至今', 'month-short', true)).toBe('Mar 2024 – Present');
-    expect(formatDateRange('2024.03 - 至今', 'cn-dot', false)).toBe('2024.03 - 至今');
+    expect(formatDateRange('2024.03 - 至今', 'cn-dot', false)).toBe('2024.03 — 至今');
   });
 
   it('uses canonical section titles for English presets', () => {

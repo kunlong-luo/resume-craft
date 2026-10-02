@@ -16,12 +16,18 @@ export interface ExportFileNameOptions {
  * Clean and sanitize a string to be safely used as a filename across Windows, macOS, and Linux.
  */
 export function sanitizeFilename(name: string): string {
-  return name
-    .trim()
-    .replace(/[\\/:*?"<>|\r\n]/g, '-')
+  return Array.from(name.trim())
+    .map((char) => {
+      const code = char.charCodeAt(0);
+      return code < 32 || code === 127 ? '-' : char;
+    })
+    .join('')
+    .replace(/[\\/:*?"<>|]/g, '-')
     .replace(/\s+/g, ' ')
     .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/^-|-$/g, '')
+    .replace(/[. ]+$/g, '')
+    .replace(/^\.+$/g, '');
 }
 
 /**
@@ -43,7 +49,18 @@ export function getMarketDefaultFileName({
   if (customFileName && customFileName.trim()) {
     const cleanCustom = sanitizeFilename(customFileName);
     if (cleanCustom) {
-      return extension ? `${cleanCustom}.${extension.replace(/^\./, '')}` : cleanCustom;
+      const baseCustom = cleanCustom
+        .replace(/\.(?:pdf|txt|json|md|markdown)$/i, '')
+        .replace(/[. ]+$/g, '');
+
+      if (!extension) {
+        if (baseCustom) return baseCustom;
+      } else {
+        const normalizedExtension = extension.replace(/^\./, '').toLowerCase();
+        if (baseCustom) {
+          return `${baseCustom}.${normalizedExtension}`;
+        }
+      }
     }
   }
 

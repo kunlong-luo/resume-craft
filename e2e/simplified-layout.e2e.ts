@@ -138,7 +138,7 @@ test.describe('simplified workspace actions', () => {
       .getByRole('button', { name: 'Choose PDF export mode' })
       .click();
 
-    await expect(page.getByText('PDF file name', { exact: true })).toBeVisible();
+    await expect(page.getByText('File name', { exact: true })).toBeVisible();
     await expect(
       page.getByRole('button', { name: /^ATS PDF$/ }),
     ).toBeVisible();

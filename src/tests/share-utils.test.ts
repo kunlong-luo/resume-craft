@@ -144,6 +144,23 @@ describe('privacy-preserving share links', () => {
     expect(parsed?.kind).toBe('plain');
   });
 
+  it('infers English for legacy share payloads that predate lang metadata', () => {
+    const { lang: _legacyLang, ...legacySettings } = settings;
+    const encoded = encodeOuterEnvelope({
+      m: [
+        '# Alex Morgan',
+        '',
+        '## Work Experience',
+        '- Built distributed systems and improved reliability across services.',
+        '- Led platform migrations and automated deployment workflows.',
+      ].join('\n'),
+      s: legacySettings,
+    });
+
+    const decoded = deserializeShareState(encoded);
+    expect(decoded?.settings.lang).toBe('en');
+  });
+
   it('round-trips compressed v3 public shares and makes long resumes materially shorter', () => {
     const markdown = [
       '# Candidate',

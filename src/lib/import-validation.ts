@@ -14,7 +14,7 @@ import type {
   MarketRegion,
   DateStyle,
 } from '../types';
-import { detectResumeLanguage } from './raw-text-importer';
+import { detectResumeLanguage } from './resume-language';
 
 type UnknownRecord = Record<string, unknown>;
 

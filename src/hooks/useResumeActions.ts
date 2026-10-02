@@ -78,6 +78,7 @@ export function useResumeActions({ contentRef, onPdfExportComplete }: UseResumeA
       await exportDirectPDF(targetElement, {
         filename: `${getExportTitle()}.pdf`,
         paperSize: currentSettings.paperSize,
+        lang: uiLanguage,
         onProgress: (status) => {
           setPdfExportProgress(status);
         }

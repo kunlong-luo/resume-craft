@@ -289,7 +289,7 @@ export function parseRawTextToResumeMarkdown(
   if (sections.length === 0 || (sections.length === 1 && !currentSection)) {
     markdown += `## ${labels.summary}\n`;
     for (const line of remainingLines) {
-      markdown += `- ${line.replace(/^(?:[-*•]\s*|\d+[.)、]\s*)/, '')}\n`;
+      markdown += `- ${line.replace(/^(?:[-*•]\s*|\d+[.)、]\s+)/, '')}\n`;
     }
     return markdown;
   }

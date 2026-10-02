@@ -1,8 +1,9 @@
-import { Language, MarketRegion, PaperSize, ResumeSettings } from '../types';
+import { DateStyle, Language, MarketRegion, PaperSize, ResumeSettings } from '../types';
 import { parseMarkdownToForm } from './markdown-parser';
 import { getMarketProfile } from './market-profile';
 import { normalizeAllDatesInMarkdown, sanitizeSensitiveFieldsForMarket } from './resume-auto-fixer';
 import { translateMarkdownContent } from './section-translator';
+import { detectResumeLanguage } from './resume-language';
 
 export interface ExportFileNameOptions {
   markdown: string;
@@ -239,7 +240,7 @@ export interface JsonResumeStandard {
     lastModified?: string;
     targetMarket?: MarketRegion;
     paperSize?: PaperSize;
-    dateStyle?: string;
+    dateStyle?: DateStyle;
     lang?: Language;
   };
 }
@@ -390,22 +391,106 @@ export function importFromJsonResume(jsonObj: unknown): {
   markdown: string;
   detectedSettings?: Partial<ResumeSettings>;
 } {
-  if (typeof jsonObj !== 'object' || jsonObj === null) {
+  if (typeof jsonObj !== 'object' || jsonObj === null || Array.isArray(jsonObj)) {
     return { markdown: '' };
   }
 
-  const res = jsonObj as Partial<JsonResumeStandard>;
-  const basics = res.basics || { name: 'Candidate' };
+  const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+  const stringArray = (value: unknown): string[] =>
+    Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+
+  const raw = jsonObj as Record<string, unknown>;
+  const basics = isRecord(raw.basics)
+    ? (raw.basics as unknown as JsonResumeStandard['basics'])
+    : { name: 'Candidate' };
+  const meta = isRecord(raw.meta)
+    ? (raw.meta as unknown as NonNullable<JsonResumeStandard['meta']>)
+    : undefined;
+  const work = Array.isArray(raw.work)
+    ? raw.work.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['work']>
+    : [];
+  const education = Array.isArray(raw.education)
+    ? raw.education.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['education']>
+    : [];
+  const projects = Array.isArray(raw.projects)
+    ? raw.projects.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['projects']>
+    : [];
+  const skills = Array.isArray(raw.skills)
+    ? raw.skills.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['skills']>
+    : [];
+  const profiles = Array.isArray(basics.profiles)
+    ? basics.profiles.filter(isRecord)
+    : [];
+  const location = isRecord(basics.location) ? basics.location : undefined;
   const detectedSettings: Partial<ResumeSettings> = {};
 
-  if (res.meta?.targetMarket) {
-    detectedSettings.marketRegion = res.meta.targetMarket;
+  const validMarkets: readonly MarketRegion[] = ['cn', 'us', 'ca', 'uk', 'ie', 'international'];
+  const validPaperSizes: readonly PaperSize[] = ['a4', 'letter'];
+  const validLanguages: readonly Language[] = ['zh', 'en'];
+  const validDateStyles: readonly DateStyle[] = ['cn-dot', 'month-short', 'month-long'];
+
+  if (
+    typeof meta?.targetMarket === 'string' &&
+    validMarkets.includes(meta.targetMarket as MarketRegion)
+  ) {
+    detectedSettings.marketRegion = meta.targetMarket as MarketRegion;
   }
-  if (res.meta?.paperSize) {
-    detectedSettings.paperSize = res.meta.paperSize;
+  if (
+    typeof meta?.paperSize === 'string' &&
+    validPaperSizes.includes(meta.paperSize as PaperSize)
+  ) {
+    detectedSettings.paperSize = meta.paperSize as PaperSize;
   }
-  if (res.meta?.lang) {
-    detectedSettings.lang = res.meta.lang;
+  if (
+    typeof meta?.lang === 'string' &&
+    validLanguages.includes(meta.lang as Language)
+  ) {
+    detectedSettings.lang = meta.lang as Language;
+  }
+  if (
+    typeof meta?.dateStyle === 'string' &&
+    validDateStyles.includes(meta.dateStyle as DateStyle)
+  ) {
+    detectedSettings.dateStyle = meta.dateStyle as DateStyle;
+  }
+
+  if (!detectedSettings.lang) {
+    const languageSample = [
+      basics.name,
+      basics.label,
+      basics.summary,
+      typeof location?.city === 'string' ? location.city : undefined,
+      ...work.flatMap((item) => [
+        item.name,
+        item.position,
+        item.summary,
+        ...stringArray(item.highlights),
+      ]),
+      ...education.flatMap((item) => [
+        item.institution,
+        item.area,
+        item.studyType,
+        ...stringArray(item.courses),
+      ]),
+      ...projects.flatMap((item) => [
+        item.name,
+        item.description,
+        ...stringArray(item.highlights),
+      ]),
+      ...skills.flatMap((item) => [
+        item.name,
+        ...stringArray(item.keywords),
+      ]),
+    ]
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+      .join('\n');
+
+    const fallbackLang: Language =
+      detectedSettings.marketRegion && detectedSettings.marketRegion !== 'cn'
+        ? 'en'
+        : 'zh';
+    detectedSettings.lang = detectResumeLanguage(languageSample, fallbackLang);
   }
 
   const isEn = detectedSettings.lang === 'en' || (detectedSettings.marketRegion && detectedSettings.marketRegion !== 'cn');
@@ -418,11 +503,11 @@ export function importFromJsonResume(jsonObj: unknown): {
   const contacts: string[] = [];
   if (basics.phone) contacts.push(basics.phone);
   if (basics.email) contacts.push(basics.email);
-  if (basics.location?.city) contacts.push(basics.location.city);
+  if (typeof location?.city === 'string') contacts.push(location.city);
   if (basics.url) contacts.push(`[Website](${basics.url})`);
 
-  if (basics.profiles && basics.profiles.length > 0) {
-    for (const p of basics.profiles) {
+  if (profiles.length > 0) {
+    for (const p of profiles) {
       if (p.network && p.url) {
         contacts.push(`[${p.network}](${p.url})`);
       }
@@ -436,17 +521,18 @@ export function importFromJsonResume(jsonObj: unknown): {
   }
 
   // Work Experience
-  if (res.work && res.work.length > 0) {
+  if (work.length > 0) {
     md += `## ${isEn ? 'Work Experience' : '工作经历'}\n\n`;
-    for (const w of res.work) {
+    for (const w of work) {
       const dates = [w.startDate, w.endDate].filter(Boolean).join(' – ');
       const sub = [w.position, dates].filter(Boolean).join(' | ');
       md += `### ${w.name}${sub ? ` | ${sub}` : ''}\n`;
       if (w.summary) {
         md += `- ${w.summary}\n`;
       }
-      if (w.highlights && w.highlights.length > 0) {
-        for (const h of w.highlights) {
+      const highlights = stringArray(w.highlights);
+      if (highlights.length > 0) {
+        for (const h of highlights) {
           md += `- ${h}\n`;
         }
       }
@@ -455,14 +541,15 @@ export function importFromJsonResume(jsonObj: unknown): {
   }
 
   // Projects
-  if (res.projects && res.projects.length > 0) {
+  if (projects.length > 0) {
     md += `## ${isEn ? 'Projects' : '项目经历'}\n\n`;
-    for (const p of res.projects) {
+    for (const p of projects) {
       const dates = [p.startDate, p.endDate].filter(Boolean).join(' – ');
       const sub = [p.description, dates].filter(Boolean).join(' | ');
       md += `### ${p.name}${sub ? ` | ${sub}` : ''}\n`;
-      if (p.highlights && p.highlights.length > 0) {
-        for (const h of p.highlights) {
+      const highlights = stringArray(p.highlights);
+      if (highlights.length > 0) {
+        for (const h of highlights) {
           md += `- ${h}\n`;
         }
       }
@@ -471,14 +558,15 @@ export function importFromJsonResume(jsonObj: unknown): {
   }
 
   // Education
-  if (res.education && res.education.length > 0) {
+  if (education.length > 0) {
     md += `## ${isEn ? 'Education' : '教育背景'}\n\n`;
-    for (const e of res.education) {
+    for (const e of education) {
       const dates = [e.startDate, e.endDate].filter(Boolean).join(' – ');
       const sub = [e.studyType, e.area, dates].filter(Boolean).join(' | ');
       md += `### ${e.institution}${sub ? ` | ${sub}` : ''}\n`;
-      if (e.courses && e.courses.length > 0) {
-        for (const c of e.courses) {
+      const courses = stringArray(e.courses);
+      if (courses.length > 0) {
+        for (const c of courses) {
           md += `- ${c}\n`;
         }
       }
@@ -487,11 +575,12 @@ export function importFromJsonResume(jsonObj: unknown): {
   }
 
   // Skills
-  if (res.skills && res.skills.length > 0) {
+  if (skills.length > 0) {
     md += `## ${isEn ? 'Skills' : '专业技能'}\n\n`;
-    for (const s of res.skills) {
-      if (s.keywords && s.keywords.length > 0) {
-        md += `- **${s.name}**: ${s.keywords.join(', ')}\n`;
+    for (const s of skills) {
+      const keywords = stringArray(s.keywords);
+      if (keywords.length > 0) {
+        md += `- **${s.name}**: ${keywords.join(', ')}\n`;
       } else if (s.name) {
         md += `- ${s.name}\n`;
       }

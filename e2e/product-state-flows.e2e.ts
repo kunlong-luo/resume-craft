@@ -41,6 +41,69 @@ test.describe('product state flows', () => {
     await expect.poll(() => readActiveMarkdown(page)).toBe(markdown);
   });
 
+  test('imports uppercase JSON Resume with its own market metadata intact', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'resume-settings',
+        JSON.stringify({
+          lang: 'zh',
+          marketRegion: 'cn',
+          paperSize: 'a4',
+          dateStyle: 'cn-dot',
+        }),
+      );
+    });
+
+    await page.goto('/');
+
+    await page.getByRole('button', { name: /More actions|更多操作/ }).click();
+    await page.getByRole('button', { name: /^(Import|导入)$/ }).click();
+
+    const jsonResume = {
+      basics: {
+        name: 'Jordan Taylor',
+        label: 'Platform Engineer',
+        email: 'jordan@example.com',
+        location: { city: 'London' },
+      },
+      work: [
+        {
+          name: 'Example Systems Ltd',
+          position: 'Senior Platform Engineer',
+          startDate: 'March 2023',
+          endDate: 'Present',
+          highlights: ['Built reliable cloud infrastructure for production services.'],
+        },
+      ],
+      meta: {
+        targetMarket: 'uk',
+        paperSize: 'a4',
+        dateStyle: 'month-long',
+        lang: 'en',
+      },
+    };
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: 'UK-Resume.JSON',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(jsonResume)),
+    });
+
+    await expect(page.getByText('UK-Resume.JSON')).toBeVisible();
+    await page.getByRole('button', { name: /Import This File|确认导入/ }).click();
+
+    await expect.poll(() => readActiveMarkdown(page)).toContain('## Work Experience');
+    await expect.poll(() => readActiveMarkdown(page)).not.toContain('## 工作经历');
+    await expect.poll(() =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}')),
+    ).toMatchObject({
+      lang: 'en',
+      marketRegion: 'uk',
+      paperSize: 'a4',
+      dateStyle: 'month-long',
+    });
+  });
+
   test('persists dark theme across reloads', async ({ page }) => {
     await page.goto('/');
 

@@ -86,11 +86,9 @@ test.describe('international market flows', () => {
     ).toBe('zh');
 
     // Switch only the interface back to English. Resume-language-owned labels
-    // must remain Chinese.
-    const closeSettings = page.getByRole('button', {
-      name: /Close settings panel|关闭设置面板/,
-    });
-    await closeSettings.click();
+    // must remain Chinese. Close the focused dialog via its supported keyboard
+    // path rather than clicking the backdrop behind the dialog.
+    await page.keyboard.press('Escape');
     await expect(layout).toBeHidden();
 
     await page

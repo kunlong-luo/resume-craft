@@ -2,7 +2,12 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Copy, RotateCcw, Check } from 'lucide-react';
 import { storage, STORAGE_KEYS } from '../../lib/storage';
 import { trackAnalyticsEvent } from '../../lib/analytics';
-import { getTranslation } from '../../i18n';
+import { en } from '../../i18n/locales/en';
+import { zh } from '../../i18n/locales/zh';
+
+function getErrorBoundaryTranslation(language: string) {
+  return (language === 'en' ? en : zh).errorBoundary;
+}
 
 interface Props {
   children: ReactNode;
@@ -52,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleReset = () => {
     const uiLanguage = storage.getString(STORAGE_KEYS.UI_LANGUAGE, 'zh');
-    const t = getTranslation(uiLanguage).errorBoundary;
+    const t = getErrorBoundaryTranslation(uiLanguage);
     if (window.confirm(t.confirmReset)) {
       storage.clearAllResumeData();
       window.location.reload();
@@ -62,7 +67,7 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       const uiLanguage = storage.getString(STORAGE_KEYS.UI_LANGUAGE, 'zh');
-      const t = getTranslation(uiLanguage).errorBoundary;
+      const t = getErrorBoundaryTranslation(uiLanguage);
       return (
         <div className="min-h-screen w-full bg-slate-900 text-slate-100 flex items-center justify-center p-4 sm:p-6 font-sans">
           <div className="max-w-xl w-full bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl space-y-6">

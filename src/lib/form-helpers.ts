@@ -25,7 +25,7 @@ export const getPresetSection = (presetType: string, lang = 'zh'): Omit<FormSect
       }];
       break;
     case 'project':
-      title = isEn ? 'Key Projects' : '代表项目';
+      title = isEn ? 'Projects' : '代表项目';
       type = 'items';
       items = [{
         id: `item_${now}_1`,
@@ -56,10 +56,10 @@ export const getPresetSection = (presetType: string, lang = 'zh'): Omit<FormSect
       type = 'text';
       textValue = isEn
         ? '- **Frontend**: Proficient in React, TypeScript, Tailwind CSS, Next.js, and main frontend toolchains.\n- **Backend**: Proficient in Node.js / Java / Go with practical experience in Redis caching and high-concurrency scenarios.\n- **Engineering**: Emphasize team standards, CI/CD, and Git workflows.'
-        : '- **前端开发**：熟练掌握 React, TypeScript, Tailwind CSS, Next.js 等主流工程技术栈\n- **后端技术**：熟练掌握 Node.js / Java / Go 开发，对 Redis 缓存设计 and 高并发场景处理有实践心得\n- **工程素养**：注重团队规范协作，熟练掌握 CI/CD 与 Git 工作流体系';
+        : '- **前端开发**：熟练掌握 React, TypeScript, Tailwind CSS, Next.js 等主流工程技术栈\n- **后端技术**：熟练掌握 Node.js / Java / Go 开发，对 Redis 缓存设计与高并发场景处理有实践心得\n- **工程素养**：注重团队规范协作，熟练掌握 CI/CD 与 Git 工作流体系';
       break;
     case 'summary':
-      title = isEn ? 'Personal Strengths' : '个人优势';
+      title = isEn ? 'Summary' : '个人优势';
       type = 'text';
       textValue = isEn
         ? 'Experienced software engineer with X years of practical experience in high-concurrency internet projects. Passionate about solving technical challenges and improving development efficiency. Excellent collaboration and communication skills.'
@@ -103,19 +103,19 @@ export const getStarTemplate = (sectionTitle: string, lang = 'zh'): Partial<Form
       honors: isEn ? 'National Scholarship, First-Class Scholarship' : '国家奖学金、校一等奖学金',
       content: isEn
         ? '- **Academics**: Participated in Provincial Key Lab projects, in charge of core module design\n- **Campus Activity**: President of Computer Association, organized 3 campus-wide coding competitions'
-        : '- **科研学术**：参与省重点实验室项目，负责核心模块 design\n- **校园实践**：担任计算机协会会长，成功筹备 3 场全校算法挑战赛' 
+        : '- **科研学术**：参与省重点实验室项目，负责核心模块设计\n- **校园实践**：担任计算机协会会长，成功筹备 3 场全校算法挑战赛' 
     };
   } else if (category === 'project') {
     return { 
       content: isEn
         ? `- **[Situation]**: Under peak QPS of 10,000, the legacy payment system encountered lag and high latency, causing payment conversion rate to drop by 12%\n- **[Task]**: As lead backend engineer, responsible for rebuilding the processing pipeline to bring down average latency below 300ms in 2 months\n- **[Action]**: 1. Disintegrated legacy monolith into microservices using Spring Cloud; 2. Optimized slow SQL queries and introduced Redis write-back/caching\n- **[Result]**: Reduced core latency from 3.5s to 0.2s, supported Double-11 shopping festival with zero downtime, and increased payment conversion rate by 14%`
-        : `- **[Situation 业务背景]**：在并发量达万级时，原有支付系统出现大面积卡顿 and 高耗时问题，导致订单流失率上升了 12%\n- **[Task 核心任务]**：作为主程负责链路重构，在 2 个月内完成性能调优，将平均延迟控制在 300ms 以内\n- **[Action 关键行动]**：1. 使用 Spring Cloud 核心组件做微服务拆分；2. 优化慢 SQL 并对热点数据进行 Redis 强缓存设计\n- **[Result 实际产出]**：核心响应耗时从 3.5s 降至 0.2s，双十一并发高峰零故障，核心订单转化率提升 14%` 
+        : `- **[Situation 业务背景]**：在并发量达万级时，原有支付系统出现大面积卡顿和高耗时问题，导致订单流失率上升了 12%\n- **[Task 核心任务]**：作为主程负责链路重构，在 2 个月内完成性能调优，将平均延迟控制在 300ms 以内\n- **[Action 关键行动]**：1. 使用 Spring Cloud 核心组件做微服务拆分；2. 优化慢 SQL 并对热点数据进行 Redis 强缓存设计\n- **[Result 实际产出]**：核心响应耗时从 3.5s 降至 0.2s，双十一并发高峰零故障，核心订单转化率提升 14%` 
     };
   } else if (category === 'work') {
     return { 
       content: isEn
         ? `- **Core Responsibilities**: Responsible for core e-commerce transaction pathways, shopping cart, and checkout service development, participating in high-concurrency/high-availability designs\n- **Technical Achievements**: Led slow query governance, Redis cache avalanche prevention, and asymmetric encryption optimizations, substantially boosting safety and throughput\n- **Quantitative Results**: Reduced average response time by 35%, increased core API throughput (QPS) by 120%, ensuring stable system execution during big promotional campaigns`
-        : `- **核心职责**：负责公司核心电商交易链路、购物车及结算服务模块 of 研发，参与高可用高并发方案设计\n- **技术攻坚**：主导了慢查询治理、Redis 缓存雪崩应对以及非对称加密优化，将全链路安全性与吞吐性能大幅提升\n- **量化结果**：所负责模块接口平均耗时减少 35%，核心接口吞吐量 QPS 提升 120%，保障了大促期间平稳无故障运行` 
+        : `- **核心职责**：负责公司核心电商交易链路、购物车及结算服务模块研发，参与高可用高并发方案设计\n- **技术攻坚**：主导了慢查询治理、Redis 缓存雪崩应对以及非对称加密优化，将全链路安全性与吞吐性能大幅提升\n- **量化结果**：所负责模块接口平均耗时减少 35%，核心接口吞吐量 QPS 提升 120%，保障了大促期间平稳无故障运行` 
     };
   } else {
     return { 

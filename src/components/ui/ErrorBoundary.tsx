@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Copy, RotateCcw, Check } from 'lucide-react';
 import { storage, STORAGE_KEYS } from '../../lib/storage';
 import { trackAnalyticsEvent } from '../../lib/analytics';
+import { getTranslation } from '../../i18n';
 
 interface Props {
   children: ReactNode;
@@ -50,11 +51,9 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleReset = () => {
-    const isEn = storage.getString(STORAGE_KEYS.UI_LANGUAGE, 'zh') === 'en';
-    const message = isEn
-      ? 'Clear Resume Craft local resume data and reset the app? Back up your resume text first.'
-      : '确定要清空 Resume Craft 的本地简历数据并重置吗？建议先备份当前简历文本。';
-    if (window.confirm(message)) {
+    const uiLanguage = storage.getString(STORAGE_KEYS.UI_LANGUAGE, 'zh');
+    const t = getTranslation(uiLanguage).errorBoundary;
+    if (window.confirm(t.confirmReset)) {
       storage.clearAllResumeData();
       window.location.reload();
     }
@@ -62,7 +61,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
-      const isEn = storage.getString(STORAGE_KEYS.UI_LANGUAGE, 'zh') === 'en';
+      const uiLanguage = storage.getString(STORAGE_KEYS.UI_LANGUAGE, 'zh');
+      const t = getTranslation(uiLanguage).errorBoundary;
       return (
         <div className="min-h-screen w-full bg-slate-900 text-slate-100 flex items-center justify-center p-4 sm:p-6 font-sans">
           <div className="max-w-xl w-full bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl space-y-6">
@@ -72,15 +72,15 @@ export class ErrorBoundary extends Component<Props, State> {
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-lg font-extrabold text-white">{isEn ? 'Unexpected runtime error' : '遇到未预期的运行时异常'}</h1>
-                <p className="text-xs text-slate-400 mt-0.5">{isEn ? 'The app stopped the faulty render safely. If local storage is still readable, copy a Markdown backup before retrying.' : '应用已停止异常渲染。若浏览器本地存储仍可读取，可先复制 Markdown 备份再重试。'}</p>
+                <h1 className="text-lg font-extrabold text-white">{t.title}</h1>
+                <p className="text-xs text-slate-400 mt-0.5">{t.subtitle}</p>
               </div>
             </div>
 
             {/* Error detail */}
             <div className="bg-slate-950/80 rounded-xl p-4 border border-slate-800 text-xs font-mono overflow-x-auto space-y-2 text-rose-300/90">
               <div className="font-bold text-rose-400">
-                {this.state.error?.name || 'Error'}: {this.state.error?.message || (isEn ? 'Unknown render error' : '未知渲染错误')}
+                {this.state.error?.name || 'Error'}: {this.state.error?.message || t.title}
               </div>
               {this.state.errorInfo?.componentStack && (
                 <div className="text-[10px] text-slate-500 max-h-28 overflow-y-auto whitespace-pre-wrap font-mono">
@@ -97,7 +97,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/20 active:translate-y-px"
                 >
                   {this.state.copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
-                  <span>{this.state.copied ? (isEn ? 'Markdown backup copied' : '已复制 Markdown 备份') : (isEn ? 'Copy Markdown backup' : '一键备份简历源码')}</span>
+                  <span>{this.state.copied ? t.backupCopied : t.backupCopy}</span>
                 </button>
 
                 <button
@@ -105,7 +105,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   className="w-full py-2.5 px-4 bg-slate-700 hover:bg-slate-650 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:translate-y-px"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  <span>{isEn ? 'Reload and retry' : '刷新页面重试'}</span>
+                  <span>{t.reload}</span>
                 </button>
               </div>
 
@@ -115,7 +115,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   className="text-xs text-slate-400 hover:text-slate-200 underline inline-flex items-center gap-1.5 cursor-pointer transition-colors"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span>{isEn ? 'Reset Resume Craft local data' : '重置 Resume Craft 本地简历数据'}</span>
+                  <span>{t.reset}</span>
                 </button>
               </div>
             </div>

@@ -14,6 +14,8 @@ import { importFromJsonResume, adaptMarkdownToTargetMarket } from '../../lib/exp
 import { getMarketProfile } from '../../lib/market-profile';
 import { useResumeStore } from '../../store/useResumeStore';
 
+const MAX_TEXT_IMPORT_FILE_SIZE = 2 * 1024 * 1024;
+
 interface RawTextImportModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -49,7 +51,15 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
 
   const { settings } = useResumeStore();
   const currentMarket = settings.marketRegion || 'cn';
-  const currentMarketProfile = getMarketProfile(currentMarket);
+  const adaptationMarket =
+    activeTab === 'file' && selectedFile?.detectedSettings?.marketRegion
+      ? selectedFile.detectedSettings.marketRegion
+      : currentMarket;
+  const adaptationLang =
+    activeTab === 'file' && selectedFile?.detectedSettings?.lang
+      ? selectedFile.detectedSettings.lang
+      : settings.lang;
+  const currentMarketProfile = getMarketProfile(adaptationMarket);
 
   // Keep keyboard focus inside the modal and restore it to the trigger on close.
   useEffect(() => {
@@ -127,6 +137,7 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
   };
 
   const processFileContent = (fileName: string, content: string) => {
+    const normalizedFileName = fileName.toLowerCase();
     const lines = content.split('\n').length;
     const size = new Blob([content]).size;
     let type: 'md' | 'txt' | 'json' = 'md';
@@ -134,7 +145,7 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
     let detectedMarketStr = '';
     let detectedSettings: LoadedFileInfo['detectedSettings'];
 
-    if (fileName.endsWith('.json')) {
+    if (normalizedFileName.endsWith('.json')) {
       type = 'json';
       try {
         const parsed = JSON.parse(content);
@@ -156,7 +167,7 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
       } catch (e) {
         console.warn('JSON parsing skipped for text content', e);
       }
-    } else if (fileName.endsWith('.txt')) {
+    } else if (normalizedFileName.endsWith('.txt')) {
       type = 'txt';
       const detection = detectResumeMarket(content);
       detectedMarketStr = detection.detectedMarket;
@@ -214,6 +225,16 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
     const fileName = file.name.toLowerCase();
     const isPdf = fileName.endsWith('.pdf') || file.type === 'application/pdf';
 
+    if (!isPdf && file.size > MAX_TEXT_IMPORT_FILE_SIZE) {
+      setSelectedFile(null);
+      setFileError(
+        isEn
+          ? `Text/JSON resume files must be smaller than ${Math.round(MAX_TEXT_IMPORT_FILE_SIZE / 1024 / 1024)} MB.`
+          : `文本/JSON 简历文件需小于 ${Math.round(MAX_TEXT_IMPORT_FILE_SIZE / 1024 / 1024)} MB。`,
+      );
+      return;
+    }
+
     if (isPdf) {
       setSelectedFile(null);
       setIsParsingPdf(true);
@@ -270,15 +291,29 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
       const file = files[0];
-      void handleFileDropOrSelect(file);
       const isPdf =
         file.name.toLowerCase().endsWith('.pdf') ||
         file.type === 'application/pdf';
+
       if (activeTab === 'text' && !isPdf) {
+        setFileError('');
+        if (file.size > MAX_TEXT_IMPORT_FILE_SIZE) {
+          setFileError(
+            isEn
+              ? `Text resume files must be smaller than ${Math.round(MAX_TEXT_IMPORT_FILE_SIZE / 1024 / 1024)} MB.`
+              : `文本简历文件需小于 ${Math.round(MAX_TEXT_IMPORT_FILE_SIZE / 1024 / 1024)} MB。`,
+          );
+          return;
+        }
         void file.text().then((content) => {
           if (content) setRawText(content);
+        }).catch(() => {
+          setFileError(isEn ? 'The selected file could not be read.' : '无法读取所选文件。');
         });
+        return;
       }
+
+      void handleFileDropOrSelect(file);
     }
   };
 
@@ -311,8 +346,8 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
     if (autoAdaptToMarket) {
       const adapted = adaptMarkdownToTargetMarket(
         finalMd,
-        currentMarket,
-        settings.lang
+        adaptationMarket,
+        adaptationLang
       );
       finalMd = adapted.adaptedMarkdown;
     }

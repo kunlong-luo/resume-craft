@@ -111,9 +111,9 @@ export function ProfilesTab({ lang, showToast }: ProfilesTabProps) {
           </span>
         </div>
 
-        <Tooltip content={isEn ? 'Create a brand new blank resume profile' : '新建一份空白简历档案'}>
+        <Tooltip content={isEn ? 'Create from current resume, a template, or a blank profile' : '从当前简历、模板或空白档案创建'}>
           <button
-            onClick={handleFastBlank}
+            onClick={() => setIsNewModalOpen(true)}
             className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" />

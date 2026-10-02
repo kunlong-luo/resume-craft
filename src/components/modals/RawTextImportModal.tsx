@@ -21,7 +21,6 @@ interface RawTextImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (markdown: string, settingsPatch?: Partial<ReturnType<typeof useResumeStore.getState>['settings']>, templateId?: string) => void;
-  onImportFile?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   lang?: string;
 }
 

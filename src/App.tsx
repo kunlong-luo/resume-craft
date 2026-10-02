@@ -198,8 +198,6 @@ export default function App() {
     handleExportPDF,
     handleExportDirectPDF,
     handleExportVectorPrint,
-    handleExportMarkdown,
-    handleImportMarkdown,
   } = useResumeActions({
     contentRef,
     onPdfExportComplete: handlePdfExportComplete,
@@ -430,8 +428,6 @@ export default function App() {
       <div className="flex flex-col h-full w-full z-10 relative">
         <div className="relative z-50">
           <Header 
-            handleImportMarkdown={handleImportMarkdown}
-            handleExportMarkdown={handleExportMarkdown}
             handleExportPDF={handleExportPDF}
             handleExportDirectPDF={handleExportDirectPDF}
             handleExportVectorPrint={handleExportVectorPrint}

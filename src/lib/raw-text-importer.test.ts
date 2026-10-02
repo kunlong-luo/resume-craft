@@ -1,6 +1,44 @@
 import { describe, expect, it } from 'vitest';
-import { parseRawTextToResumeMarkdown } from './raw-text-importer';
+import { detectResumeMarket, parseRawTextToResumeMarkdown } from './raw-text-importer';
 import { detectResumeLanguage } from './resume-language';
+
+describe('resume market detection', () => {
+  it('falls back to international when the resume has no market-specific signals', () => {
+    const result = detectResumeMarket([
+      'Alex Morgan',
+      'Software Engineer',
+      'alex@example.com',
+      'Experience',
+      'Built distributed systems for production services.',
+    ].join('\n'));
+
+    expect(result.detectedMarket).toBe('international');
+    expect(result.confidence).toBe('low');
+  });
+
+  it('falls back to international when the strongest market signals are tied', () => {
+    const result = detectResumeMarket([
+      'Alex Morgan',
+      'Postal Code',
+      'Cloud Engineer',
+    ].join('\n'));
+
+    expect(result.detectedMarket).toBe('international');
+    expect(result.confidence).toBe('low');
+  });
+
+  it('still returns a concrete market when one signal clearly leads', () => {
+    const result = detectResumeMarket([
+      '张三',
+      '+86 138 0000 0000',
+      '微信: zhangsan',
+      '上海',
+    ].join('\n'));
+
+    expect(result.detectedMarket).toBe('cn');
+    expect(result.confidence).toBe('medium');
+  });
+});
 
 describe('raw text resume import', () => {
   it('detects international phone numbers from pasted resume text', () => {

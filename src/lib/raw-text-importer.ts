@@ -3,8 +3,9 @@
  * into clean, structured Markdown resume format.
  */
 
-import { MarketRegion } from '../types';
+import type { Language, MarketRegion } from '../types';
 import { findPhoneCandidate } from './phone-utils';
+import { detectResumeLanguage } from './resume-language';
 
 export interface MarketDetectionResult {
   detectedMarket: MarketRegion;
@@ -125,8 +126,37 @@ export function detectResumeMarket(rawText: string): MarketDetectionResult {
   };
 }
 
-export function parseRawTextToResumeMarkdown(rawText: string): string {
+export function parseRawTextToResumeMarkdown(
+  rawText: string,
+  language?: Language,
+): string {
   if (!rawText || rawText.trim() === '') return '';
+
+  const contentLanguage = language ?? detectResumeLanguage(rawText, 'zh');
+  const isEn = contentLanguage === 'en';
+  const labels = isEn
+    ? {
+        candidateName: 'Candidate Name',
+        city: 'City',
+        wechat: 'WeChat',
+        summary: 'Summary',
+        overview: 'Experience Overview',
+        education: 'Education',
+        work: 'Work Experience',
+        projects: 'Projects',
+        skills: 'Skills',
+      }
+    : {
+        candidateName: '求职者姓名',
+        city: '城市',
+        wechat: '微信',
+        summary: '个人简介',
+        overview: '经历概述',
+        education: '教育背景',
+        work: '工作经历',
+        projects: '项目经历',
+        skills: '专业技能',
+      };
 
   const lines = rawText
     .split(/\r?\n/)
@@ -151,7 +181,6 @@ export function parseRawTextToResumeMarkdown(rawText: string): string {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    // Detect phone using the same international parser as the editor/checker.
     if (!phone) {
       const candidate = findPhoneCandidate(line);
       if (candidate) {
@@ -159,32 +188,38 @@ export function parseRawTextToResumeMarkdown(rawText: string): string {
       }
     }
 
-    // Detect email
     if (!email && emailRegex.test(line)) {
       const match = line.match(emailRegex);
       if (match) email = match[1];
     }
 
-    // Detect wechat
     if (!wechat && wechatRegex.test(line)) {
       const match = line.match(wechatRegex);
       if (match) wechat = match[1];
     }
 
-    // Detect github
     if (!github && githubRegex.test(line)) {
       const match = line.match(githubRegex);
       if (match) github = `https://github.com/${match[1] || match[2]}`;
     }
 
-    // Name detection: first short line that doesn't contain phone/email/numbers
-    if (!name && i < 4 && line.length >= 2 && line.length <= 15 && !/\d/.test(line) && !line.includes('@')) {
+    if (!name && i < 4 && line.length >= 2 && line.length <= 40 && !/\d/.test(line) && !line.includes('@')) {
       name = line;
       continue;
     }
 
-    // Candidate for target role if line has role keywords
-    if (!role && i < 6 && (line.includes('工程师') || line.includes('开发') || line.includes('主管') || line.includes('经理') || line.includes('专家') || line.includes('Developer') || line.includes('Engineer') || line.includes('Designer'))) {
+    if (
+      !role &&
+      i < 6 &&
+      (
+        line.includes('工程师') ||
+        line.includes('开发') ||
+        line.includes('主管') ||
+        line.includes('经理') ||
+        line.includes('专家') ||
+        /\b(?:Developer|Engineer|Designer|Architect|Manager|Analyst|Consultant|Specialist)\b/i.test(line)
+      )
+    ) {
       role = line;
       continue;
     }
@@ -192,13 +227,12 @@ export function parseRawTextToResumeMarkdown(rawText: string): string {
     remainingLines.push(line);
   }
 
-  name = name || '求职者姓名';
+  name = name || labels.candidateName;
 
-  // Build header contacts
   const contacts: string[] = [];
   if (phone) contacts.push(phone);
   if (email) contacts.push(email);
-  if (wechat) contacts.push(`微信: ${wechat}`);
+  if (wechat) contacts.push(`${labels.wechat}: ${wechat}`);
   if (github) contacts.push(`[GitHub](${github})`);
 
   let markdown = `# ${name}\n`;
@@ -208,15 +242,19 @@ export function parseRawTextToResumeMarkdown(rawText: string): string {
   if (contacts.length > 0) {
     markdown += `${contacts.join(' | ')}\n\n`;
   } else {
-    markdown += `your_email@example.com | City / 城市\n\n`;
+    markdown += `your_email@example.com | ${labels.city}\n\n`;
   }
 
-  // Section classifiers
-  const isEduHeader = (s: string) => /^(教育背景|教育经历|学术背景|学习经历|学历背景|Education)/i.test(s);
-  const isWorkHeader = (s: string) => /^(工作经历|工作经验|职业经历|从业经历|实习经历|Work Experience)/i.test(s);
-  const isProjectHeader = (s: string) => /^(项目经历|项目经验|代表项目|开源项目|主要项目|Projects|Project Experience)/i.test(s);
-  const isSkillHeader = (s: string) => /^(专业技能|技术栈|核心技能|技能特长|技能清单|Skills|Technical Skills)/i.test(s);
-  const isAdvantageHeader = (s: string) => /^(个人优势|核心优势|自我评价|个人总结|Summary|About Me)/i.test(s);
+  const isEduHeader = (s: string) =>
+    /^(教育背景|教育经历|学术背景|学习经历|学历背景|Education|Academic Background)/i.test(s);
+  const isWorkHeader = (s: string) =>
+    /^(工作经历|工作经验|职业经历|从业经历|实习经历|Work Experience|Professional Experience|Experience|Employment|Work History)/i.test(s);
+  const isProjectHeader = (s: string) =>
+    /^(项目经历|项目经验|代表项目|开源项目|主要项目|Projects|Project Experience|Portfolio)/i.test(s);
+  const isSkillHeader = (s: string) =>
+    /^(专业技能|技术栈|核心技能|技能特长|技能清单|Skills|Technical Skills|Core Skills)/i.test(s);
+  const isAdvantageHeader = (s: string) =>
+    /^(个人优势|核心优势|自我评价|个人总结|Summary|Professional Summary|Profile|About Me)/i.test(s);
 
   let currentSection = '';
   const sections: { title: string; lines: string[] }[] = [];
@@ -224,15 +262,15 @@ export function parseRawTextToResumeMarkdown(rawText: string): string {
 
   for (const line of remainingLines) {
     let matchedTitle = '';
-    if (isEduHeader(line)) matchedTitle = '教育背景';
-    else if (isWorkHeader(line)) matchedTitle = '工作经历';
-    else if (isProjectHeader(line)) matchedTitle = '项目经历';
-    else if (isSkillHeader(line)) matchedTitle = '专业技能';
-    else if (isAdvantageHeader(line)) matchedTitle = '个人优势';
+    if (isEduHeader(line)) matchedTitle = labels.education;
+    else if (isWorkHeader(line)) matchedTitle = labels.work;
+    else if (isProjectHeader(line)) matchedTitle = labels.projects;
+    else if (isSkillHeader(line)) matchedTitle = labels.skills;
+    else if (isAdvantageHeader(line)) matchedTitle = labels.summary;
 
     if (matchedTitle) {
       if (currentSection || currentLines.length > 0) {
-        sections.push({ title: currentSection || '个人简介', lines: currentLines });
+        sections.push({ title: currentSection || labels.summary, lines: currentLines });
       }
       currentSection = matchedTitle;
       currentLines = [];
@@ -242,38 +280,44 @@ export function parseRawTextToResumeMarkdown(rawText: string): string {
   }
 
   if (currentSection || currentLines.length > 0) {
-    sections.push({ title: currentSection || '经历概述', lines: currentLines });
+    sections.push({ title: currentSection || labels.overview, lines: currentLines });
   }
 
-  // If no sections were identified, format into clean bullet items
   if (sections.length === 0 || (sections.length === 1 && !currentSection)) {
-    markdown += `## 个人简介\n`;
-    for (const l of remainingLines) {
-      markdown += `- ${l.replace(/^[-*•\d.]\s*/, '')}\n`;
+    markdown += `## ${labels.summary}\n`;
+    for (const line of remainingLines) {
+      markdown += `- ${line.replace(/^[-*•\d.]\s*/, '')}\n`;
     }
     return markdown;
   }
 
-  // Render parsed sections
-  for (const sec of sections) {
-    markdown += `## ${sec.title}\n\n`;
-    for (let i = 0; i < sec.lines.length; i++) {
-      const line = sec.lines[i];
-
-      // Detect sub-title like "XX公司 | 职位 | 2020-2023"
+  for (const section of sections) {
+    markdown += `## ${section.title}\n\n`;
+    for (const line of section.lines) {
       const dateMatch = line.match(/(?:19|20)\d{2}[\.\-\/年\s]\d{1,2}/);
-      const isHeaderLine = (dateMatch && line.length < 60) || (!line.startsWith('-') && !line.startsWith('•') && line.length < 40 && (line.includes('公司') || line.includes('科技') || line.includes('大学') || line.includes('学院') || line.includes('系统') || line.includes('平台')));
+      const organizationKeyword =
+        /(?:公司|科技|大学|学院|系统|平台)|\b(?:Company|Inc\.?|Ltd\.?|LLC|Corp\.?|Corporation|University|College|Institute|Laboratory|Labs|Technologies|Systems|Platform)\b/i;
+      const isHeaderLine =
+        (dateMatch && line.length < 80) ||
+        (
+          !line.startsWith('-') &&
+          !line.startsWith('•') &&
+          line.length < 80 &&
+          organizationKeyword.test(line)
+        );
 
       if (isHeaderLine) {
         markdown += `### ${line.replace(/^###?\s*/, '')}\n`;
       } else {
-        const cleanedBullet = line.replace(/^[•⁃－—–·●▪■◆\-\*\+]\s*/, '').replace(/^\d+[\.\、]\s*/, '');
+        const cleanedBullet = line
+          .replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, '')
+          .replace(/^\d+[\.、]\s*/, '');
         if (cleanedBullet.trim()) {
           markdown += `- ${cleanedBullet}\n`;
         }
       }
     }
-    markdown += `\n`;
+    markdown += '\n';
   }
 
   return markdown.trim() + '\n';

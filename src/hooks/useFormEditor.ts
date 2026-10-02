@@ -23,7 +23,7 @@ export function useFormEditor(
   });
   
   const contentLang = settings?.lang || 'zh';
-  const interfaceLang = uiLanguage || contentLang;
+  const interfaceLang = uiLanguage === 'en' ? 'en' : 'zh';
   const translations = getTranslation(interfaceLang);
   const t = translations.form;
 

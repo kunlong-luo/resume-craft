@@ -189,7 +189,8 @@ export function parseResumeHeader(markdown: string) {
 
       // 3. Check if experience / background / status / degree / english ability
       const isExpOrSkill = /^(?:经验|工作经验|工作年限|经验年限|年限|工作|在职|离职|到岗|年龄|岁|学历|学位|本科|硕士|大专|英语能力|英语|语言|资格)[:：\s]*/.test(stripped) ||
-        /(?:经验|年工作|在校|大学|学院|本科|硕士|大专|英语|CET|六级|四级)/i.test(stripped);
+        /(?:经验|年工作|在校|大学|学院|本科|硕士|大专|英语|CET|六级|四级)/i.test(stripped) ||
+        /(?:\d+\s*(?:years?|yrs?)\s*(?:of\s+)?experience|student\s*\/\s*new graduate|new grad(?:uate)?|\b(?:associate|bachelor|master|phd)\b|\b(?:employed|unemployed)\b|open to offers|not looking|looking for internship)/i.test(stripped);
 
       if (isTargetJob) {
         const cleaned = stripped.replace(/[\*\_]+/g, '').replace(/^(?:求职方向|求职意向|求职目标|目标岗位|应聘职位|应聘岗位|意向岗位)[:：\s]*/, '').trim();
@@ -538,7 +539,7 @@ export function isDegreeToken(s: string): boolean {
 export function isStatusToken(s: string): boolean {
   const clean = s.trim();
   if (/^(?:求职状态|求职意向|状态)[:：\s]*/i.test(clean)) return true;
-  return /(?:随时到岗|在职|离职|考虑机会|看机会|暂不考虑|急寻|找工作|寻实习|在校生-寻实习|月内到岗|一周内到岗|两周内到岗|open to work|actively looking|available)/i.test(clean);
+  return /(?:随时到岗|在职|离职|考虑机会|看机会|暂不考虑|急寻|找工作|寻实习|在校生-寻实习|月内到岗|一周内到岗|两周内到岗|open to work|actively looking|available|employed|unemployed|open to offers|not looking|immediate|looking for internship)/i.test(clean);
 }
 
 export function isLocationToken(s: string): boolean {
@@ -547,7 +548,7 @@ export function isLocationToken(s: string): boolean {
   if (/^(?:意向城市|期望城市|现居|现居地|所在城市|城市|常驻|期望工作地|工作地点|地点|location|city)[:：\s]*/i.test(clean)) {
     return true;
   }
-  if (/(?:北京|上海|广州|深圳|杭州|成都|武汉|南京|西安|厦门|苏州|天津|重庆|长沙|青岛|大连|宁波|郑州|合肥|无锡|福州|昆明|济南|佛山|东莞|珠海|南昌|贵阳|南宁|海口|三亚|长春|沈阳|哈尔滨|石家庄|太原|兰州|银川|西宁|乌鲁木齐|呼和浩特|拉萨|香港|澳门|台北|远程|全国|海外|硅谷|旧金山|西雅图|纽约|伦敦|东京|新加坡|多伦多|温哥华|悉尼|墨尔本|beijing|shanghai|shenzhen|hangzhou|guangzhou|remote)/i.test(clean)) {
+  if (/(?:北京|上海|广州|深圳|杭州|成都|武汉|南京|西安|厦门|苏州|天津|重庆|长沙|青岛|大连|宁波|郑州|合肥|无锡|福州|昆明|济南|佛山|东莞|珠海|南昌|贵阳|南宁|海口|三亚|长春|沈阳|哈尔滨|石家庄|太原|兰州|银川|西宁|乌鲁木齐|呼和浩特|拉萨|香港|澳门|台北|远程|全国|海外|硅谷|旧金山|西雅图|纽约|伦敦|东京|新加坡|多伦多|温哥华|悉尼|墨尔本|beijing|shanghai|shenzhen|hangzhou|guangzhou|san francisco|new york|seattle|london|singapore|toronto|vancouver|sydney|melbourne|tokyo|hong kong|macau|taipei|dublin|remote)/i.test(clean)) {
     return true;
   }
   if (/^[\u4e00-\u9fa5\w\s/、·•\-]+[市省区县]$/.test(clean)) {
@@ -623,11 +624,11 @@ export function parseBasicInfoMetadata(rawExp: string, lang: 'zh' | 'en' = 'zh')
     // B. Status
     if (isStatusToken(clean)) {
       let statusType: BasicInfoItem['statusType'] = 'neutral';
-      if (/随时到岗|离职|open to work|actively looking|available/i.test(clean)) {
+      if (/随时到岗|离职|open to work|actively looking|available|unemployed|immediate/i.test(clean)) {
         statusType = 'available';
-      } else if (/考虑|看机会|在职-考虑|looking/i.test(clean)) {
+      } else if (/考虑|看机会|在职-考虑|open to offers|looking for internship/i.test(clean)) {
         statusType = 'considering';
-      } else if (/在职|employed/i.test(clean)) {
+      } else if (/在职|employed|not looking/i.test(clean)) {
         statusType = 'employed';
       }
       items.push({
@@ -641,7 +642,7 @@ export function parseBasicInfoMetadata(rawExp: string, lang: 'zh' | 'en' = 'zh')
     }
 
     // C. Explicit Work Experience
-    if (/\d+\s*年|(?:工作|从业|全栈)?经验|应届|在校生?|毕业生|实习生|无工作经验|years?\s*(?:of)?\s*exp/i.test(clean)) {
+    if (/\d+\s*年|(?:工作|从业|全栈)?经验|应届|在校生?|毕业生|实习生|无工作经验|years?\s*(?:of)?\s*exp|student\s*\/\s*new graduate|new grad(?:uate)?/i.test(clean)) {
       items.push({
         key: `exp-${idx}`,
         type: 'exp',

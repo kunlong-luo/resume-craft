@@ -19,7 +19,6 @@ export function useResumeActions({ contentRef, onPdfExportComplete }: UseResumeA
     setIsIframeModalOpen,
     setIsExportingPDF,
     setPdfExportProgress,
-    replaceDocument,
   } = useResumeStore(
     useShallow((state) => ({
       paperSize: state.settings.paperSize,
@@ -28,7 +27,6 @@ export function useResumeActions({ contentRef, onPdfExportComplete }: UseResumeA
       setIsIframeModalOpen: state.setIsIframeModalOpen,
       setIsExportingPDF: state.setIsExportingPDF,
       setPdfExportProgress: state.setPdfExportProgress,
-      replaceDocument: state.replaceDocument,
     })),
   );
   

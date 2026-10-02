@@ -1,6 +1,7 @@
 import { Unzlib, zlibSync } from 'fflate';
 import type { Language, ResumeSettings } from '../types';
 import { normalizeImportedSettings } from './import-validation';
+import { detectResumeLanguage } from './resume-language';
 
 export interface ShareState {
   markdown: string;
@@ -225,6 +226,20 @@ function normalizeShareState(
   );
 
   if (!normalizedSettings) return null;
+
+  const explicitSettingsLang =
+    settings &&
+    typeof settings === 'object' &&
+    !Array.isArray(settings) &&
+    'lang' in settings &&
+    isLanguage((settings as Record<string, unknown>).lang);
+
+  if (!langHint && !explicitSettingsLang) {
+    normalizedSettings.lang = detectResumeLanguage(
+      markdown,
+      normalizedSettings.lang || 'zh',
+    );
+  }
 
   return {
     markdown,

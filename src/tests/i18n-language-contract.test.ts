@@ -1,11 +1,38 @@
 import { describe, expect, it } from 'vitest';
 import { getDegreeOptions, getJobStatusOptions } from '../lib/form-constants';
-import { getPresetSection } from '../lib/form-helpers';
+import { getPresetSection, getStarTemplate } from '../lib/form-helpers';
 import { parseExperienceField } from '../lib/markdown-parser';
 import { parseBasicInfoMetadata } from '../lib/preview-utils';
 import { translateMarkdownContent } from '../lib/section-translator';
+import { formatDateRange } from '../lib/date-parser';
+import { getTranslation } from '../i18n';
 
 describe('i18n language contract', () => {
+  it.each([
+    { ui: 'zh', resume: 'zh', uiTitle: '基本信息', sectionTitle: '工作经历', ongoing: '2024.03 — 至今', starText: '核心职责' },
+    { ui: 'zh', resume: 'en', uiTitle: '基本信息', sectionTitle: 'Work Experience', ongoing: 'Mar 2024 – Present', starText: 'Core Responsibilities' },
+    { ui: 'en', resume: 'zh', uiTitle: 'Basic Info', sectionTitle: '工作经历', ongoing: '2024.03 — 至今', starText: '核心职责' },
+    { ui: 'en', resume: 'en', uiTitle: 'Basic Info', sectionTitle: 'Work Experience', ongoing: 'Mar 2024 – Present', starText: 'Core Responsibilities' },
+  ] as const)(
+    'keeps UI $ui independent from resume $resume',
+    ({ ui, resume, uiTitle, sectionTitle, ongoing, starText }) => {
+      const uiCopy = getTranslation(ui);
+      const preset = getPresetSection('work', resume);
+      const star = getStarTemplate(preset.title, resume);
+
+      expect(uiCopy.form.basic.title).toBe(uiTitle);
+      expect(preset.title).toBe(sectionTitle);
+      expect(star.content).toContain(starText);
+      expect(
+        formatDateRange(
+          '2024.03 - 至今',
+          resume === 'en' ? 'month-short' : 'cn-dot',
+          resume === 'en',
+        ),
+      ).toBe(ongoing);
+    },
+  );
+
   it('stores structured select values in the resume language', () => {
     expect(getDegreeOptions('en').map((option) => option.value)).toContain('Bachelor');
     expect(getDegreeOptions('en').map((option) => option.value)).not.toContain('本科');
@@ -65,6 +92,11 @@ describe('i18n language contract', () => {
     );
 
     expect(items.map((item) => item.type)).toEqual(['exp', 'degree', 'location', 'status']);
+  });
+
+  it('formats ongoing dates from the resume language rather than the UI language', () => {
+    expect(formatDateRange('2024.03 - 至今', 'month-short', true)).toBe('Mar 2024 – Present');
+    expect(formatDateRange('2024.03 - 至今', 'cn-dot', false)).toBe('2024.03 — 至今');
   });
 
   it('uses canonical section titles for English presets', () => {

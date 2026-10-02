@@ -512,8 +512,12 @@ export function Header({
           <RawTextImportModal
             isOpen={isRawTextModalOpen}
             onClose={() => setIsRawTextModalOpen(false)}
-            onImport={(newMd) => {
-              replaceDocument(newMd, settings, 'custom');
+            onImport={(newMd, settingsPatch) => {
+              replaceDocument(
+                newMd,
+                { ...settings, ...settingsPatch },
+                'custom',
+              );
             }}
             onImportFile={handleImportMarkdown}
             lang={lang}

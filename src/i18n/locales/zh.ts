@@ -381,11 +381,11 @@ export const zh: TranslationSchema = {
   },
   errorBoundary: {
     title: '遇到未预期的运行时异常',
-    subtitle: '应用已被安全屏障拦截，您的简历源码已被妥善保存在本地缓存中。',
-    backupCopy: '一键备份简历源码',
+    subtitle: '应用已停止异常渲染。若浏览器本地存储仍可读取，可先复制 Markdown 备份再重试。',
+    backupCopy: '复制 Markdown 备份',
     backupCopied: '已复制 Markdown 备份',
     reload: '刷新页面重试',
-    reset: '重置所有本地数据并全新恢复',
-    confirmReset: '确定要清空本地缓存并重置简历吗？建议先备份当前简历文本。',
+    reset: '重置 Resume Craft 本地简历数据',
+    confirmReset: '确定要清空 Resume Craft 的本地简历数据并重置吗？建议先备份当前简历文本。',
   }
 };

@@ -7,6 +7,7 @@ import {
   adaptMarkdownToTargetMarket,
 } from '../lib/export-utils';
 import { detectResumeMarket } from '../lib/raw-text-importer';
+import { detectResumeLanguage } from '../lib/resume-language';
 import { ResumeSettings } from '../types';
 
 const baseSettings: ResumeSettings = {
@@ -143,16 +144,27 @@ oliver@example.co.uk | +44 7700 900077 | London, UK | Postcode: EC1A 1BB
       expect(json.meta?.targetMarket).toBe('us');
     });
 
-    it('imports standard JSON Resume back to Markdown with correct sections', () => {
+    it('imports standard JSON Resume back to Markdown with correct sections and language metadata', () => {
       const json = exportToJsonResume(sampleUsMarkdown, baseSettings);
-      const { markdown } = importFromJsonResume(json);
+      const { markdown, detectedSettings } = importFromJsonResume(json);
 
+      expect(detectedSettings?.lang).toBe('en');
       expect(markdown).toContain('# Alex Morgan');
       expect(markdown).toContain('Senior Cloud Architect');
       expect(markdown).toContain('Work Experience');
       expect(markdown).toContain('Amazon Web Services');
       expect(markdown).toContain('Education');
       expect(markdown).toContain('UC Berkeley');
+    });
+  });
+
+  describe('Resume Language Auto-Detection', () => {
+    it('detects English Markdown independently from the current UI or resume state', () => {
+      expect(detectResumeLanguage(sampleUsMarkdown, 'zh')).toBe('en');
+    });
+
+    it('detects Chinese Markdown independently from the current UI or resume state', () => {
+      expect(detectResumeLanguage(sampleCnMarkdown, 'en')).toBe('zh');
     });
   });
 

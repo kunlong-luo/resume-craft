@@ -692,6 +692,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       (template.suggestedLang === 'zh' ? 'cn' : settings.marketRegion || 'international');
     const nextSettings: ResumeSettings = {
       ...settings,
+      lang: template.suggestedLang,
       marketRegion: targetMarket,
       paperSize: template.defaultPaperSize ?? resolveDefaultPaperSize(targetMarket),
       dateStyle: template.dateStyle ?? getMarketProfile(targetMarket).dateStyle,

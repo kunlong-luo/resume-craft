@@ -187,11 +187,11 @@ export const en: TranslationSchema = {
   },
   errorBoundary: {
     title: 'Unexpected Runtime Exception',
-    subtitle: 'App execution was intercepted safely. Your resume source has been stored in local cache.',
-    backupCopy: 'Backup Resume Source',
+    subtitle: 'The app stopped the faulty render safely. If local storage is still readable, copy a Markdown backup before retrying.',
+    backupCopy: 'Copy Markdown Backup',
     backupCopied: 'Markdown Backup Copied',
-    reload: 'Reload Application',
-    reset: 'Reset All Local Data',
-    confirmReset: 'Are you sure you want to clear local cache and reset? Please backup your resume text first.',
+    reload: 'Reload and Retry',
+    reset: 'Reset Resume Craft Local Data',
+    confirmReset: 'Clear Resume Craft local resume data and reset the app? Back up your resume text first.',
   }
 };

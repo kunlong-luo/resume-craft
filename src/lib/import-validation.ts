@@ -14,6 +14,7 @@ import type {
   MarketRegion,
   DateStyle,
 } from '../types';
+import { detectResumeLanguage } from './resume-language';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -196,6 +197,14 @@ export function normalizeResumeBackup(
   const settings = normalizeImportedSettings(value.settings, fallbackSettings);
   if (!settings) return null;
 
+  const sourceSettings = isRecord(value.settings) ? value.settings : null;
+  if (!sourceSettings || !isOneOf(sourceSettings.lang, LANGUAGES)) {
+    settings.lang = detectResumeLanguage(
+      value.markdown,
+      fallbackSettings.lang || 'zh',
+    );
+  }
+
   const backup: ResumeBackupV1 = {
     version: 'markdown-resume-backup-v1',
     markdown: value.markdown,
@@ -232,6 +241,14 @@ export function normalizeImportedProfile(
 
   const settings = normalizeImportedSettings(value.settings, fallbackSettings);
   if (!settings) return null;
+
+  const sourceSettings = isRecord(value.settings) ? value.settings : null;
+  if (!sourceSettings || !isOneOf(sourceSettings.lang, LANGUAGES)) {
+    settings.lang = detectResumeLanguage(
+      value.markdown,
+      fallbackSettings.lang || 'zh',
+    );
+  }
 
   const now = new Date().toISOString();
 

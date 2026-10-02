@@ -130,6 +130,64 @@ describe('import validation', () => {
     expect(backup?.templateId).toBe('ca_tech');
   });
 
+  it('infers language for legacy backups and profiles that predate lang metadata', () => {
+    const englishMarkdown = [
+      '# Alex Morgan',
+      'Senior Software Engineer',
+      '',
+      '## Work Experience',
+      '- Built distributed systems and improved reliability across production services.',
+      '- Led platform migrations and automated deployment workflows.',
+    ].join('\n');
+
+    const backup = normalizeResumeBackup(
+      {
+        version: 'markdown-resume-backup-v1',
+        markdown: englishMarkdown,
+        settings: {
+          themeColor: 'indigo',
+          fontSize: 'standard',
+        },
+      },
+      fallbackSettings,
+    );
+
+    expect(backup?.settings.lang).toBe('en');
+
+    const profiles = normalizeImportedProfiles(
+      [
+        {
+          id: 'legacy-english',
+          name: 'Legacy English Resume',
+          markdown: englishMarkdown,
+          settings: {
+            themeColor: 'indigo',
+            fontSize: 'standard',
+          },
+        },
+      ],
+      fallbackSettings,
+    );
+
+    expect(profiles?.[0].settings.lang).toBe('en');
+  });
+
+  it('preserves an explicit imported language even when body text differs', () => {
+    const backup = normalizeResumeBackup(
+      {
+        version: 'markdown-resume-backup-v1',
+        markdown: '# Alex Morgan\n\n## Work Experience\n- Built systems.',
+        settings: {
+          ...fallbackSettings,
+          lang: 'zh',
+        },
+      },
+      fallbackSettings,
+    );
+
+    expect(backup?.settings.lang).toBe('zh');
+  });
+
   it('rejects malformed profiles and duplicate ids', () => {
     const duplicateProfiles = [
       {

@@ -752,7 +752,7 @@ export function parseExperienceField(expString: string) {
     }
 
     // Known cities, regions, remote, overseas (including combinations like 杭州 / 上海 or 深圳 / 远程)
-    if (/(?:北京|上海|广州|深圳|杭州|成都|武汉|南京|西安|厦门|苏州|天津|重庆|长沙|青岛|大连|宁波|郑州|合肥|无锡|福州|昆明|济南|佛山|东莞|珠海|南昌|贵阳|南宁|海口|三亚|长春|沈阳|哈尔滨|石家庄|太原|兰州|银川|西宁|乌鲁木齐|呼和浩特|拉萨|香港|澳门|台北|远程|全国|海外|硅谷|旧金山|西雅图|纽约|伦敦|东京|新加坡|多伦多|温哥华|悉尼|墨尔本|beijing|shanghai|shenzhen|hangzhou|guangzhou|remote)/i.test(clean)) {
+    if (/(?:北京|上海|广州|深圳|杭州|成都|武汉|南京|西安|厦门|苏州|天津|重庆|长沙|青岛|大连|宁波|郑州|合肥|无锡|福州|昆明|济南|佛山|东莞|珠海|南昌|贵阳|南宁|海口|三亚|长春|沈阳|哈尔滨|石家庄|太原|兰州|银川|西宁|乌鲁木齐|呼和浩特|拉萨|香港|澳门|台北|远程|全国|海外|硅谷|旧金山|西雅图|纽约|伦敦|东京|新加坡|多伦多|温哥华|悉尼|墨尔本|beijing|shanghai|shenzhen|hangzhou|guangzhou|san francisco|new york|seattle|london|singapore|toronto|vancouver|sydney|melbourne|tokyo|hong kong|macau|taipei|dublin|remote)/i.test(clean)) {
       return true;
     }
 
@@ -766,9 +766,20 @@ export function parseExperienceField(expString: string) {
   
   parts.forEach(p => {
     const pl = p.toLowerCase();
-    if (/在职|离职|到岗|考虑|随时到岗|寻实习|找实习|暂不考虑/i.test(pl)) {
+    if (
+      /在职|离职|到岗|考虑|随时到岗|寻实习|找实习|暂不考虑/i.test(pl) ||
+      /employed|unemployed|open to offers|not looking|immediate|looking for internship/i.test(pl)
+    ) {
       jobStatus = p;
-    } else if (/年(?:工作|经验|从业)|^\d+\s*年$/i.test(pl) || /^\d+\s*(?:year|yr|exp)/i.test(pl) || pl.includes('工作经验') || pl.includes('在校生') || pl.includes('应届生') || pl.includes('应届毕业生')) {
+    } else if (
+      /年(?:工作|经验|从业)|^\d+\s*年$/i.test(pl) ||
+      /^\d+\s*(?:years?|yrs?|exp)/i.test(pl) ||
+      pl.includes('工作经验') ||
+      pl.includes('在校生') ||
+      pl.includes('应届生') ||
+      pl.includes('应届毕业生') ||
+      /student\s*\/\s*new graduate|new grad(?:uate)?/i.test(pl)
+    ) {
       workYears = p;
     } else if (/本科|硕士|博士|大专|等学|中专|学士|研究生|学位|phd|master|bachelor|associate/i.test(pl)) {
       degree = p;

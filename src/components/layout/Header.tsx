@@ -27,16 +27,12 @@ const RawTextImportModal = React.lazy(() => import('../modals/RawTextImportModal
 const ShareResumeModal = React.lazy(() => import('../share/ShareResumeModal').then(m => ({ default: m.ShareResumeModal })));
 
 interface HeaderProps {
-  handleImportMarkdown: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleExportMarkdown?: () => void;
   handleExportPDF: () => void;
   handleExportDirectPDF?: () => void;
   handleExportVectorPrint?: () => void;
 }
 
 export function Header({
-  handleImportMarkdown,
-  handleExportMarkdown: _handleExportMarkdown,
   handleExportPDF,
   handleExportDirectPDF,
   handleExportVectorPrint,
@@ -519,7 +515,6 @@ export function Header({
                 'custom',
               );
             }}
-            onImportFile={handleImportMarkdown}
             lang={lang}
           />
         </React.Suspense>

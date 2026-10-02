@@ -139,15 +139,16 @@ test.describe('product state flows', () => {
     await expect(management).toBeVisible();
     await management.getByRole('button', { name: 'New Profile' }).click();
 
-    await expect(page.getByText('Create New Resume Profile', { exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'From Template' }).click();
+    const createDialog = page.getByRole('dialog', { name: 'Create New Resume Profile' });
+    await expect(createDialog).toBeVisible();
+    await createDialog.getByRole('button', { name: 'From Template' }).click();
 
-    const templateSelect = page.getByRole('combobox');
+    const templateSelect = createDialog.getByRole('combobox');
     await expect(templateSelect.locator('option[value="us_swe"]')).toHaveText(
       '[Global] US Software Engineer (Resume)',
     );
 
-    await page.getByRole('button', { name: 'Create & Switch' }).click();
+    await createDialog.getByRole('button', { name: 'Create & Switch' }).click();
 
     await expect
       .poll(async () => (await readProfiles(page)).map((profile) => profile.name))

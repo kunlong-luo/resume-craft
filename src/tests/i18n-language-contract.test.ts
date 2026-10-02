@@ -4,6 +4,7 @@ import { getPresetSection } from '../lib/form-helpers';
 import { parseExperienceField } from '../lib/markdown-parser';
 import { parseBasicInfoMetadata } from '../lib/preview-utils';
 import { translateMarkdownContent } from '../lib/section-translator';
+import { formatDateRange } from '../lib/date-parser';
 
 describe('i18n language contract', () => {
   it('stores structured select values in the resume language', () => {
@@ -65,6 +66,11 @@ describe('i18n language contract', () => {
     );
 
     expect(items.map((item) => item.type)).toEqual(['exp', 'degree', 'location', 'status']);
+  });
+
+  it('formats ongoing dates from the resume language rather than the UI language', () => {
+    expect(formatDateRange('2024.03 - 至今', 'month-short', true)).toBe('Mar 2024 – Present');
+    expect(formatDateRange('2024.03 - 至今', 'cn-dot', false)).toBe('2024.03 - 至今');
   });
 
   it('uses canonical section titles for English presets', () => {

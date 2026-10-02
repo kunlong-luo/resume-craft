@@ -25,5 +25,18 @@ export function detectResumeLanguage(
     return 'en';
   }
 
+  // Short English resumes and pasted snippets often contain fewer than 12
+  // words. When there is no Chinese text, a small but clear Latin signal or
+  // a canonical resume heading is enough to classify the content as English.
+  if (
+    cjkCount === 0 &&
+    (
+      latinWordCount >= 3 ||
+      /\b(?:experience|education|skills|summary|projects?|resume|curriculum vitae)\b/i.test(rawText)
+    )
+  ) {
+    return 'en';
+  }
+
   return cjkCount > 0 ? 'zh' : fallback;
 }

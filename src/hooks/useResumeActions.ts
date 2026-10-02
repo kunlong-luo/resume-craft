@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { trackAnalyticsEvent } from '../lib/analytics';
 import { getMarketDefaultFileName } from '../lib/export-utils';
 import { getPrintPageStyle } from '../lib/print-style';
+import { detectResumeLanguage } from '../lib/raw-text-importer';
 
 interface UseResumeActionsProps {
   contentRef: React.RefObject<HTMLDivElement | null>;
@@ -150,7 +151,13 @@ export function useResumeActions({ contentRef, onPdfExportComplete }: UseResumeA
     reader.onload = (event) => {
       const result = event.target?.result;
       if (typeof result === 'string') {
-        replaceDocument(result, useResumeStore.getState().settings, 'custom');
+        const currentSettings = useResumeStore.getState().settings;
+        const detectedLang = detectResumeLanguage(result, currentSettings.lang || 'zh');
+        replaceDocument(
+          result,
+          { ...currentSettings, lang: detectedLang },
+          'custom',
+        );
       }
     };
     reader.readAsText(file);

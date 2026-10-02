@@ -6,7 +6,6 @@ import { parseBasicInfoMetadata } from '../lib/preview-utils';
 import { translateMarkdownContent } from '../lib/section-translator';
 import { formatDateRange } from '../lib/date-parser';
 import { getTranslation } from '../i18n';
-import type { Language } from '../types';
 
 describe('i18n language contract', () => {
   it.each([

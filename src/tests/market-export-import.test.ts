@@ -148,7 +148,12 @@ oliver@example.co.uk | +44 7700 900077 | London, UK | Postcode: EC1A 1BB
       const json = exportToJsonResume(sampleUsMarkdown, baseSettings);
       const { markdown, detectedSettings } = importFromJsonResume(json);
 
-      expect(detectedSettings?.lang).toBe('en');
+      expect(detectedSettings).toMatchObject({
+        lang: 'en',
+        marketRegion: 'us',
+        paperSize: 'letter',
+        dateStyle: 'month-short',
+      });
       expect(markdown).toContain('# Alex Morgan');
       expect(markdown).toContain('Senior Cloud Architect');
       expect(markdown).toContain('Work Experience');
@@ -156,6 +161,20 @@ oliver@example.co.uk | +44 7700 900077 | London, UK | Postcode: EC1A 1BB
       expect(markdown).toContain('Education');
       expect(markdown).toContain('UC Berkeley');
     });
+  });
+
+  it('ignores invalid JSON Resume metadata instead of leaking it into settings', () => {
+    const { detectedSettings } = importFromJsonResume({
+      basics: { name: 'Unsafe Meta' },
+      meta: {
+        targetMarket: 'mars',
+        paperSize: 'poster',
+        dateStyle: 'yesterday',
+        lang: 'xx',
+      },
+    });
+
+    expect(detectedSettings).toEqual({});
   });
 
   describe('Resume Language Auto-Detection', () => {

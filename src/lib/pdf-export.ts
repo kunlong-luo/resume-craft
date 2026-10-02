@@ -1,11 +1,12 @@
 import { CSS_PX_PER_MM } from './page-layout';
-import { PaperSize } from '../types';
+import { Language, PaperSize } from '../types';
 import { getPaperSpec } from './paper';
 
 export interface DirectPDFExportOptions {
   filename?: string;
   onProgress?: (status: string) => void;
   paperSize?: PaperSize;
+  lang?: Language;
 }
 
 /**
@@ -150,9 +151,18 @@ export async function exportDirectPDF(
   elementOrId: HTMLElement | string,
   options: DirectPDFExportOptions = {}
 ): Promise<boolean> {
-  const { filename = 'resume.pdf', onProgress, paperSize: explicitPaperSize } = options;
+  const {
+    filename = 'resume.pdf',
+    onProgress,
+    paperSize: explicitPaperSize,
+    lang = 'zh',
+  } = options;
+  const isEn = lang === 'en';
+  const reportProgress = (zh: string, en: string) => {
+    onProgress?.(isEn ? en : zh);
+  };
 
-  onProgress?.('准备简历渲染数据...');
+  reportProgress('准备简历渲染数据...', 'Preparing resume rendering data...');
   let targetElement = typeof elementOrId === 'string'
     ? document.getElementById(elementOrId)
     : elementOrId;
@@ -186,7 +196,7 @@ export async function exportDirectPDF(
     }
   }
 
-  onProgress?.('构建高保真渲染副本...');
+  reportProgress('构建高保真渲染副本...', 'Building a high-fidelity render copy...');
   
   // Create an offscreen wrapper placed far off-screen
   const exportWrapper = document.createElement('div');
@@ -268,13 +278,13 @@ export async function exportDirectPDF(
   });
 
   try {
-    onProgress?.('正在加载渲染引擎与排版组件...');
+    reportProgress('正在加载渲染引擎与排版组件...', 'Loading the rendering engine and layout tools...');
     const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
       import('html2canvas-pro'),
       import('jspdf')
     ]);
 
-    onProgress?.('正在生成超清渲染光栅...');
+    reportProgress('正在生成超清渲染光栅...', 'Rendering the high-resolution page image...');
     
     // Let the offscreen clone settle before capture.
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
@@ -291,7 +301,10 @@ export async function exportDirectPDF(
       windowHeight: Math.max(windowHeightPx, clone.scrollHeight || windowHeightPx),
     });
 
-    onProgress?.(`正在进行 ${paperSpec.id === 'letter' ? 'US Letter' : 'A4'} 智能防截断分页排版...`);
+    reportProgress(
+      `正在进行 ${paperSpec.id === 'letter' ? 'US Letter' : 'A4'} 智能防截断分页排版...`,
+      `Preparing ${paperSpec.id === 'letter' ? 'US Letter' : 'A4'} pages with smart split protection...`,
+    );
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -319,7 +332,10 @@ export async function exportDirectPDF(
       }
 
       pageCount++;
-      onProgress?.(`正在渲染第 ${pageCount} 页 PDF (智能避让文字)...`);
+      reportProgress(
+        `正在渲染第 ${pageCount} 页 PDF (智能避让文字)...`,
+        `Rendering PDF page ${pageCount} with smart text splitting...`,
+      );
 
       let splitY = Math.min(canvas.height, currentY + idealPageCanvasHeight);
       const nextManualBreak = manualBreakCanvasY.find(
@@ -362,7 +378,7 @@ export async function exportDirectPDF(
       currentY = splitY;
     }
 
-    onProgress?.('正在保存 PDF 文件...');
+    reportProgress('正在保存 PDF 文件...', 'Saving the PDF file...');
     const finalFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
     
     // Trigger direct client download

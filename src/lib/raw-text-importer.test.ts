@@ -68,6 +68,8 @@ describe('raw text resume import', () => {
     expect(result).toContain('# Candidate Name');
     expect(result).toContain('your_email@example.com | City');
     expect(result).toContain('## Summary');
+    expect(result).toContain('- 2023.01 - 2025.06');
+    expect(result).not.toContain('- 023.01 - 2025.06');
     expect(result).not.toContain('求职者姓名');
     expect(result).not.toContain('城市');
   });

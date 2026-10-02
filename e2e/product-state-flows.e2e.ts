@@ -175,6 +175,41 @@ test.describe('product state flows', () => {
     }).toBe('uk_cv');
   });
 
+  test('rejects malformed and unsupported JSON instead of importing raw JSON text', async ({ page }) => {
+    await page.goto('/');
+
+    await page.getByRole('button', { name: /More actions|更多操作/ }).click();
+    await page.getByRole('button', { name: /^(Import|导入)$/ }).click();
+
+    const fileInput = page.locator('input[type="file"]');
+    const importButton = page.getByRole('button', { name: /Import This File|确认导入/ });
+    const originalMarkdown = await readActiveMarkdown(page);
+
+    await fileInput.setInputFiles({
+      name: 'broken.JSON',
+      mimeType: 'application/json',
+      buffer: Buffer.from('{"basics": {"name": "Broken"'),
+    });
+
+    await expect(page.getByRole('alert')).toContainText(
+      /malformed|格式损坏/,
+    );
+    await expect(importButton).toBeDisabled();
+    await expect.poll(() => readActiveMarkdown(page)).toBe(originalMarkdown);
+
+    await fileInput.setInputFiles({
+      name: 'unknown.JSON',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify({ foo: 'bar', answer: 42 })),
+    });
+
+    await expect(page.getByRole('alert')).toContainText(
+      /supported resume format|受支持的简历格式/,
+    );
+    await expect(importButton).toBeDisabled();
+    await expect.poll(() => readActiveMarkdown(page)).toBe(originalMarkdown);
+  });
+
   test('persists dark theme across reloads', async ({ page }) => {
     await page.goto('/');
 

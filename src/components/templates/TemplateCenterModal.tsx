@@ -263,12 +263,12 @@ export function TemplateCenterModal({
           selectedPresentation.name +
           '" replaces the active resume content. Target paper size (' +
           (selectedTemplate.defaultPaperSize?.toUpperCase() || 'A4') +
-          ') and market standards will be synchronized.'
+          '), resume language, and market standards will be synchronized.'
         : '使用「' +
           selectedPresentation.name +
           '」会替换当前简历内容，并自动同步目标市场格式与纸张规格（' +
           (selectedTemplate.defaultPaperSize?.toUpperCase() || 'A4') +
-          '）。',
+          '），并同步简历语言。',
       confirmText: isEn ? 'Use content template' : '使用内容模板',
       cancelText: isEn ? 'Cancel' : '取消',
       type: 'warning',
@@ -317,8 +317,8 @@ export function TemplateCenterModal({
               className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-500 dark:text-slate-400"
             >
               {isEn
-                ? 'Browse by job-seeking scenario and preview first. Applying a template replaces the resume content and syncs its target market, paper size, and date format; visual Layout and Style stay unchanged.'
-                : '按求职场景浏览并先预览。应用模板会替换简历内容，并同步目标市场、纸张和日期格式；视觉排版与样式设置保持不变。'}
+                ? 'Browse by job-seeking scenario and preview first. Applying a template replaces the resume content and syncs its resume language, target market, paper size, and date format; visual Layout and Style stay unchanged.'
+                : '按求职场景浏览并先预览。应用模板会替换简历内容，并同步简历语言、目标市场、纸张和日期格式；视觉排版与样式设置保持不变。'}
             </p>
           </div>
           <button

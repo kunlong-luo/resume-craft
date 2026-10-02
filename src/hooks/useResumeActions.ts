@@ -5,7 +5,6 @@ import { useShallow } from 'zustand/react/shallow';
 import { trackAnalyticsEvent } from '../lib/analytics';
 import { getMarketDefaultFileName } from '../lib/export-utils';
 import { getPrintPageStyle } from '../lib/print-style';
-import { detectResumeLanguage } from '../lib/resume-language';
 
 interface UseResumeActionsProps {
   contentRef: React.RefObject<HTMLDivElement | null>;
@@ -19,8 +18,7 @@ export function useResumeActions({ contentRef, onPdfExportComplete }: UseResumeA
     isExportingPDF,
     setIsIframeModalOpen,
     setIsExportingPDF,
-    setPdfExportProgress,
-    replaceDocument,
+    setPdfExportProgress
   } = useResumeStore(
     useShallow((state) => ({
       paperSize: state.settings.paperSize,
@@ -28,8 +26,7 @@ export function useResumeActions({ contentRef, onPdfExportComplete }: UseResumeA
       isExportingPDF: state.isExportingPDF,
       setIsIframeModalOpen: state.setIsIframeModalOpen,
       setIsExportingPDF: state.setIsExportingPDF,
-      setPdfExportProgress: state.setPdfExportProgress,
-      replaceDocument: state.replaceDocument,
+      setPdfExportProgress: state.setPdfExportProgress
     })),
   );
   
@@ -130,47 +127,12 @@ export function useResumeActions({ contentRef, onPdfExportComplete }: UseResumeA
     handleExportVectorPrint();
   };
 
-  const handleExportMarkdown = () => {
-    const { markdown } = useResumeStore.getState();
-    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    let filename = `${getExportTitle()}_resume.md`;
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
 
-  const handleImportMarkdown = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result;
-      if (typeof result === 'string') {
-        const currentSettings = useResumeStore.getState().settings;
-        const detectedLang = detectResumeLanguage(result, currentSettings.lang || 'zh');
-        replaceDocument(
-          result,
-          { ...currentSettings, lang: detectedLang },
-          'custom',
-        );
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  };
 
   return {
     handleExportPDF,
     handleExportDirectPDF,
     handleExportVectorPrint,
-    handleExportMarkdown,
-    handleImportMarkdown,
     getExportTitle
   };
 }

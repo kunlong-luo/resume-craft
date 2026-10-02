@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, Copy, FilePlus, LayoutTemplate, FolderPlus, Check } from 'lucide-react';
 import { useResumeStore } from '../../store/useResumeStore';
 import { BLANK_MARKDOWN, TEMPLATES } from '../../data';
 import { getMarketProfile, resolveDefaultPaperSize } from '../../lib/market-profile';
+import { getTemplatePresentation } from '../../lib/template-presentation';
+import { useDialogFocus } from '../../hooks/useDialogFocus';
 
 interface NewProfileModalProps {
   isOpen: boolean;
@@ -13,11 +15,15 @@ interface NewProfileModalProps {
 export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps) {
   const isEn = lang === 'en';
   const { createProfile, profiles, settings } = useResumeStore();
+  const presentationLang = isEn ? 'en' : 'zh';
 
   const [mode, setMode] = useState<'clone' | 'template' | 'blank'>('clone');
   const [name, setName] = useState('');
   const [targetRole, setTargetRole] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(isEn ? 'us_swe' : 'cn_demo');
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useDialogFocus({ isOpen, dialogRef, onClose });
 
   useEffect(() => {
     if (isOpen) {
@@ -33,7 +39,12 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
       mode === 'clone' 
         ? `${isEn ? 'Tailored Profile' : '定制简历档案'} ${profiles.length + 1}`
         : mode === 'template'
-        ? TEMPLATES.find(t => t.id === selectedTemplateId)?.name || (isEn ? 'Template Resume' : '岗位模板档案')
+        ? (() => {
+            const template = TEMPLATES.find(t => t.id === selectedTemplateId);
+            return template
+              ? getTemplatePresentation(template, presentationLang).name
+              : (isEn ? 'Template Resume' : '岗位模板档案');
+          })()
         : (isEn ? 'Blank Resume' : '空白简历')
     );
 
@@ -75,8 +86,16 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div 
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-profile-dialog-title"
+        tabIndex={-1}
         className="bg-white dark:bg-slate-850 rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200/80 dark:border-slate-700/80 overflow-hidden flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
@@ -87,7 +106,7 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
               <FolderPlus className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-extrabold text-sm sm:text-base text-slate-800 dark:text-slate-100">
+              <h3 id="new-profile-dialog-title" className="font-extrabold text-sm sm:text-base text-slate-800 dark:text-slate-100">
                 {isEn ? 'Create New Resume Profile' : '新建独立简历档案'}
               </h3>
               <p className="text-[11px] text-slate-400 dark:text-slate-500">
@@ -96,7 +115,9 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label={isEn ? 'Close create resume dialog' : '关闭新建简历弹窗'}
             className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <X className="w-4 h-4" />
@@ -182,17 +203,21 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
                   setSelectedTemplateId(e.target.value);
                   const t = TEMPLATES.find(x => x.id === e.target.value);
                   if (t) {
-                    setName(t.name);
-                    setTargetRole(t.category);
+                    const presentation = getTemplatePresentation(t, presentationLang);
+                    setName(presentation.name);
+                    setTargetRole(presentation.category);
                   }
                 }}
                 className="w-full text-xs font-semibold px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
               >
-                {TEMPLATES.map(t => (
-                  <option key={t.id} value={t.id}>
-                    [{t.category}] {t.name}
-                  </option>
-                ))}
+                {TEMPLATES.map(t => {
+                  const presentation = getTemplatePresentation(t, presentationLang);
+                  return (
+                    <option key={t.id} value={t.id}>
+                      [{presentation.category}] {presentation.name}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}

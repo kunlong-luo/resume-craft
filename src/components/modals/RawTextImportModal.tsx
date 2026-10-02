@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangle, ArrowRight, Check, Clipboard, FileCode2, FileInput, FileText, Loader2, ScanText, ShieldCheck, Trash2, Upload, Wand2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { parseRawTextToResumeMarkdown, detectResumeMarket } from '../../lib/raw-text-importer';
+import { parseRawTextToResumeMarkdown, detectResumeLanguage, detectResumeMarket } from '../../lib/raw-text-importer';
 import {
   extractResumeTextFromPdf,
   MAX_PDF_FILE_SIZE,
@@ -16,7 +16,7 @@ import { useResumeStore } from '../../store/useResumeStore';
 interface RawTextImportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onImport: (markdown: string) => void;
+  onImport: (markdown: string, settingsPatch?: Partial<ReturnType<typeof useResumeStore.getState>['settings']>) => void;
   onImportFile?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   lang?: string;
 }
@@ -29,6 +29,7 @@ interface LoadedFileInfo {
   type: 'md' | 'txt' | 'json' | 'pdf';
   pdf?: PdfExtractionResult;
   detectedMarket?: string;
+  detectedSettings?: Partial<ReturnType<typeof useResumeStore.getState>['settings']>;
 }
 
 export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: RawTextImportModalProps) {
@@ -130,6 +131,7 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
     let type: 'md' | 'txt' | 'json' = 'md';
     let processedContent = content;
     let detectedMarketStr = '';
+    let detectedSettings: LoadedFileInfo['detectedSettings'];
 
     if (fileName.endsWith('.json')) {
       type = 'json';
@@ -140,6 +142,7 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
             // Standard JSON Resume schema
             const jsonRes = importFromJsonResume(parsed);
             processedContent = jsonRes.markdown;
+            detectedSettings = jsonRes.detectedSettings;
             if (jsonRes.detectedSettings?.marketRegion) {
               detectedMarketStr = jsonRes.detectedSettings.marketRegion;
             }
@@ -168,6 +171,7 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
       content: processedContent,
       type,
       detectedMarket: detectedMarketStr,
+      detectedSettings,
     });
   };
 
@@ -288,7 +292,8 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
       );
       generatedMarkdown = adapted.adaptedMarkdown;
     }
-    onImport(generatedMarkdown);
+    const detectedLang = detectResumeLanguage(generatedMarkdown, settings.lang || 'zh');
+    onImport(generatedMarkdown, { lang: detectedLang });
     setRawText('');
     onClose();
   };
@@ -311,7 +316,13 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
       finalMd = adapted.adaptedMarkdown;
     }
 
-    onImport(finalMd);
+    const detectedLang =
+      selectedFile.detectedSettings?.lang ??
+      detectResumeLanguage(finalMd, settings.lang || 'zh');
+    onImport(finalMd, {
+      ...selectedFile.detectedSettings,
+      lang: detectedLang,
+    });
     setSelectedFile(null);
     onClose();
   };

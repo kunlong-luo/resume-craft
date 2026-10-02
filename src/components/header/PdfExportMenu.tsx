@@ -202,7 +202,7 @@ export function PdfExportMenu({
           <div className="mb-2 rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800/70">
             <div className="flex items-center justify-between">
               <label htmlFor={fileNameId} className="block text-[10px] font-black uppercase tracking-[0.1em] text-slate-400">
-                {isEn ? 'PDF file name' : 'PDF 文件名'}
+                {isEn ? 'File name' : '文件名'}
               </label>
               {customFileName && (
                 <button

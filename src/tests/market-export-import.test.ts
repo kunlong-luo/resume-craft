@@ -106,6 +106,61 @@ oliver@example.co.uk | +44 7700 900077 | London, UK | Postcode: EC1A 1BB
       expect(filename).toBe('My_Custom_Resume_2026.pdf');
     });
 
+    it('does not duplicate known export extensions in custom file names', () => {
+      expect(
+        getMarketDefaultFileName({
+          markdown: sampleUsMarkdown,
+          settings: baseSettings,
+          customFileName: 'Alex Resume.pdf',
+        }),
+      ).toBe('Alex Resume');
+
+      expect(
+        getMarketDefaultFileName({
+          markdown: sampleUsMarkdown,
+          settings: baseSettings,
+          customFileName: 'Alex Resume.pdf',
+          extension: 'pdf',
+        }),
+      ).toBe('Alex Resume.pdf');
+
+      expect(
+        getMarketDefaultFileName({
+          markdown: sampleUsMarkdown,
+          settings: baseSettings,
+          customFileName: 'Alex Resume.JSON',
+          extension: 'json',
+        }),
+      ).toBe('Alex Resume.json');
+
+      expect(
+        getMarketDefaultFileName({
+          markdown: sampleUsMarkdown,
+          settings: baseSettings,
+          customFileName: 'Alex Resume.md',
+          extension: 'pdf',
+        }),
+      ).toBe('Alex Resume.pdf');
+    });
+
+    it('falls back safely when the custom name is only an extension or ends in dots', () => {
+      const extensionOnly = getMarketDefaultFileName({
+        markdown: sampleUsMarkdown,
+        settings: baseSettings,
+        customFileName: '.pdf',
+        extension: 'pdf',
+      });
+      expect(extensionOnly).toBe('Alex Morgan - Senior Cloud Architect - Resume.pdf');
+
+      const trailingDot = getMarketDefaultFileName({
+        markdown: sampleUsMarkdown,
+        settings: baseSettings,
+        customFileName: 'Alex Resume.',
+        extension: 'pdf',
+      });
+      expect(trailingDot).toBe('Alex Resume.pdf');
+    });
+
     it('sanitizes unsafe path characters from filenames', () => {
       const filename = getMarketDefaultFileName({
         markdown: `# Jane Doe/Architect:Special\n> **Lead <Dev> & PM**`,

@@ -118,7 +118,7 @@ test.describe('international responsive UX', () => {
       name: /Download options|下载选项/,
     });
     await expectInsideViewport(downloadDialog, 390, 844);
-    await expect(downloadDialog.getByLabel(/PDF file name|PDF 文件名/)).toBeVisible();
+    await expect(downloadDialog.getByLabel(/File name|文件名/)).toBeVisible();
     await expect(downloadDialog.getByRole('button', { name: /Quick PDF|快速 PDF/ })).toBeVisible();
   });
 

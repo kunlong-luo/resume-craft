@@ -181,7 +181,10 @@ export function parseRawTextToResumeMarkdown(
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    if (!phone) {
+    const looksLikeDateRange =
+      /(?:19|20)\d{2}[.\-/年]\d{1,2}\s*[-–—至~]\s*(?:(?:19|20)\d{2}[.\-/年]\d{1,2}|Present|至今)/i.test(line);
+
+    if (!phone && !looksLikeDateRange) {
       const candidate = findPhoneCandidate(line);
       if (candidate) {
         phone = candidate.display;
@@ -286,7 +289,7 @@ export function parseRawTextToResumeMarkdown(
   if (sections.length === 0 || (sections.length === 1 && !currentSection)) {
     markdown += `## ${labels.summary}\n`;
     for (const line of remainingLines) {
-      markdown += `- ${line.replace(/^[-*•\d.]\s*/, '')}\n`;
+      markdown += `- ${line.replace(/^(?:[-*•]\s*|\d+[.)、]\s*)/, '')}\n`;
     }
     return markdown;
   }

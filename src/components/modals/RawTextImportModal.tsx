@@ -153,41 +153,65 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
     if (normalizedFileName.endsWith('.json')) {
       type = 'json';
       try {
-        const parsed = JSON.parse(content);
-        if (parsed && typeof parsed === 'object') {
-          if ('version' in parsed && parsed.version === 'markdown-resume-backup-v1') {
-            const backup = normalizeResumeBackup(parsed, settings);
-            if (!backup) {
-              setSelectedFile(null);
-              setFileError(
-                isEn
-                  ? 'This Resume Craft backup is invalid or unsupported.'
-                  : '此 Resume Craft 备份无效、已损坏或版本不受支持。',
-              );
-              return;
-            }
-
-            processedContent = backup.markdown;
-            detectedSettings = backup.settings;
-            detectedTemplateId = backup.templateId;
-            detectedMarketStr = backup.settings.marketRegion || '';
-            isFullBackup = true;
-          } else if ('basics' in parsed || 'work' in parsed || 'skills' in parsed) {
-            // Standard JSON Resume schema
-            const jsonRes = importFromJsonResume(parsed);
-            processedContent = jsonRes.markdown;
-            detectedSettings = jsonRes.detectedSettings;
-            if (jsonRes.detectedSettings?.marketRegion) {
-              detectedMarketStr = jsonRes.detectedSettings.marketRegion;
-            }
-          } else if (parsed.markdown && typeof parsed.markdown === 'string') {
-            processedContent = parsed.markdown;
-          } else if (parsed.content && typeof parsed.content === 'string') {
-            processedContent = parsed.content;
-          }
+        const parsed: unknown = JSON.parse(content);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          setSelectedFile(null);
+          setFileError(
+            isEn
+              ? 'This JSON file does not contain a supported resume format.'
+              : '此 JSON 文件不包含受支持的简历格式。',
+          );
+          return;
         }
-      } catch (e) {
-        console.warn('JSON parsing skipped for text content', e);
+
+        const record = parsed as Record<string, unknown>;
+        if (record.version === 'markdown-resume-backup-v1') {
+          const backup = normalizeResumeBackup(parsed, settings);
+          if (!backup) {
+            setSelectedFile(null);
+            setFileError(
+              isEn
+                ? 'This Resume Craft backup is invalid or unsupported.'
+                : '此 Resume Craft 备份无效、已损坏或版本不受支持。',
+            );
+            return;
+          }
+
+          processedContent = backup.markdown;
+          detectedSettings = backup.settings;
+          detectedTemplateId = backup.templateId;
+          detectedMarketStr = backup.settings.marketRegion || '';
+          isFullBackup = true;
+        } else if ('basics' in record || 'work' in record || 'skills' in record) {
+          // Standard JSON Resume schema
+          const jsonRes = importFromJsonResume(parsed);
+          processedContent = jsonRes.markdown;
+          detectedSettings = jsonRes.detectedSettings;
+          if (jsonRes.detectedSettings?.marketRegion) {
+            detectedMarketStr = jsonRes.detectedSettings.marketRegion;
+          }
+        } else if (typeof record.markdown === 'string' && record.markdown.trim()) {
+          processedContent = record.markdown;
+        } else if (typeof record.content === 'string' && record.content.trim()) {
+          processedContent = record.content;
+        } else {
+          setSelectedFile(null);
+          setFileError(
+            isEn
+              ? 'This JSON file does not contain a supported resume format.'
+              : '此 JSON 文件不包含受支持的简历格式。',
+          );
+          return;
+        }
+      } catch (error) {
+        console.warn('Failed to parse imported JSON resume', error);
+        setSelectedFile(null);
+        setFileError(
+          isEn
+            ? 'This JSON file is malformed and could not be parsed.'
+            : '此 JSON 文件格式损坏，无法解析。',
+        );
+        return;
       }
     } else if (normalizedFileName.endsWith('.txt')) {
       type = 'txt';

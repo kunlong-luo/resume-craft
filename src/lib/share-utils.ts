@@ -1,7 +1,7 @@
 import { Unzlib, zlibSync } from 'fflate';
 import type { Language, ResumeSettings } from '../types';
 import { normalizeImportedSettings } from './import-validation';
-import { detectResumeLanguage } from './raw-text-importer';
+import { detectResumeLanguage } from './resume-language';
 
 export interface ShareState {
   markdown: string;

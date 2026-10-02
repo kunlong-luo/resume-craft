@@ -3,8 +3,27 @@
  * into clean, structured Markdown resume format.
  */
 
-import { MarketRegion } from '../types';
+import { Language, MarketRegion } from '../types';
 import { findPhoneCandidate } from './phone-utils';
+
+export function detectResumeLanguage(rawText: string, fallback: Language = 'zh'): Language {
+  if (!rawText || !rawText.trim()) return fallback;
+
+  const cjkCount = (rawText.match(/[\u4e00-\u9fff]/g) || []).length;
+  const latinWordCount = (rawText.match(/\b[A-Za-z]{2,}\b/g) || []).length;
+
+  // Require a meaningful Chinese signal rather than treating a few names or
+  // company labels as sufficient to flip an otherwise English resume.
+  if (cjkCount >= 12 && cjkCount >= latinWordCount * 0.35) {
+    return 'zh';
+  }
+
+  if (latinWordCount >= 12) {
+    return 'en';
+  }
+
+  return cjkCount > 0 ? 'zh' : fallback;
+}
 
 export interface MarketDetectionResult {
   detectedMarket: MarketRegion;

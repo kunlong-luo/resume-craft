@@ -6,7 +6,8 @@ import {
   importFromJsonResume,
   adaptMarkdownToTargetMarket,
 } from '../lib/export-utils';
-import { detectResumeLanguage, detectResumeMarket } from '../lib/raw-text-importer';
+import { detectResumeMarket } from '../lib/raw-text-importer';
+import { detectResumeLanguage } from '../lib/resume-language';
 import { ResumeSettings } from '../types';
 
 const baseSettings: ResumeSettings = {

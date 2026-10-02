@@ -18,7 +18,6 @@ interface RawTextImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (markdown: string, settingsPatch?: Partial<ReturnType<typeof useResumeStore.getState>['settings']>) => void;
-  onImportFile?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   lang?: string;
 }
 
@@ -284,26 +283,38 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
 
   const handleExecuteTextImport = () => {
     if (!rawText.trim()) return;
-    let generatedMarkdown = parseRawTextToResumeMarkdown(rawText);
+
+    const sourceLang = detectResumeLanguage(rawText, settings.lang || 'zh');
+    let generatedMarkdown = parseRawTextToResumeMarkdown(rawText, sourceLang);
+
     if (autoAdaptToMarket) {
       const adapted = adaptMarkdownToTargetMarket(
         generatedMarkdown,
         currentMarket,
-        settings.lang
+        settings.lang,
       );
       generatedMarkdown = adapted.adaptedMarkdown;
+      // "Auto-adapt" means keep the current document target. Imported
+      // metadata must not silently switch the resume back to another market.
+      onImport(generatedMarkdown, { lang: settings.lang });
+    } else {
+      onImport(generatedMarkdown, { lang: sourceLang });
     }
-    const detectedLang = detectResumeLanguage(generatedMarkdown, settings.lang || 'zh');
-    onImport(generatedMarkdown, { lang: detectedLang });
+
     setRawText('');
     onClose();
   };
 
   const handleExecuteFileImport = () => {
     if (!selectedFile) return;
+
+    const sourceLang =
+      selectedFile.detectedSettings?.lang ??
+      detectResumeLanguage(selectedFile.content, settings.lang || 'zh');
+
     let finalMd = '';
     if (selectedFile.type === 'txt' || selectedFile.type === 'pdf') {
-      finalMd = parseRawTextToResumeMarkdown(selectedFile.content);
+      finalMd = parseRawTextToResumeMarkdown(selectedFile.content, sourceLang);
     } else {
       finalMd = selectedFile.content;
     }
@@ -312,18 +323,17 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
       const adapted = adaptMarkdownToTargetMarket(
         finalMd,
         currentMarket,
-        settings.lang
+        settings.lang,
       );
       finalMd = adapted.adaptedMarkdown;
+      onImport(finalMd, { lang: settings.lang });
+    } else {
+      onImport(finalMd, {
+        ...selectedFile.detectedSettings,
+        lang: sourceLang,
+      });
     }
 
-    const detectedLang =
-      selectedFile.detectedSettings?.lang ??
-      detectResumeLanguage(finalMd, settings.lang || 'zh');
-    onImport(finalMd, {
-      ...selectedFile.detectedSettings,
-      lang: detectedLang,
-    });
     setSelectedFile(null);
     onClose();
   };
@@ -640,8 +650,8 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
                     </span>
                     <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
                       {isEn
-                        ? `Standardizes dates (${currentMarketProfile.dateStyle}), section titles, and EEO sanitization`
-                        : `自动将日期转为目标国规范 (${currentMarketProfile.dateStyle}) 并进行招聘合规优化`}
+                        ? `Keeps the current market/language, then standardizes dates (${currentMarketProfile.dateStyle}), section titles, and EEO fields`
+                        : `保持当前市场与简历语言，并统一日期 (${currentMarketProfile.dateStyle})、模块标题和招聘合规字段`}
                     </span>
                   </div>
                 </div>

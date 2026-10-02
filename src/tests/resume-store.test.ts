@@ -209,6 +209,29 @@ describe('resume store state consistency', () => {
     expect(state.historyIndex).toBe(0);
   });
 
+  it.each([
+    { uiLanguage: 'zh' as const, initialLang: 'zh' as const, templateId: 'us_swe', expectedLang: 'en' as const },
+    { uiLanguage: 'en' as const, initialLang: 'en' as const, templateId: 'cn_demo', expectedLang: 'zh' as const },
+  ])(
+    'syncs template resume language without changing $uiLanguage interface language',
+    ({ uiLanguage, initialLang, templateId, expectedLang }) => {
+      useResumeStore.setState({
+        uiLanguage,
+        settings: {
+          ...useResumeStore.getState().settings,
+          lang: initialLang,
+        },
+      });
+
+      expect(useResumeStore.getState().applyTemplate(templateId)).toBe(true);
+
+      const state = useResumeStore.getState();
+      expect(state.uiLanguage).toBe(uiLanguage);
+      expect(state.settings.lang).toBe(expectedLang);
+      expect(state.profiles[0].settings.lang).toBe(expectedLang);
+    },
+  );
+
   it('does not partially mutate state when applying an unknown template', () => {
     const before = useResumeStore.getState();
 

@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { trackAnalyticsEvent } from '../lib/analytics';
 import { getMarketDefaultFileName } from '../lib/export-utils';
 import { getPrintPageStyle } from '../lib/print-style';
-import { detectResumeLanguage } from '../lib/raw-text-importer';
+import { detectResumeLanguage } from '../lib/resume-language';
 
 interface UseResumeActionsProps {
   contentRef: React.RefObject<HTMLDivElement | null>;

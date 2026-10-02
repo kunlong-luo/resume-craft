@@ -185,6 +185,7 @@ describe('resume store state consistency', () => {
       historyIndex: 1,
       settings: {
         ...useResumeStore.getState().settings,
+        lang: 'en',
         marketRegion: 'ca',
         paperSize: 'letter',
         dateStyle: 'month-short',
@@ -196,11 +197,13 @@ describe('resume store state consistency', () => {
 
     const state = useResumeStore.getState();
     expect(state.currentTemplateId).toBe('cn_demo');
+    expect(state.settings.lang).toBe('zh');
     expect(state.settings.marketRegion).toBe('cn');
     expect(state.settings.paperSize).toBe('a4');
     expect(state.settings.dateStyle).toBe('cn-dot');
     expect(state.markdown).toContain('Resume Craft 中文通用 Demo');
     expect(state.profiles[0].templateId).toBe('cn_demo');
+    expect(state.profiles[0].settings.lang).toBe('zh');
     expect(state.profiles[0].settings.marketRegion).toBe('cn');
     expect(state.history).toEqual([state.markdown]);
     expect(state.historyIndex).toBe(0);

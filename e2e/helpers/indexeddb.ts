@@ -20,8 +20,8 @@ export async function readActiveMarkdown(page: Page): Promise<string | null> {
 
 export async function readProfiles(
   page: Page,
-): Promise<Array<{ id: string; name: string; markdown: string }>> {
-  return page.evaluate(() => new Promise<Array<{ id: string; name: string; markdown: string }>>((resolve, reject) => {
+): Promise<Array<{ id: string; name: string; markdown: string; templateId?: string }>> {
+  return page.evaluate(() => new Promise<Array<{ id: string; name: string; markdown: string; templateId?: string }>>((resolve, reject) => {
     const request = indexedDB.open('resume-craft');
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
@@ -30,10 +30,11 @@ export async function readProfiles(
       const getRequest = tx.objectStore('profiles').getAll();
       tx.onerror = () => reject(tx.error);
       tx.oncomplete = () => {
-        resolve((getRequest.result ?? []).map((profile: { id: string; name: string; markdown: string }) => ({
+        resolve((getRequest.result ?? []).map((profile: { id: string; name: string; markdown: string; templateId?: string }) => ({
           id: profile.id,
           name: profile.name,
           markdown: profile.markdown,
+          templateId: profile.templateId,
         })));
         db.close();
       };

@@ -104,6 +104,77 @@ test.describe('product state flows', () => {
     });
   });
 
+  test('restores a full Resume Craft backup exactly through the regular import UI', async ({ page }) => {
+    await page.goto('/');
+
+    await page.getByRole('button', { name: /More actions|更多操作/ }).click();
+    await page.getByRole('button', { name: /^(Import|导入)$/ }).click();
+
+    const backupMarkdown = [
+      '# Exact Backup Candidate',
+      '',
+      '## Work Experience',
+      '',
+      '### Example Systems | Platform Engineer | March 2023 – Present',
+      '- This line must survive backup restore without market adaptation.',
+    ].join('\n');
+
+    const backup = {
+      version: 'markdown-resume-backup-v1',
+      exportedAt: '2026-10-02T08:00:00.000Z',
+      markdown: backupMarkdown,
+      templateId: 'uk_cv',
+      settings: {
+        themeColor: 'indigo',
+        fontSize: 'standard',
+        fontFamily: 'sans',
+        margin: 'compact',
+        layoutMode: 'split',
+        h2Style: 'accent-line',
+        topAccentLine: true,
+        lineHeight: 1.4,
+        blockGap: 1.1,
+        letterSpacing: 0,
+        showPageBreakLine: false,
+        templateLayout: 'single',
+        paperSize: 'a4',
+        marketRegion: 'uk',
+        dateStyle: 'month-long',
+        lang: 'en',
+      },
+    };
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: 'resume-craft-full-backup.JSON',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(backup)),
+    });
+
+    await expect(page.getByText('resume-craft-full-backup.JSON')).toBeVisible();
+    await expect(page.getByText(/Full Resume Craft backup detected|已识别 Resume Craft 完整备份/)).toBeVisible();
+
+    await page.getByRole('button', { name: /Import This File|确认导入/ }).click();
+
+    await expect.poll(() => readActiveMarkdown(page)).toBe(backupMarkdown);
+    await expect.poll(() =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem('resume-settings') || '{}')),
+    ).toMatchObject({
+      lang: 'en',
+      marketRegion: 'uk',
+      paperSize: 'a4',
+      dateStyle: 'month-long',
+      margin: 'compact',
+      lineHeight: 1.4,
+      blockGap: 1.1,
+    });
+
+    await expect.poll(async () => {
+      const activeId = await page.evaluate(() => window.localStorage.getItem('resume-active-profile-id'));
+      const profiles = await readProfiles(page);
+      return profiles.find((profile) => profile.id === activeId)?.templateId ?? null;
+    }).toBe('uk_cv');
+  });
+
   test('persists dark theme across reloads', async ({ page }) => {
     await page.goto('/');
 

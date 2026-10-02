@@ -115,13 +115,99 @@ export function canTranslateSectionTitle(title: string, targetLang: 'zh' | 'en')
   return translated !== trimmed;
 }
 
+const HEADER_TOKEN_TO_EN: Record<string, string> = {
+  '大专': 'Associate',
+  '本科': 'Bachelor',
+  '学士': 'Bachelor',
+  '硕士': 'Master',
+  '博士': 'PhD',
+  '在校生/应届生': 'Student / New Graduate',
+  '应届生': 'Student / New Graduate',
+  '应届毕业生': 'Student / New Graduate',
+  '在职 - 随时到岗': 'Employed - Immediate',
+  '在职 - 考虑机会': 'Employed - Open to Offers',
+  '在职 - 暂不考虑': 'Employed - Not Looking',
+  '离职 - 随时到岗': 'Unemployed - Immediate',
+  '在校 - 寻找实习': 'Student - Looking for Internship',
+};
+
+const HEADER_TOKEN_TO_ZH: Record<string, string> = {
+  'associate': '大专',
+  'bachelor': '本科',
+  'master': '硕士',
+  'phd': '博士',
+  'student / new graduate': '在校生/应届生',
+  'employed - immediate': '在职-随时到岗',
+  'employed - open to offers': '在职-考虑机会',
+  'employed - not looking': '在职-暂不考虑',
+  'unemployed - immediate': '离职-随时到岗',
+  'student - looking for internship': '在校-寻找实习',
+};
+
+function normalizeHeaderToken(token: string): string {
+  return token
+    .replace(/[–—]/g, '-')
+    .replace(/\s*-\s*/g, ' - ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function translateHeaderToken(token: string, targetLang: 'zh' | 'en'): string {
+  const leading = token.match(/^\s*/)?.[0] ?? '';
+  const trailing = token.match(/\s*$/)?.[0] ?? '';
+  const core = token.trim();
+  if (!core) return token;
+
+  if (targetLang === 'en') {
+    const normalized = normalizeHeaderToken(core);
+    const mapped = HEADER_TOKEN_TO_EN[normalized] ?? HEADER_TOKEN_TO_EN[core];
+    if (mapped) return `${leading}${mapped}${trailing}`;
+
+    const years = core.match(/^(\d+)\s*年(?:工作)?经验$/);
+    if (years) {
+      const count = Number(years[1]);
+      return `${leading}${count} ${count === 1 ? 'Year' : 'Years'} Experience${trailing}`;
+    }
+
+    return token;
+  }
+
+  const normalized = normalizeHeaderToken(core).toLowerCase();
+  const mapped = HEADER_TOKEN_TO_ZH[normalized];
+  if (mapped) return `${leading}${mapped}${trailing}`;
+
+  const years = normalized.match(/^(\d+)\s*(?:year|years|yr|yrs)(?:\s+of)?\s+experience$/i);
+  if (years) {
+    return `${leading}${Number(years[1])}年工作经验${trailing}`;
+  }
+
+  return token;
+}
+
+function translateResumeHeaderMetadata(markdown: string, targetLang: 'zh' | 'en'): string {
+  const lines = markdown.split('\n');
+  let reachedSection = false;
+
+  return lines
+    .map((line) => {
+      if (/^##\s+/.test(line)) reachedSection = true;
+      if (reachedSection || !line.trim()) return line;
+
+      return line
+        .split(/(\s*[｜|]\s*)/)
+        .map((part) => (/^[\s]*[｜|][\s]*$/.test(part) ? part : translateHeaderToken(part, targetLang)))
+        .join('');
+    })
+    .join('\n');
+}
+
 /**
  * Bidirectionally converts standard section headings, sub-item labels, and time strings in Markdown
  */
 export function translateMarkdownContent(markdown: string, targetLang: 'zh' | 'en'): string {
   if (!markdown) return markdown;
 
-  let result = markdown;
+  let result = translateResumeHeaderMetadata(markdown, targetLang);
 
   if (targetLang === 'en') {
     // 1. Section Headings (## <Title>)

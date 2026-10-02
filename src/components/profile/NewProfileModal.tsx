@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, Copy, FilePlus, LayoutTemplate, FolderPlus, Check } from 'lucide-react';
 import { useResumeStore } from '../../store/useResumeStore';
 import { BLANK_MARKDOWN, TEMPLATES } from '../../data';
 import { getMarketProfile, resolveDefaultPaperSize } from '../../lib/market-profile';
 import { getTemplatePresentation } from '../../lib/template-presentation';
+import { useDialogFocus } from '../../hooks/useDialogFocus';
 
 interface NewProfileModalProps {
   isOpen: boolean;
@@ -20,6 +21,9 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
   const [name, setName] = useState('');
   const [targetRole, setTargetRole] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(isEn ? 'us_swe' : 'cn_demo');
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useDialogFocus({ isOpen, dialogRef, onClose });
 
   useEffect(() => {
     if (isOpen) {
@@ -82,8 +86,16 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div 
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-profile-dialog-title"
+        tabIndex={-1}
         className="bg-white dark:bg-slate-850 rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200/80 dark:border-slate-700/80 overflow-hidden flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
@@ -94,7 +106,7 @@ export function NewProfileModal({ isOpen, onClose, lang }: NewProfileModalProps)
               <FolderPlus className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-extrabold text-sm sm:text-base text-slate-800 dark:text-slate-100">
+              <h3 id="new-profile-dialog-title" className="font-extrabold text-sm sm:text-base text-slate-800 dark:text-slate-100">
                 {isEn ? 'Create New Resume Profile' : '新建独立简历档案'}
               </h3>
               <p className="text-[11px] text-slate-400 dark:text-slate-500">

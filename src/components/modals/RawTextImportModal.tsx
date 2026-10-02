@@ -367,7 +367,8 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
 
   const handleExecuteTextImport = () => {
     if (!rawText.trim()) return;
-    let generatedMarkdown = parseRawTextToResumeMarkdown(rawText);
+    const sourceLang = detectResumeLanguage(rawText, settings.lang || 'zh');
+    let generatedMarkdown = parseRawTextToResumeMarkdown(rawText, sourceLang);
     if (autoAdaptToMarket) {
       const adapted = adaptMarkdownToTargetMarket(
         generatedMarkdown,
@@ -386,7 +387,11 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
     if (!selectedFile) return;
     let finalMd = '';
     if (selectedFile.type === 'txt' || selectedFile.type === 'pdf') {
-      finalMd = parseRawTextToResumeMarkdown(selectedFile.content);
+      const sourceLang = detectResumeLanguage(
+        selectedFile.content,
+        settings.lang || 'zh',
+      );
+      finalMd = parseRawTextToResumeMarkdown(selectedFile.content, sourceLang);
     } else {
       finalMd = selectedFile.content;
     }

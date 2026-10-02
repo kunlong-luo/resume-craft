@@ -310,7 +310,7 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
                     {i > 0 && (
                       <>
                         <div className="print:hidden my-8 border-t-2 border-dashed border-gray-400 relative flex justify-center select-none">
-                          <span className="absolute -top-3 bg-white px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">{uiLanguage === 'en' ? 'Page Break' : '分页符 / Page Break'}</span>
+                          <span className="absolute -top-3 bg-white px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">{uiLanguage === 'en' ? 'Page Break' : '分页符'}</span>
                         </div>
                         <div className="hidden print:block print-page-break" />
                       </>
@@ -459,6 +459,7 @@ export const Preview = React.memo(forwardRef<HTMLDivElement, PreviewProps>(({ ov
         onSmartAutoFit={handleSmartAutoFit} 
         isAutoFitting={isAutoFitting}
         lang={uiLanguage}
+        paperLabel={paperSpec.id === 'letter' ? (isEn ? 'Letter' : 'US Letter') : 'A4'}
       />
     </div>
   );

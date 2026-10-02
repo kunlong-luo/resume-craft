@@ -13,13 +13,14 @@ import {
 import { importFromJsonResume, adaptMarkdownToTargetMarket } from '../../lib/export-utils';
 import { getMarketProfile } from '../../lib/market-profile';
 import { useResumeStore } from '../../store/useResumeStore';
+import { normalizeResumeBackup } from '../../lib/import-validation';
 
 const MAX_TEXT_IMPORT_FILE_SIZE = 2 * 1024 * 1024;
 
 interface RawTextImportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onImport: (markdown: string, settingsPatch?: Partial<ReturnType<typeof useResumeStore.getState>['settings']>) => void;
+  onImport: (markdown: string, settingsPatch?: Partial<ReturnType<typeof useResumeStore.getState>['settings']>, templateId?: string) => void;
   onImportFile?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   lang?: string;
 }
@@ -33,6 +34,8 @@ interface LoadedFileInfo {
   pdf?: PdfExtractionResult;
   detectedMarket?: string;
   detectedSettings?: Partial<ReturnType<typeof useResumeStore.getState>['settings']>;
+  detectedTemplateId?: string;
+  isFullBackup?: boolean;
 }
 
 export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: RawTextImportModalProps) {
@@ -144,13 +147,32 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
     let processedContent = content;
     let detectedMarketStr = '';
     let detectedSettings: LoadedFileInfo['detectedSettings'];
+    let detectedTemplateId: string | undefined;
+    let isFullBackup = false;
 
     if (normalizedFileName.endsWith('.json')) {
       type = 'json';
       try {
         const parsed = JSON.parse(content);
         if (parsed && typeof parsed === 'object') {
-          if (parsed.basics || parsed.work || parsed.skills) {
+          if ('version' in parsed && parsed.version === 'markdown-resume-backup-v1') {
+            const backup = normalizeResumeBackup(parsed, settings);
+            if (!backup) {
+              setSelectedFile(null);
+              setFileError(
+                isEn
+                  ? 'This Resume Craft backup is invalid or unsupported.'
+                  : '此 Resume Craft 备份无效、已损坏或版本不受支持。',
+              );
+              return;
+            }
+
+            processedContent = backup.markdown;
+            detectedSettings = backup.settings;
+            detectedTemplateId = backup.templateId;
+            detectedMarketStr = backup.settings.marketRegion || '';
+            isFullBackup = true;
+          } else if ('basics' in parsed || 'work' in parsed || 'skills' in parsed) {
             // Standard JSON Resume schema
             const jsonRes = importFromJsonResume(parsed);
             processedContent = jsonRes.markdown;
@@ -184,6 +206,8 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
       type,
       detectedMarket: detectedMarketStr,
       detectedSettings,
+      detectedTemplateId,
+      isFullBackup,
     });
   };
 
@@ -343,7 +367,7 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
       finalMd = selectedFile.content;
     }
 
-    if (autoAdaptToMarket) {
+    if (autoAdaptToMarket && !selectedFile.isFullBackup) {
       const adapted = adaptMarkdownToTargetMarket(
         finalMd,
         adaptationMarket,
@@ -355,10 +379,14 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
     const detectedLang =
       selectedFile.detectedSettings?.lang ??
       detectResumeLanguage(finalMd, settings.lang || 'zh');
-    onImport(finalMd, {
-      ...selectedFile.detectedSettings,
-      lang: detectedLang,
-    });
+    onImport(
+      finalMd,
+      {
+        ...selectedFile.detectedSettings,
+        lang: detectedLang,
+      },
+      selectedFile.detectedTemplateId,
+    );
     setSelectedFile(null);
     onClose();
   };
@@ -663,31 +691,49 @@ export function RawTextImportModal({ isOpen, onClose, onImport, lang = 'zh' }: R
             )}
 
             {/* Market Adaptation Option */}
-            <div className="mx-5 mb-3 rounded-xl border border-indigo-100 bg-indigo-50/50 p-2.5 dark:border-indigo-950/60 dark:bg-indigo-950/30">
-              <label className="flex items-center justify-between gap-2 cursor-pointer select-none">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Wand2 className="h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
-                  <div className="min-w-0">
-                    <span className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                      {isEn
-                        ? `Auto-adapt to ${currentMarketProfile.labelEn} Standards`
-                        : `自动规范化适配当前目标市场 (${currentMarketProfile.labelZh})`}
+            {selectedFile?.isFullBackup ? (
+              <div className="mx-5 mb-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-2.5 dark:border-emerald-900/70 dark:bg-emerald-950/30">
+                <div className="flex items-start gap-2">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <div>
+                    <span className="block text-xs font-bold text-emerald-800 dark:text-emerald-200">
+                      {isEn ? 'Full Resume Craft backup detected' : '已识别 Resume Craft 完整备份'}
                     </span>
-                    <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                    <span className="mt-0.5 block text-[10px] leading-relaxed text-emerald-700/80 dark:text-emerald-300/80">
                       {isEn
-                        ? `Standardizes dates (${currentMarketProfile.dateStyle}), section titles, and EEO sanitization`
-                        : `自动将日期转为目标国规范 (${currentMarketProfile.dateStyle}) 并进行招聘合规优化`}
+                        ? 'Content, resume settings, and template association will be restored exactly without market adaptation.'
+                        : '将原样恢复简历内容、简历设置与模板关联，不再执行目标市场二次适配。'}
                     </span>
                   </div>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={autoAdaptToMarket}
-                  onChange={(e) => setAutoAdaptToMarket(e.target.checked)}
-                  className="h-4 w-4 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500/20 dark:border-slate-700"
-                />
-              </label>
-            </div>
+              </div>
+            ) : (
+              <div className="mx-5 mb-3 rounded-xl border border-indigo-100 bg-indigo-50/50 p-2.5 dark:border-indigo-950/60 dark:bg-indigo-950/30">
+                <label className="flex items-center justify-between gap-2 cursor-pointer select-none">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Wand2 className="h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+                    <div className="min-w-0">
+                      <span className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                        {isEn
+                          ? `Auto-adapt to ${currentMarketProfile.labelEn} Standards`
+                          : `自动规范化适配当前目标市场 (${currentMarketProfile.labelZh})`}
+                      </span>
+                      <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                        {isEn
+                          ? `Standardizes dates (${currentMarketProfile.dateStyle}), section titles, and EEO sanitization`
+                          : `自动将日期转为目标国规范 (${currentMarketProfile.dateStyle}) 并进行招聘合规优化`}
+                      </span>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={autoAdaptToMarket}
+                    onChange={(e) => setAutoAdaptToMarket(e.target.checked)}
+                    className="h-4 w-4 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500/20 dark:border-slate-700"
+                  />
+                </label>
+              </div>
+            )}
 
             {/* Footer Actions */}
             <div className="flex items-center justify-between px-5 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/70">

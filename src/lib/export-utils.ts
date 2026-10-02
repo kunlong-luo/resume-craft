@@ -1,6 +1,7 @@
-import { Language, MarketRegion, PaperSize, ResumeSettings } from '../types';
+import { DateStyle, Language, MarketRegion, PaperSize, ResumeSettings } from '../types';
 import { parseMarkdownToForm } from './markdown-parser';
-import { getMarketProfile } from './market-profile';
+import { getMarketProfile, isMarketRegion } from './market-profile';
+import { isPaperSize } from './paper';
 import { normalizeAllDatesInMarkdown, sanitizeSensitiveFieldsForMarket } from './resume-auto-fixer';
 import { translateMarkdownContent } from './section-translator';
 
@@ -239,7 +240,7 @@ export interface JsonResumeStandard {
     lastModified?: string;
     targetMarket?: MarketRegion;
     paperSize?: PaperSize;
-    dateStyle?: string;
+    dateStyle?: DateStyle;
     lang?: Language;
   };
 }
@@ -398,14 +399,21 @@ export function importFromJsonResume(jsonObj: unknown): {
   const basics = res.basics || { name: 'Candidate' };
   const detectedSettings: Partial<ResumeSettings> = {};
 
-  if (res.meta?.targetMarket) {
+  if (isMarketRegion(res.meta?.targetMarket)) {
     detectedSettings.marketRegion = res.meta.targetMarket;
   }
-  if (res.meta?.paperSize) {
+  if (isPaperSize(res.meta?.paperSize)) {
     detectedSettings.paperSize = res.meta.paperSize;
   }
-  if (res.meta?.lang) {
+  if (res.meta?.lang === 'zh' || res.meta?.lang === 'en') {
     detectedSettings.lang = res.meta.lang;
+  }
+  if (
+    res.meta?.dateStyle === 'cn-dot' ||
+    res.meta?.dateStyle === 'month-short' ||
+    res.meta?.dateStyle === 'month-long'
+  ) {
+    detectedSettings.dateStyle = res.meta.dateStyle;
   }
 
   const isEn = detectedSettings.lang === 'en' || (detectedSettings.marketRegion && detectedSettings.marketRegion !== 'cn');

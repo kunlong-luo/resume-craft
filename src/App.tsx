@@ -43,8 +43,14 @@ export default function App() {
   }, []);
 
   if (sharePayload) {
+    const shareLanguage =
+      sharePayload.kind === 'plain'
+        ? sharePayload.state.settings.lang
+        : sharePayload.payload.lang;
+    const loadingLabel = shareLanguage === 'en' ? 'Loading...' : '正在加载...';
+
     return (
-      <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-slate-900 text-white font-bold">Loading...</div>}>
+      <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-slate-900 text-white font-bold">{loadingLabel}</div>}>
         <SharedResumePage sharePayload={sharePayload} />
       </Suspense>
     );

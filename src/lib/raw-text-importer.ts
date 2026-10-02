@@ -109,18 +109,20 @@ export function detectResumeMarket(rawText: string): MarketDetectionResult {
   };
 
   const sorted = (Object.keys(scores) as MarketRegion[]).sort((a, b) => scores[b] - scores[a]);
-  const best = sorted[0];
-  const highestScore = scores[best];
+  const highestScore = scores[sorted[0]];
+  const secondHighestScore = sorted.length > 1 ? scores[sorted[1]] : -1;
+  const isAmbiguous = highestScore <= 0 || highestScore === secondHighestScore;
+  const detectedMarket: MarketRegion = isAmbiguous ? 'international' : sorted[0];
 
   let confidence: 'high' | 'medium' | 'low' = 'low';
-  if (highestScore >= 6) {
+  if (!isAmbiguous && highestScore >= 6) {
     confidence = 'high';
-  } else if (highestScore >= 3) {
+  } else if (!isAmbiguous && highestScore >= 3) {
     confidence = 'medium';
   }
 
   return {
-    detectedMarket: best,
+    detectedMarket,
     confidence,
     reasons: reasons.slice(0, 3),
   };

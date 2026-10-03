@@ -101,8 +101,10 @@ export function BackupTab({
               ref={fileInputRef}
               accept=".json,.JSON,application/json"
               onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  handleImportConfig(e.target.files[0]);
+                const file = e.currentTarget.files?.[0];
+                e.currentTarget.value = '';
+                if (file) {
+                  handleImportConfig(file);
                 }
               }}
               className="hidden"

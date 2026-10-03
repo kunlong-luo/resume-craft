@@ -238,6 +238,49 @@ date@example.com
       });
     });
 
+    it('round-trips the standard summary field and avoids duplicate profile links', () => {
+      const markdown = `# Summary Candidate
+> **Platform Engineer**
+summary@example.com | https://example.com
+
+## Summary
+
+- Builds reliable distributed systems.
+- Leads platform modernization.
+
+## Work Experience
+
+### Example Systems | Engineer | 2022.01 – Present
+- Built production services.
+`;
+
+      const json = exportToJsonResume(markdown, baseSettings);
+      expect(json.basics.summary).toBe(
+        'Builds reliable distributed systems.\nLeads platform modernization.',
+      );
+
+      const imported = importFromJsonResume(json);
+      expect(imported.markdown).toContain('## Summary');
+      expect(imported.markdown).toContain('Builds reliable distributed systems.');
+      expect(imported.markdown.match(/https:\/\/example\.com/g)?.length).toBe(1);
+    });
+
+    it('imports a third-party JSON Resume basics.summary into the resume body', () => {
+      const imported = importFromJsonResume({
+        basics: {
+          name: 'Jordan Lee',
+          label: 'Senior Engineer',
+          summary: 'Backend engineer focused on reliable distributed systems.',
+        },
+        meta: { lang: 'en' },
+      });
+
+      expect(imported.markdown).toContain('## Summary');
+      expect(imported.markdown).toContain(
+        'Backend engineer focused on reliable distributed systems.',
+      );
+    });
+
     it('infers English section titles for standard JSON Resume without custom lang metadata', () => {
       const { markdown, detectedSettings } = importFromJsonResume({
         basics: {

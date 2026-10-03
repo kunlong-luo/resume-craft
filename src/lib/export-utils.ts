@@ -331,6 +331,39 @@ export function exportToJsonResume(
     const titleLower = sec.title.toLowerCase();
 
     if (
+      !json.basics.summary &&
+      (
+        titleLower.includes('summary') ||
+        titleLower.includes('profile') ||
+        titleLower.includes('about me') ||
+        titleLower.includes('个人简介') ||
+        titleLower.includes('个人总结') ||
+        titleLower.includes('自我评价')
+      )
+    ) {
+      const summarySource =
+        sec.type === 'text'
+          ? sec.textValue || ''
+          : sec.items
+              .flatMap((item) => [item.content, item.role, item.org])
+              .filter((value): value is string => Boolean(value?.trim()))
+              .join('\n');
+
+      const summary = summarySource
+        .split('\n')
+        .map((line) =>
+          stripMarkdownFormatting(
+            line.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+          ),
+        )
+        .filter(Boolean)
+        .join('\n')
+        .trim();
+
+      if (summary) {
+        json.basics.summary = summary;
+      }
+    } else if (
       titleLower.includes('work') ||
       titleLower.includes('experience') ||
       titleLower.includes('工作') ||
@@ -545,9 +578,15 @@ export function importFromJsonResume(jsonObj: unknown): {
   if (basics.url) contacts.push(`[Website](${basics.url})`);
 
   if (profiles.length > 0) {
+    const seenProfileUrls = new Set(
+      typeof basics.url === 'string' && basics.url.trim()
+        ? [basics.url.trim()]
+        : [],
+    );
     for (const p of profiles) {
-      if (p.network && p.url) {
+      if (p.network && p.url && !seenProfileUrls.has(p.url)) {
         contacts.push(`[${p.network}](${p.url})`);
+        seenProfileUrls.add(p.url);
       }
     }
   }
@@ -556,6 +595,11 @@ export function importFromJsonResume(jsonObj: unknown): {
     md += `${contacts.join(' | ')}\n\n`;
   } else {
     md += `\n`;
+  }
+
+  if (typeof basics.summary === 'string' && basics.summary.trim()) {
+    md += `## ${isEn ? 'Summary' : '个人简介'}\n\n`;
+    md += `${basics.summary.trim()}\n\n`;
   }
 
   // Work Experience

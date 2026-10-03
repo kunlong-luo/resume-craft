@@ -4,6 +4,7 @@ import { getMarketProfile } from './market-profile';
 import { normalizeAllDatesInMarkdown, sanitizeSensitiveFieldsForMarket } from './resume-auto-fixer';
 import { translateMarkdownContent } from './section-translator';
 import { detectResumeLanguage } from './resume-language';
+import { parseDateRange } from './date-parser';
 
 export interface ExportFileNameOptions {
   markdown: string;
@@ -117,6 +118,26 @@ function stripMarkdownFormatting(str: string): string {
     .replace(/_(.*?)_/g, '$1')
     .replace(/\[(.*?)\]\((.*?)\)/g, '$1 ($2)')
     .trim();
+}
+
+function splitResumeDateRange(raw: string | undefined): {
+  startDate?: string;
+  endDate?: string;
+} {
+  if (!raw?.trim()) return {};
+
+  const parsed = parseDateRange(raw);
+  if (!parsed?.start) return { startDate: raw.trim() };
+
+  const startDate = parsed.start.raw.trim();
+  if (parsed.hasRange && parsed.end) {
+    return {
+      startDate,
+      endDate: parsed.end.raw.trim(),
+    };
+  }
+
+  return { startDate };
 }
 
 /**
@@ -316,7 +337,7 @@ export function exportToJsonResume(
       titleLower.includes('职业')
     ) {
       sec.items.forEach((item) => {
-        const dateParts = (item.time || '').split(/[-–—至~]/).map((s) => s.trim());
+        const { startDate, endDate } = splitResumeDateRange(item.time);
         const highlights = (item.content || '')
           .split('\n')
           .map((l) => l.trim().replace(/^[•⁃－—–·●▪■◆\-\*\+]\s*/, ''))
@@ -325,8 +346,8 @@ export function exportToJsonResume(
         json.work?.push({
           name: item.org || '',
           position: item.role || '',
-          startDate: dateParts[0] || undefined,
-          endDate: dateParts[1] || undefined,
+          startDate,
+          endDate,
           highlights: highlights.length > 0 ? highlights : undefined,
         });
       });
@@ -336,13 +357,13 @@ export function exportToJsonResume(
       titleLower.includes('学历')
     ) {
       sec.items.forEach((item) => {
-        const dateParts = (item.time || '').split(/[-–—至~]/).map((s) => s.trim());
+        const { startDate, endDate } = splitResumeDateRange(item.time);
         json.education?.push({
           institution: item.org || '',
           studyType: item.degree || undefined,
           area: item.role || undefined,
-          startDate: dateParts[0] || undefined,
-          endDate: dateParts[1] || undefined,
+          startDate,
+          endDate,
           courses: (item.content || '')
             .split('\n')
             .map((l) => l.trim().replace(/^[•⁃－—–·●▪■◆\-\*\+]\s*/, ''))
@@ -354,7 +375,7 @@ export function exportToJsonResume(
       titleLower.includes('项目')
     ) {
       sec.items.forEach((item) => {
-        const dateParts = (item.time || '').split(/[-–—至~]/).map((s) => s.trim());
+        const { startDate, endDate } = splitResumeDateRange(item.time);
         const highlights = (item.content || '')
           .split('\n')
           .map((l) => l.trim().replace(/^[•⁃－—–·●▪■◆\-\*\+]\s*/, ''))
@@ -363,8 +384,8 @@ export function exportToJsonResume(
         json.projects?.push({
           name: item.org || '',
           description: item.role || undefined,
-          startDate: dateParts[0] || undefined,
-          endDate: dateParts[1] || undefined,
+          startDate,
+          endDate,
           highlights: highlights.length > 0 ? highlights : undefined,
         });
       });

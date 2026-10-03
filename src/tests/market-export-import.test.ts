@@ -202,6 +202,42 @@ oliver@example.co.uk | +44 7700 900077 | London, UK | Postcode: EC1A 1BB
       expect(json.meta?.dateStyle).toBe('month-short');
     });
 
+    it('preserves complete date points when exporting dashed and ongoing ranges', () => {
+      const markdown = `# Date Range Candidate
+> **Engineer**
+date@example.com
+
+## Work Experience
+
+### Example Co | Engineer | 2024-03 - 2025-04
+- Built production systems.
+
+## Projects
+
+### Migration Program | Lead | October 2020 – Present
+- Led the migration.
+
+## Education
+
+### Example University | Bachelor | 2017.09 – 2021.06
+`;
+
+      const json = exportToJsonResume(markdown, baseSettings);
+
+      expect(json.work?.[0]).toMatchObject({
+        startDate: '2024-03',
+        endDate: '2025-04',
+      });
+      expect(json.projects?.[0]).toMatchObject({
+        startDate: 'October 2020',
+        endDate: 'Present',
+      });
+      expect(json.education?.[0]).toMatchObject({
+        startDate: '2017.09',
+        endDate: '2021.06',
+      });
+    });
+
     it('infers English section titles for standard JSON Resume without custom lang metadata', () => {
       const { markdown, detectedSettings } = importFromJsonResume({
         basics: {

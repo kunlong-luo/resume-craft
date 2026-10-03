@@ -238,6 +238,34 @@ date@example.com
       });
     });
 
+    it('round-trips education GPA and core courses through standard JSON Resume fields', () => {
+      const markdown = `# Education Candidate
+> **Engineer**
+edu@example.com
+
+## Education
+
+### Example University | Bachelor | Computer Science | 2018.09 – 2022.06
+- **GPA / Performance**: 3.9/4.0
+- **Core Courses**: Distributed Systems, Databases, Algorithms
+`;
+
+      const json = exportToJsonResume(markdown, baseSettings);
+      expect(json.education?.[0]).toMatchObject({
+        institution: 'Example University',
+        studyType: 'Bachelor',
+        area: 'Computer Science',
+        score: '3.9/4.0',
+        courses: ['Distributed Systems', 'Databases', 'Algorithms'],
+      });
+
+      const imported = importFromJsonResume(json);
+      expect(imported.markdown).toContain('- **GPA / Performance**: 3.9/4.0');
+      expect(imported.markdown).toContain(
+        '- **Core Courses**: Distributed Systems, Databases, Algorithms',
+      );
+    });
+
     it('exports Markdown and bare-domain social contacts as valid JSON Resume URLs', () => {
       const markdownLinkResume = `# Social Candidate
 > **Engineer**

@@ -34,11 +34,11 @@ export function BackupTab({
           <p className="text-slate-500 dark:text-slate-400 text-justify text-[11px] font-medium leading-relaxed">
             {isEn ? (
               <>
-                Compared to exporting pure Markdown text, the <strong>Full Configuration File (.json)</strong> packs your <strong>resume content and all customized layout options (fonts, theme colors, spacing fine-tuning, page guide lines, etc.)</strong> into a single JSON file. Importing this file on any browser or computer restores your format settings with 100% pixel-perfect fidelity.
+                Compared to exporting pure Markdown text, the <strong>Full Configuration File (.json)</strong> packs your <strong>resume content and all customized layout options (fonts, theme colors, spacing fine-tuning, page guide lines, etc.)</strong> into a single JSON file. Importing this file restores the Resume Craft content and layout settings saved in the backup.
               </>
             ) : (
               <>
-                JSON 备份包含简历全部文字及自定义排版参数（如字体、行高、页边距、主题色等）。在任意设备导入此文件，即可 100% 像素级还原您的简历与排版。
+                JSON 备份包含简历全部文字及自定义排版参数（如字体、行高、页边距、主题色等）。在其他设备或浏览器导入后，可恢复备份中保存的简历内容与 Resume Craft 排版设置。
               </>
             )}
           </p>
@@ -99,7 +99,7 @@ export function BackupTab({
             <input
               type="file"
               ref={fileInputRef}
-              accept=".json"
+              accept=".json,.JSON,application/json"
               onChange={(e) => {
                 if (e.target.files && e.target.files[0]) {
                   handleImportConfig(e.target.files[0]);

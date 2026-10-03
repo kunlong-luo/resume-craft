@@ -300,6 +300,79 @@ test.describe('product state flows', () => {
       .not.toContain('美版软件工程师 (US Resume)');
   });
 
+  test('restores uppercase backup JSON and rejects oversized backup files before reading', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+
+    await page.getByRole('button', {
+      name: /Open quick actions menu|打开快捷功能菜单/,
+    }).click();
+    await page.getByRole('button', { name: /Resume management|简历管理/ }).click();
+
+    await expect(
+      page.getByRole('heading', { name: /Resume Management|简历管理/ }),
+    ).toBeVisible();
+    await page.getByRole('button', { name: /^(Backup|备份)$/ }).click();
+
+    const backupInput = page
+      .getByRole('dialog')
+      .locator('input[type="file"][accept*=".json"]');
+
+    await backupInput.setInputFiles({
+      name: 'too-large-backup.JSON',
+      mimeType: 'application/octet-stream',
+      buffer: Buffer.alloc(3 * 1024 * 1024 + 1, 0x20),
+    });
+
+    await expect(page.getByRole('alert')).toContainText(
+      /smaller than 3 MB|小于 3 MB/,
+    );
+
+    const backupMarkdown = [
+      '# Backup Hub Candidate',
+      '',
+      '## Work Experience',
+      '- Restored through backup management.',
+    ].join('\n');
+
+    const backup = {
+      version: 'markdown-resume-backup-v1',
+      markdown: backupMarkdown,
+      templateId: 'custom',
+      settings: {
+        themeColor: 'indigo',
+        fontSize: 'standard',
+        fontFamily: 'sans',
+        margin: 'standard',
+        layoutMode: 'split',
+        h2Style: 'accent-line',
+        topAccentLine: true,
+        lineHeight: 1.5,
+        blockGap: 1.5,
+        letterSpacing: 0,
+        showPageBreakLine: true,
+        templateLayout: 'single',
+        paperSize: 'letter',
+        marketRegion: 'us',
+        dateStyle: 'month-short',
+        lang: 'en',
+      },
+    };
+
+    await backupInput.setInputFiles({
+      name: 'RESUME-BACKUP.JSON',
+      mimeType: 'application/octet-stream',
+      buffer: Buffer.from(JSON.stringify(backup)),
+    });
+
+    await expect(
+      page.getByRole('heading', { name: /Import Configuration|导入备份配置文件/ }),
+    ).toBeVisible();
+    await page.getByRole('button', { name: /^(Import|确认导入)$/ }).click();
+
+    await expect.poll(() => readActiveMarkdown(page)).toBe(backupMarkdown);
+  });
+
   test('persists dark theme across reloads', async ({ page }) => {
     await page.goto('/');
 

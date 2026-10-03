@@ -441,16 +441,19 @@ export function exportToJsonResume(
     ) {
       sec.items.forEach((item) => {
         const { startDate, endDate } = splitResumeDateRange(item.time);
+        const courses = (item.courses || '')
+          .split(/[,，、|\n]/)
+          .map((value) => value.trim())
+          .filter(Boolean);
+
         json.education?.push({
           institution: item.org || '',
           studyType: item.degree || undefined,
           area: item.role || undefined,
           startDate,
           endDate,
-          courses: (item.content || '')
-            .split('\n')
-            .map((l) => l.trim().replace(/^[•⁃－—–·●▪■◆\-\*\+]\s*/, ''))
-            .filter(Boolean),
+          score: item.gpa?.trim() || undefined,
+          courses: courses.length > 0 ? courses : undefined,
         });
       });
     } else if (
@@ -696,11 +699,16 @@ export function importFromJsonResume(jsonObj: unknown): {
       const dates = [e.startDate, e.endDate].filter(Boolean).join(' – ');
       const sub = [e.studyType, e.area, dates].filter(Boolean).join(' | ');
       md += `### ${e.institution}${sub ? ` | ${sub}` : ''}\n`;
+      if (typeof e.score === 'string' && e.score.trim()) {
+        md += isEn
+          ? `- **GPA / Performance**: ${e.score.trim()}\n`
+          : `- **在校表现**：${e.score.trim()}\n`;
+      }
       const courses = stringArray(e.courses);
       if (courses.length > 0) {
-        for (const c of courses) {
-          md += `- ${c}\n`;
-        }
+        md += isEn
+          ? `- **Core Courses**: ${courses.join(', ')}\n`
+          : `- **主修课程**：${courses.join('、')}\n`;
       }
       md += `\n`;
     }

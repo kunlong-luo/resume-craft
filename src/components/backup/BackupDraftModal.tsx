@@ -12,6 +12,8 @@ import { normalizeResumeBackup } from '../../lib/import-validation';
 import { TEMPLATES } from '../../data';
 import { useDialogFocus } from '../../hooks/useDialogFocus';
 
+const MAX_BACKUP_IMPORT_FILE_SIZE = 3 * 1024 * 1024;
+
 export function BackupDraftModal() {
   const {
     markdown,
@@ -199,8 +201,18 @@ export function BackupDraftModal() {
   const handleImportConfig = (file: File) => {
     if (!file) return;
     const isEn = uiLanguage === 'en';
-    if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+    const fileName = file.name.toLowerCase();
+    if (file.type !== 'application/json' && !fileName.endsWith('.json')) {
       showToast(isEn ? 'Only .json files are supported' : '仅支持导入 .json 格式的备份文件', true);
+      return;
+    }
+    if (file.size > MAX_BACKUP_IMPORT_FILE_SIZE) {
+      showToast(
+        isEn
+          ? 'Backup files must be smaller than 3 MB.'
+          : '备份文件需小于 3 MB。',
+        true,
+      );
       return;
     }
 

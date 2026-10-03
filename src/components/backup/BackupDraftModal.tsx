@@ -217,6 +217,14 @@ export function BackupDraftModal() {
     }
 
     const reader = new FileReader();
+    reader.onerror = () => {
+      showToast(
+        isEn
+          ? 'The backup file could not be read.'
+          : '无法读取备份文件，请检查文件后重试。',
+        true,
+      );
+    };
     reader.onload = async (e) => {
       try {
         const text = e.target?.result as string;

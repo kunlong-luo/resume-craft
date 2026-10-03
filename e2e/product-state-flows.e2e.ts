@@ -324,6 +324,7 @@ test.describe('product state flows', () => {
       buffer: Buffer.alloc(3 * 1024 * 1024 + 1, 0x20),
     });
 
+    await expect(backupInput).toHaveValue('');
     await expect(page.getByRole('alert')).toContainText(
       /smaller than 3 MB|小于 3 MB/,
     );

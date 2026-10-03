@@ -261,6 +261,22 @@ portfolio@example.com | portfolio.example.com/case-study
       expect(bareJson.basics.url).toBe('https://portfolio.example.com/case-study');
     });
 
+    it('does not classify lookalike hosts as trusted social networks', () => {
+      const json = exportToJsonResume(
+        `# Lookalike Candidate
+> **Engineer**
+lookalike@example.com | https://github.com.evil.example/alex
+`,
+        baseSettings,
+      );
+
+      expect(json.basics.url).toBe('https://github.com.evil.example/alex');
+      expect(json.basics.profiles?.[0]).toMatchObject({
+        network: 'Portfolio / Social',
+        url: 'https://github.com.evil.example/alex',
+      });
+    });
+
     it('does not manufacture invalid URLs from non-URL social text', () => {
       const json = exportToJsonResume(
         `# Handle Candidate

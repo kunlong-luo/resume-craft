@@ -316,10 +316,13 @@ function parsePrimarySocialLink(rawSocial: string | undefined): {
   try {
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase();
+    const isHostOrSubdomain = (domain: string) =>
+      host === domain || host.endsWith(`.${domain}`);
+
     if (!networkHint) {
-      if (host.includes('github.com')) networkHint = 'GitHub';
-      else if (host.includes('linkedin.com')) networkHint = 'LinkedIn';
-      else if (host.includes('gitlab.com')) networkHint = 'GitLab';
+      if (isHostOrSubdomain('github.com')) networkHint = 'GitHub';
+      else if (isHostOrSubdomain('linkedin.com')) networkHint = 'LinkedIn';
+      else if (isHostOrSubdomain('gitlab.com')) networkHint = 'GitLab';
       else networkHint = 'Portfolio / Social';
     }
 

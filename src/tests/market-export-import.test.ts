@@ -238,6 +238,58 @@ date@example.com
       });
     });
 
+    it('exports Markdown and bare-domain social contacts as valid JSON Resume URLs', () => {
+      const markdownLinkResume = `# Social Candidate
+> **Engineer**
+social@example.com | [GitHub](https://github.com/social-candidate)
+`;
+
+      const markdownJson = exportToJsonResume(markdownLinkResume, baseSettings);
+      expect(markdownJson.basics.url).toBe('https://github.com/social-candidate');
+      expect(markdownJson.basics.profiles?.[0]).toMatchObject({
+        network: 'GitHub',
+        username: 'social-candidate',
+        url: 'https://github.com/social-candidate',
+      });
+
+      const bareDomainResume = `# Portfolio Candidate
+> **Designer**
+portfolio@example.com | portfolio.example.com/case-study
+`;
+
+      const bareJson = exportToJsonResume(bareDomainResume, baseSettings);
+      expect(bareJson.basics.url).toBe('https://portfolio.example.com/case-study');
+    });
+
+    it('does not classify lookalike hosts as trusted social networks', () => {
+      const json = exportToJsonResume(
+        `# Lookalike Candidate
+> **Engineer**
+lookalike@example.com | https://github.com.evil.example/alex
+`,
+        baseSettings,
+      );
+
+      expect(json.basics.url).toBe('https://github.com.evil.example/alex');
+      expect(json.basics.profiles?.[0]).toMatchObject({
+        network: 'Portfolio / Social',
+        url: 'https://github.com.evil.example/alex',
+      });
+    });
+
+    it('does not manufacture invalid URLs from non-URL social text', () => {
+      const json = exportToJsonResume(
+        `# Handle Candidate
+> **Engineer**
+handle@example.com | GitHub: handle-only
+`,
+        baseSettings,
+      );
+
+      expect(json.basics.url).toBeUndefined();
+      expect(json.basics.profiles).toEqual([]);
+    });
+
     it('round-trips the standard summary field and avoids duplicate profile links', () => {
       const markdown = `# Summary Candidate
 > **Platform Engineer**

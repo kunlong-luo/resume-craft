@@ -283,6 +283,58 @@ export interface JsonResumeStandard {
   };
 }
 
+function parsePrimarySocialLink(rawSocial: string | undefined): {
+  url: string;
+  network: string;
+  username: string;
+} | null {
+  const raw = rawSocial?.trim();
+  if (!raw) return null;
+
+  const markdownLink = raw.match(/\[([^\]]+)]\((https?:\/\/[^)\s]+)\)/i);
+  let url = markdownLink?.[2];
+  let networkHint = markdownLink?.[1]?.trim() || '';
+
+  if (!url) {
+    const absoluteUrl = raw.match(/https?:\/\/[^\s·|｜]+/i)?.[0];
+    if (absoluteUrl) {
+      url = absoluteUrl;
+    }
+  }
+
+  if (!url) {
+    const bareDomain = raw.match(
+      /(?:^|[\s·|｜])((?:www\.)?[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s·|｜]*)?)/i,
+    )?.[1];
+    if (bareDomain) {
+      url = `https://${bareDomain}`;
+    }
+  }
+
+  if (!url) return null;
+
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    if (!networkHint) {
+      if (host.includes('github.com')) networkHint = 'GitHub';
+      else if (host.includes('linkedin.com')) networkHint = 'LinkedIn';
+      else if (host.includes('gitlab.com')) networkHint = 'GitLab';
+      else networkHint = 'Portfolio / Social';
+    }
+
+    return {
+      url: parsed.toString(),
+      network: networkHint,
+      username:
+        parsed.pathname.replace(/^\/+|\/+$/g, '') ||
+        parsed.hostname,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Convert Markdown resume into standard JSON Resume format.
  */
@@ -291,13 +343,14 @@ export function exportToJsonResume(
   settings: ResumeSettings
 ): JsonResumeStandard {
   const formModel = parseMarkdownToForm(markdown);
+  const primarySocial = parsePrimarySocialLink(formModel.social);
   const json: JsonResumeStandard = {
     basics: {
       name: stripMarkdownFormatting(formModel.name) || '',
       label: stripMarkdownFormatting(formModel.subtitle) || '',
       email: formModel.email || undefined,
       phone: formModel.phone || undefined,
-      url: formModel.social ? (formModel.social.startsWith('http') ? formModel.social : `https://${formModel.social}`) : undefined,
+      url: primarySocial?.url,
       summary: undefined,
       location: formModel.city ? { city: stripMarkdownFormatting(formModel.city) } : undefined,
       profiles: [],
@@ -317,14 +370,8 @@ export function exportToJsonResume(
     },
   };
 
-  if (formModel.social) {
-    json.basics.profiles?.push({
-      network: 'Portfolio / Social',
-      username: formModel.social.replace(/^https?:\/\//, ''),
-      url: formModel.social.startsWith('http')
-        ? formModel.social
-        : `https://${formModel.social}`,
-    });
+  if (primarySocial) {
+    json.basics.profiles?.push(primarySocial);
   }
 
   for (const sec of formModel.sections) {

@@ -477,11 +477,44 @@ export function exportToJsonResume(
   if (socialLinks.length > 0) {
     json.basics.profiles?.push(...socialLinks);
   }
+  const seenProfileUrls = new Set(
+    (json.basics.profiles || []).map((profile) => profile.url),
+  );
 
   for (const sec of formModel.sections) {
     const titleLower = sec.title.toLowerCase();
+    const isLinksSection =
+      titleLower === 'links & portfolio' ||
+      titleLower === 'links and portfolio' ||
+      titleLower === 'social links' ||
+      titleLower === 'social profiles' ||
+      titleLower === 'portfolio links' ||
+      titleLower.includes('社交主页') ||
+      titleLower.includes('社交链接') ||
+      titleLower.includes('作品链接');
 
-    if (
+    if (isLinksSection) {
+      const sectionSource =
+        sec.type === 'text'
+          ? sec.textValue || ''
+          : sec.items
+              .flatMap((item) => [item.org, item.role, item.content])
+              .filter((value): value is string => Boolean(value?.trim()))
+              .join(' | ');
+      const sectionLinks = parseSocialLinks(
+        sectionSource.replace(/\n+/g, ' | '),
+      );
+
+      if (!json.basics.url && sectionLinks.length > 0) {
+        json.basics.url = sectionLinks[0].url;
+      }
+
+      for (const link of sectionLinks) {
+        if (seenProfileUrls.has(link.url)) continue;
+        json.basics.profiles?.push(link);
+        seenProfileUrls.add(link.url);
+      }
+    } else if (
       !json.basics.summary &&
       (
         titleLower.includes('summary') ||

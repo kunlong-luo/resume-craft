@@ -143,11 +143,24 @@ function splitResumeDateRange(raw: string | undefined): {
 function resolveNamedSectionParts(
   org: string | undefined,
   role: string | undefined,
-  kind: 'award' | 'certificate',
+  kind: 'award' | 'certificate' | 'publication',
 ): { name: string; issuer?: string } {
   const primary = stripMarkdownFormatting(org || '');
   const secondary = stripMarkdownFormatting(role || '');
   if (!secondary) return { name: primary };
+
+  if (kind === 'publication') {
+    const publisherPattern =
+      /(?:\bacm\b|\bieee\b|springer|elsevier|journal|press|conference|transactions|review|magazine|出版社|期刊|会议|学报)/i;
+    const primaryLooksLikePublisher = publisherPattern.test(primary);
+    const secondaryLooksLikePublisher = publisherPattern.test(secondary);
+
+    if (primaryLooksLikePublisher && !secondaryLooksLikePublisher) {
+      return { name: secondary, issuer: primary || undefined };
+    }
+
+    return { name: primary, issuer: secondary || undefined };
+  }
 
   const secondaryLooksLikeTitle =
     kind === 'award'
@@ -309,6 +322,22 @@ export interface JsonResumeStandard {
     issuer?: string;
     url?: string;
   }>;
+  volunteer?: Array<{
+    organization: string;
+    position?: string;
+    url?: string;
+    startDate?: string;
+    endDate?: string;
+    summary?: string;
+    highlights?: string[];
+  }>;
+  publications?: Array<{
+    name: string;
+    publisher?: string;
+    releaseDate?: string;
+    url?: string;
+    summary?: string;
+  }>;
   meta?: {
     canonical?: string;
     version?: string;
@@ -427,6 +456,8 @@ export function exportToJsonResume(
     projects: [],
     awards: [],
     certificates: [],
+    volunteer: [],
+    publications: [],
     meta: {
       canonical: 'https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json',
       version: 'v1.0.0',
@@ -478,6 +509,31 @@ export function exportToJsonResume(
       if (summary) {
         json.basics.summary = summary;
       }
+    } else if (
+      titleLower.includes('volunteer') ||
+      titleLower.includes('volunteering') ||
+      titleLower.includes('志愿') ||
+      titleLower.includes('公益')
+    ) {
+      sec.items.forEach((item) => {
+        const { startDate, endDate } = splitResumeDateRange(item.time);
+        const highlights = (item.content || '')
+          .split('\n')
+          .map((line) =>
+            stripMarkdownFormatting(
+              line.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+            ),
+          )
+          .filter(Boolean);
+
+        json.volunteer?.push({
+          organization: stripMarkdownFormatting(item.org || ''),
+          position: stripMarkdownFormatting(item.role || '') || undefined,
+          startDate,
+          endDate,
+          highlights: highlights.length > 0 ? highlights : undefined,
+        });
+      });
     } else if (
       titleLower.includes('work') ||
       titleLower.includes('experience') ||
@@ -540,6 +596,54 @@ export function exportToJsonResume(
           highlights: highlights.length > 0 ? highlights : undefined,
         });
       });
+    } else if (
+      titleLower.includes('publication') ||
+      titleLower.includes('paper') ||
+      titleLower.includes('论文') ||
+      titleLower.includes('发表') ||
+      titleLower.includes('出版')
+    ) {
+      if (sec.type === 'text' && sec.textValue) {
+        sec.textValue
+          .split('\n')
+          .map((line) =>
+            stripMarkdownFormatting(
+              line.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+            ),
+          )
+          .filter(Boolean)
+          .forEach((name) => {
+            json.publications?.push({ name });
+          });
+      } else {
+        sec.items.forEach((item) => {
+          const { startDate, endDate } = splitResumeDateRange(item.time);
+          const { name, issuer: publisher } = resolveNamedSectionParts(
+            item.org,
+            item.role,
+            'publication',
+          );
+          const publicationUrl = (item.content || '').match(/https?:\/\/[^\s)]+/i)?.[0];
+          const summary = (item.content || '')
+            .split('\n')
+            .filter((line) => !publicationUrl || !line.includes(publicationUrl))
+            .map((line) =>
+              stripMarkdownFormatting(
+                line.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+              ),
+            )
+            .filter(Boolean)
+            .join('\n');
+
+          json.publications?.push({
+            name,
+            publisher,
+            releaseDate: endDate || startDate,
+            url: publicationUrl,
+            summary: summary || undefined,
+          });
+        });
+      }
     } else if (
       titleLower.includes('award') ||
       titleLower.includes('honor') ||
@@ -717,6 +821,12 @@ export function importFromJsonResume(jsonObj: unknown): {
   const certificates = Array.isArray(raw.certificates)
     ? raw.certificates.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['certificates']>
     : [];
+  const volunteer = Array.isArray(raw.volunteer)
+    ? raw.volunteer.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['volunteer']>
+    : [];
+  const publications = Array.isArray(raw.publications)
+    ? raw.publications.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['publications']>
+    : [];
   const profiles = Array.isArray(basics.profiles)
     ? basics.profiles.filter(isRecord)
     : [];
@@ -788,6 +898,17 @@ export function importFromJsonResume(jsonObj: unknown): {
       ...certificates.flatMap((item) => [
         item.name,
         item.issuer,
+      ]),
+      ...volunteer.flatMap((item) => [
+        item.organization,
+        item.position,
+        item.summary,
+        ...stringArray(item.highlights),
+      ]),
+      ...publications.flatMap((item) => [
+        item.name,
+        item.publisher,
+        item.summary,
       ]),
     ]
       .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
@@ -869,6 +990,29 @@ export function importFromJsonResume(jsonObj: unknown): {
     }
   }
 
+  // Volunteer Experience
+  if (volunteer.length > 0) {
+    md += `## ${isEn ? 'Volunteer Experience' : '志愿经历'}\n\n`;
+    for (const item of volunteer) {
+      const organization =
+        stringValue(item.organization) || (isEn ? 'Organization' : '组织');
+      const position = stringValue(item.position);
+      const startDate = stringValue(item.startDate);
+      const endDate = stringValue(item.endDate);
+      const summary = stringValue(item.summary);
+      const dates = [startDate, endDate].filter(Boolean).join(' – ');
+      const sub = [position, dates].filter(Boolean).join(' | ');
+      md += `### ${organization}${sub ? ` | ${sub}` : ''}\n`;
+      if (summary) {
+        md += `- ${summary}\n`;
+      }
+      for (const highlight of stringArray(item.highlights)) {
+        md += `- ${highlight}\n`;
+      }
+      md += `\n`;
+    }
+  }
+
   // Projects
   if (projects.length > 0) {
     md += `## ${isEn ? 'Projects' : '项目经历'}\n\n`;
@@ -931,6 +1075,30 @@ export function importFromJsonResume(jsonObj: unknown): {
       }
     }
     md += `\n`;
+  }
+
+  // Publications
+  if (publications.length > 0) {
+    md += `## ${isEn ? 'Publications' : '发表与出版'}\n\n`;
+    for (const publication of publications) {
+      const name = stringValue(publication.name);
+      if (!name) continue;
+      const publisher = stringValue(publication.publisher);
+      const releaseDate = stringValue(publication.releaseDate);
+      const url = httpUrlValue(publication.url);
+      const summary = stringValue(publication.summary);
+      const sub = [publisher, releaseDate].filter(Boolean).join(' | ');
+      md += `### ${name}${sub ? ` | ${sub}` : ''}\n`;
+      if (summary) {
+        for (const line of summary.split('\n').map((value) => value.trim()).filter(Boolean)) {
+          md += `- ${line}\n`;
+        }
+      }
+      if (url) {
+        md += `- [${isEn ? 'Publication' : '查看发表'}](${url})\n`;
+      }
+      md += `\n`;
+    }
   }
 
   // Honors & Awards

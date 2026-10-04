@@ -266,6 +266,137 @@ edu@example.com
       );
     });
 
+    it('keeps volunteer experience out of work and round-trips publications', () => {
+      const markdown = `# Community Candidate
+> **Platform Engineer**
+community@example.com
+
+## Volunteer Experience
+
+### Code for Community | Mentor | 2023 – Present
+- Mentored students in backend engineering.
+- Built open-source learning materials.
+
+## Publications
+
+### Reliable Systems at Scale | Engineering Journal | 2025
+- Practical patterns for operating distributed services.
+- [Publication](https://example.com/reliable-systems)
+`;
+
+      const json = exportToJsonResume(markdown, baseSettings);
+
+      expect(json.work).toEqual([]);
+      expect(json.volunteer).toEqual([
+        {
+          organization: 'Code for Community',
+          position: 'Mentor',
+          startDate: '2023',
+          endDate: 'Present',
+          highlights: [
+            'Mentored students in backend engineering.',
+            'Built open-source learning materials.',
+          ],
+        },
+      ]);
+      expect(json.publications).toEqual([
+        {
+          name: 'Reliable Systems at Scale',
+          publisher: 'Engineering Journal',
+          releaseDate: '2025',
+          url: 'https://example.com/reliable-systems',
+          summary: 'Practical patterns for operating distributed services.',
+        },
+      ]);
+
+      const imported = importFromJsonResume(json);
+      expect(imported.markdown).toContain('## Volunteer Experience');
+      expect(imported.markdown).toContain(
+        '### Code for Community | Mentor | 2023 – Present',
+      );
+      expect(imported.markdown).toContain('Mentored students in backend engineering.');
+      expect(imported.markdown).toContain('## Publications');
+      expect(imported.markdown).toContain(
+        '### Reliable Systems at Scale | Engineering Journal | 2025',
+      );
+      expect(imported.markdown).toContain(
+        '- [Publication](https://example.com/reliable-systems)',
+      );
+    });
+
+    it('keeps publication titles ahead of recognized publisher names', () => {
+      const json = exportToJsonResume(
+        `# Publication Candidate
+> **Engineer**
+pub@example.com
+
+## Publications
+
+### Engineering Reliable Systems | ACM | 2025
+- [Publication](https://example.com/engineering-reliable-systems)
+`,
+        baseSettings,
+      );
+
+      expect(json.publications?.[0]).toMatchObject({
+        name: 'Engineering Reliable Systems',
+        publisher: 'ACM',
+        releaseDate: '2025',
+        url: 'https://example.com/engineering-reliable-systems',
+      });
+    });
+
+    it('sanitizes malformed volunteer and publication scalar fields', () => {
+      const imported = importFromJsonResume({
+        basics: { name: 'Safe Community Candidate' },
+        volunteer: [
+          {
+            organization: 'Open Source Group',
+            position: 'Maintainer',
+            startDate: '2022',
+            endDate: 'Present',
+            highlights: ['Maintained documentation.', 123],
+          },
+          {
+            organization: { unsafe: true },
+            position: false,
+            summary: { unsafe: true },
+          },
+        ],
+        publications: [
+          {
+            name: 'Safe Publication',
+            publisher: 'Example Publisher',
+            releaseDate: '2024',
+            summary: 'A valid summary.',
+            url: 'https://example.com/publication',
+          },
+          {
+            name: { unsafe: true },
+            publisher: 42,
+            url: 'javascript:alert(1)',
+          },
+        ],
+        meta: { lang: 'en' },
+      });
+
+      expect(imported.markdown).toContain('## Volunteer Experience');
+      expect(imported.markdown).toContain(
+        '### Open Source Group | Maintainer | 2022 – Present',
+      );
+      expect(imported.markdown).toContain('- Maintained documentation.');
+      expect(imported.markdown).toContain('## Publications');
+      expect(imported.markdown).toContain(
+        '### Safe Publication | Example Publisher | 2024',
+      );
+      expect(imported.markdown).toContain('- A valid summary.');
+      expect(imported.markdown).toContain(
+        '- [Publication](https://example.com/publication)',
+      );
+      expect(imported.markdown).not.toContain('[object Object]');
+      expect(imported.markdown).not.toContain('javascript:');
+    });
+
     it('round-trips honors and certifications through standard JSON Resume fields', () => {
       const markdown = `# Credential Candidate
 > **Platform Engineer**

@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const VIEWPORTS = [
+  { width: 320, height: 568, label: 'compact-mobile' },
   { width: 360, height: 800, label: 'small-mobile' },
   { width: 390, height: 844, label: 'mobile' },
   { width: 768, height: 900, label: 'tablet' },
@@ -75,6 +76,63 @@ test.describe('international responsive UX', () => {
     });
   }
 
+
+  test('compact mobile keeps import and resume-management dialogs operable', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto('/');
+
+    await expect.poll(() =>
+      page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    ).toBe(true);
+
+    const quickActions = page.getByRole('button', {
+      name: /Open quick actions menu|打开快捷功能菜单/,
+    });
+
+    await quickActions.click();
+    await page.getByRole('button', { name: /^(Import|导入)$/ }).click();
+
+    const importDialog = page.getByRole('dialog', {
+      name: /Import Resume|导入简历/,
+    });
+    await expect(importDialog).toBeVisible();
+    const importBox = await importDialog.boundingBox();
+    expect(importBox).not.toBeNull();
+    expect(importBox!.x).toBeGreaterThanOrEqual(0);
+    expect(importBox!.x + importBox!.width).toBeLessThanOrEqual(321);
+
+    const closeImport = importDialog.getByRole('button', {
+      name: /Close import dialog|关闭导入弹窗/,
+    });
+    await closeImport.scrollIntoViewIfNeeded();
+    await expect(closeImport).toBeVisible();
+    await closeImport.click();
+    await expect(importDialog).toBeHidden();
+
+    await quickActions.click();
+    await page.getByRole('button', { name: /Resume management|简历管理/ }).click();
+
+    const management = page.getByRole('dialog', {
+      name: /Resume Management|简历管理/,
+    });
+    await expectInsideViewport(management, 320, 568);
+    await management.getByRole('button', { name: /^(Backup|备份)$/ }).click();
+
+    await expect(
+      management.getByRole('button', {
+        name: /Generate & Download \.json|导出 \.json 备份/,
+      }),
+    ).toBeVisible();
+    await expect(
+      management.getByRole('button', {
+        name: /Close resume management dialog|关闭简历管理弹窗/,
+      }),
+    ).toBeVisible();
+
+    await expect.poll(() =>
+      page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    ).toBe(true);
+  });
 
   test('mobile: primary workspace, resume switcher, and download sheet stay usable', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });

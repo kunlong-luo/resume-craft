@@ -140,6 +140,31 @@ function splitResumeDateRange(raw: string | undefined): {
   return { startDate };
 }
 
+function resolveNamedSectionParts(
+  org: string | undefined,
+  role: string | undefined,
+  kind: 'award' | 'certificate',
+): { name: string; issuer?: string } {
+  const primary = stripMarkdownFormatting(org || '');
+  const secondary = stripMarkdownFormatting(role || '');
+  if (!secondary) return { name: primary };
+
+  const secondaryLooksLikeTitle =
+    kind === 'award'
+      ? /(?:award|honou?r|prize|medal|winner|荣誉|奖|表彰)/i.test(secondary)
+      : /(?:certif|certificate|credential|licen[cs]e|architect|associate|professional|specialty|expert|认证|证书|资质|资格)/i.test(secondary);
+  const primaryLooksLikeTitle =
+    kind === 'award'
+      ? /(?:award|honou?r|prize|medal|winner|荣誉|奖|表彰)/i.test(primary)
+      : /(?:certif|certificate|credential|licen[cs]e|architect|associate|professional|specialty|expert|认证|证书|资质|资格)/i.test(primary);
+
+  if (secondaryLooksLikeTitle && !primaryLooksLikeTitle) {
+    return { name: secondary, issuer: primary || undefined };
+  }
+
+  return { name: primary, issuer: secondary || undefined };
+}
+
 /**
  * Generate clean ATS Plain Text format stripped of raw markdown formatting,
  * HTML, and table syntax, optimized for direct copy-pasting into ATS job application portals.
@@ -272,6 +297,18 @@ export interface JsonResumeStandard {
     endDate?: string;
     url?: string;
   }>;
+  awards?: Array<{
+    title: string;
+    date?: string;
+    awarder?: string;
+    summary?: string;
+  }>;
+  certificates?: Array<{
+    name: string;
+    date?: string;
+    issuer?: string;
+    url?: string;
+  }>;
   meta?: {
     canonical?: string;
     version?: string;
@@ -388,6 +425,8 @@ export function exportToJsonResume(
     education: [],
     skills: [],
     projects: [],
+    awards: [],
+    certificates: [],
     meta: {
       canonical: 'https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json',
       version: 'v1.0.0',
@@ -502,6 +541,90 @@ export function exportToJsonResume(
         });
       });
     } else if (
+      titleLower.includes('award') ||
+      titleLower.includes('honor') ||
+      titleLower.includes('honour') ||
+      titleLower.includes('荣誉') ||
+      titleLower.includes('获奖')
+    ) {
+      if (sec.type === 'text' && sec.textValue) {
+        sec.textValue
+          .split('\n')
+          .map((line) =>
+            stripMarkdownFormatting(
+              line.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+            ),
+          )
+          .filter(Boolean)
+          .forEach((title) => {
+            json.awards?.push({ title });
+          });
+      } else {
+        sec.items.forEach((item) => {
+          const { startDate, endDate } = splitResumeDateRange(item.time);
+          const { name: title, issuer: awarder } = resolveNamedSectionParts(
+            item.org,
+            item.role,
+            'award',
+          );
+          const summary = (item.content || '')
+            .split('\n')
+            .map((line) =>
+              stripMarkdownFormatting(
+                line.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+              ),
+            )
+            .filter(Boolean)
+            .join('\n');
+
+          json.awards?.push({
+            title,
+            awarder,
+            date: endDate || startDate,
+            summary: summary || undefined,
+          });
+        });
+      }
+    } else if (
+      titleLower.includes('certif') ||
+      titleLower.includes('certificate') ||
+      titleLower.includes('license') ||
+      titleLower.includes('licence') ||
+      titleLower.includes('证书') ||
+      titleLower.includes('认证') ||
+      titleLower.includes('资质')
+    ) {
+      if (sec.type === 'text' && sec.textValue) {
+        sec.textValue
+          .split('\n')
+          .map((line) =>
+            stripMarkdownFormatting(
+              line.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+            ),
+          )
+          .filter(Boolean)
+          .forEach((name) => {
+            json.certificates?.push({ name });
+          });
+      } else {
+        sec.items.forEach((item) => {
+          const { startDate, endDate } = splitResumeDateRange(item.time);
+          const { name, issuer } = resolveNamedSectionParts(
+            item.org,
+            item.role,
+            'certificate',
+          );
+          const certificateUrl = (item.content || '').match(/https?:\/\/[^\s)]+/i)?.[0];
+
+          json.certificates?.push({
+            name,
+            issuer,
+            date: endDate || startDate,
+            url: certificateUrl,
+          });
+        });
+      }
+    } else if (
       titleLower.includes('skill') ||
       titleLower.includes('技能')
     ) {
@@ -588,6 +711,12 @@ export function importFromJsonResume(jsonObj: unknown): {
   const skills = Array.isArray(raw.skills)
     ? raw.skills.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['skills']>
     : [];
+  const awards = Array.isArray(raw.awards)
+    ? raw.awards.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['awards']>
+    : [];
+  const certificates = Array.isArray(raw.certificates)
+    ? raw.certificates.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['certificates']>
+    : [];
   const profiles = Array.isArray(basics.profiles)
     ? basics.profiles.filter(isRecord)
     : [];
@@ -650,6 +779,15 @@ export function importFromJsonResume(jsonObj: unknown): {
       ...skills.flatMap((item) => [
         item.name,
         ...stringArray(item.keywords),
+      ]),
+      ...awards.flatMap((item) => [
+        item.title,
+        item.awarder,
+        item.summary,
+      ]),
+      ...certificates.flatMap((item) => [
+        item.name,
+        item.issuer,
       ]),
     ]
       .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
@@ -793,6 +931,44 @@ export function importFromJsonResume(jsonObj: unknown): {
       }
     }
     md += `\n`;
+  }
+
+  // Honors & Awards
+  if (awards.length > 0) {
+    md += `## ${isEn ? 'Honors & Awards' : '荣誉奖项'}\n\n`;
+    for (const award of awards) {
+      const title = stringValue(award.title);
+      if (!title) continue;
+      const awarder = stringValue(award.awarder);
+      const date = stringValue(award.date);
+      const summary = stringValue(award.summary);
+      const sub = [awarder, date].filter(Boolean).join(' | ');
+      md += `### ${title}${sub ? ` | ${sub}` : ''}\n`;
+      if (summary) {
+        for (const line of summary.split('\n').map((value) => value.trim()).filter(Boolean)) {
+          md += `- ${line}\n`;
+        }
+      }
+      md += `\n`;
+    }
+  }
+
+  // Certifications
+  if (certificates.length > 0) {
+    md += `## ${isEn ? 'Certifications' : '资质证书'}\n\n`;
+    for (const certificate of certificates) {
+      const name = stringValue(certificate.name);
+      if (!name) continue;
+      const issuer = stringValue(certificate.issuer);
+      const date = stringValue(certificate.date);
+      const url = httpUrlValue(certificate.url);
+      const sub = [issuer, date].filter(Boolean).join(' | ');
+      md += `### ${name}${sub ? ` | ${sub}` : ''}\n`;
+      if (url) {
+        md += `- [${isEn ? 'Credential' : '证书链接'}](${url})\n`;
+      }
+      md += `\n`;
+    }
   }
 
   return { markdown: md.trim() + '\n', detectedSettings };

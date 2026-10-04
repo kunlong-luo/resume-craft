@@ -266,6 +266,106 @@ edu@example.com
       );
     });
 
+    it('round-trips honors and certifications through standard JSON Resume fields', () => {
+      const markdown = `# Credential Candidate
+> **Platform Engineer**
+credential@example.com
+
+## Honors & Awards
+
+### Engineering Excellence Award | Example Systems | 2025
+- Recognized for improving platform reliability across critical services.
+
+## Certifications
+
+### AWS Certified Solutions Architect | Amazon Web Services | 2024
+- [Credential](https://example.com/aws-cert)
+`;
+
+      const json = exportToJsonResume(markdown, baseSettings);
+
+      expect(json.awards).toEqual([
+        {
+          title: 'Engineering Excellence Award',
+          awarder: 'Example Systems',
+          date: '2025',
+          summary: 'Recognized for improving platform reliability across critical services.',
+        },
+      ]);
+      expect(json.certificates).toEqual([
+        {
+          name: 'AWS Certified Solutions Architect',
+          issuer: 'Amazon Web Services',
+          date: '2024',
+          url: 'https://example.com/aws-cert',
+        },
+      ]);
+
+      const imported = importFromJsonResume(json);
+      expect(imported.markdown).toContain('## Honors & Awards');
+      expect(imported.markdown).toContain(
+        '### Engineering Excellence Award | Example Systems | 2025',
+      );
+      expect(imported.markdown).toContain(
+        '- Recognized for improving platform reliability across critical services.',
+      );
+      expect(imported.markdown).toContain('## Certifications');
+      expect(imported.markdown).toContain(
+        '### AWS Certified Solutions Architect | Amazon Web Services | 2024',
+      );
+      expect(imported.markdown).toContain(
+        '- [Credential](https://example.com/aws-cert)',
+      );
+    });
+
+    it('imports third-party awards and certifications safely and ignores malformed scalar values', () => {
+      const imported = importFromJsonResume({
+        basics: { name: 'Safe Credentials Candidate' },
+        awards: [
+          {
+            title: 'Reliability Award',
+            awarder: 'Engineering Org',
+            date: '2025',
+            summary: 'Recognized for production reliability.',
+          },
+          {
+            title: { unsafe: true },
+            awarder: 42,
+            summary: ['unsafe'],
+          },
+        ],
+        certificates: [
+          {
+            name: 'Cloud Certificate',
+            issuer: 'Cloud Provider',
+            date: '2024',
+            url: 'https://example.com/cloud-cert',
+          },
+          {
+            name: { unsafe: true },
+            issuer: false,
+            url: 'javascript:alert(1)',
+          },
+        ],
+        meta: { lang: 'en' },
+      });
+
+      expect(imported.markdown).toContain('## Honors & Awards');
+      expect(imported.markdown).toContain(
+        '### Reliability Award | Engineering Org | 2025',
+      );
+      expect(imported.markdown).toContain('Recognized for production reliability.');
+      expect(imported.markdown).toContain('## Certifications');
+      expect(imported.markdown).toContain(
+        '### Cloud Certificate | Cloud Provider | 2024',
+      );
+      expect(imported.markdown).toContain(
+        '- [Credential](https://example.com/cloud-cert)',
+      );
+      expect(imported.markdown).not.toContain('[object Object]');
+      expect(imported.markdown).not.toContain('javascript:');
+    });
+
     it('exports Markdown and bare-domain social contacts as valid JSON Resume URLs', () => {
       const markdownLinkResume = `# Social Candidate
 > **Engineer**

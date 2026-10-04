@@ -609,6 +609,51 @@ multi@example.com | [GitHub](https://github.com/multi-social) | [LinkedIn](https
       );
     });
 
+    it('preserves dedicated Links & Portfolio sections as JSON Resume profiles', () => {
+      const markdown = `# Links Section Candidate
+> **Engineer**
+links@example.com | [GitHub](https://github.com/links-candidate)
+
+## Links & Portfolio
+
+- [GitHub](https://github.com/links-candidate)
+- [LinkedIn](https://www.linkedin.com/in/links-candidate)
+- Portfolio: portfolio.example.com/work
+- GitHub handle only: links-candidate
+`;
+
+      const json = exportToJsonResume(markdown, baseSettings);
+
+      expect(json.basics.url).toBe('https://github.com/links-candidate');
+      expect(json.basics.profiles).toEqual([
+        {
+          network: 'GitHub',
+          username: 'links-candidate',
+          url: 'https://github.com/links-candidate',
+        },
+        {
+          network: 'LinkedIn',
+          username: 'in/links-candidate',
+          url: 'https://www.linkedin.com/in/links-candidate',
+        },
+        {
+          network: 'Portfolio / Social',
+          username: 'work',
+          url: 'https://portfolio.example.com/work',
+        },
+      ]);
+
+      const imported = importFromJsonResume(json);
+      expect(imported.markdown.match(/https:\/\/github\.com\/links-candidate/g)?.length).toBe(1);
+      expect(imported.markdown).toContain(
+        '[LinkedIn](https://www.linkedin.com/in/links-candidate)',
+      );
+      expect(imported.markdown).toContain(
+        '[Portfolio / Social](https://portfolio.example.com/work)',
+      );
+      expect(imported.markdown).not.toContain('GitHub handle only');
+    });
+
     it('does not classify lookalike hosts as trusted social networks', () => {
       const json = exportToJsonResume(
         `# Lookalike Candidate

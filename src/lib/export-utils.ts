@@ -342,6 +342,14 @@ export interface JsonResumeStandard {
     language: string;
     fluency?: string;
   }>;
+  interests?: Array<{
+    name: string;
+    keywords?: string[];
+  }>;
+  references?: Array<{
+    name: string;
+    reference: string;
+  }>;
   meta?: {
     canonical?: string;
     version?: string;
@@ -463,6 +471,8 @@ export function exportToJsonResume(
     volunteer: [],
     publications: [],
     languages: [],
+    interests: [],
+    references: [],
     meta: {
       canonical: 'https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json',
       version: 'v1.0.0',
@@ -670,6 +680,96 @@ export function exportToJsonResume(
               fluency: fluency || undefined,
             });
           }
+        });
+      }
+    } else if (
+      titleLower === 'interests' ||
+      titleLower === 'hobbies' ||
+      titleLower.includes('personal interests') ||
+      titleLower.includes('兴趣爱好') ||
+      titleLower === '兴趣' ||
+      titleLower === '爱好' ||
+      titleLower.includes('个人兴趣')
+    ) {
+      const pushInterest = (raw: string) => {
+        const cleaned = stripMarkdownFormatting(
+          raw.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+        ).trim();
+        if (!cleaned) return;
+
+        const parts = cleaned
+          .split(/\s*[:：|｜]\s*/, 2)
+          .map((value) => value.trim())
+          .filter(Boolean);
+        const name = parts[0];
+        if (!name) return;
+        const keywords = (parts[1] || '')
+          .split(/[,，、|]/)
+          .map((value) => stripMarkdownFormatting(value).trim())
+          .filter(Boolean);
+
+        json.interests?.push({
+          name,
+          keywords: keywords.length > 0 ? keywords : undefined,
+        });
+      };
+
+      if (sec.type === 'text' && sec.textValue) {
+        sec.textValue.split('\n').forEach(pushInterest);
+      } else {
+        sec.items.forEach((item) => {
+          const name = stripMarkdownFormatting(item.org || item.role || '').trim();
+          if (!name) return;
+          const keywords = (item.content || '')
+            .split(/[,，、|\n]/)
+            .map((value) =>
+              stripMarkdownFormatting(
+                value.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+              ).trim(),
+            )
+            .filter(Boolean);
+
+          json.interests?.push({
+            name,
+            keywords: keywords.length > 0 ? keywords : undefined,
+          });
+        });
+      }
+    } else if (
+      titleLower === 'references' ||
+      titleLower.includes('professional references') ||
+      titleLower.includes('推荐人') ||
+      titleLower.includes('推荐信') ||
+      titleLower.includes('推荐评价') ||
+      titleLower.includes('推荐意见')
+    ) {
+      const pushReference = (nameRaw: string, referenceRaw: string) => {
+        const name = stripMarkdownFormatting(nameRaw).trim();
+        const reference = referenceRaw
+          .split('\n')
+          .map((line) =>
+            stripMarkdownFormatting(
+              line.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+            ).trim(),
+          )
+          .filter(Boolean)
+          .join('\n');
+        if (!name || !reference) return;
+        json.references?.push({ name, reference });
+      };
+
+      if (sec.type === 'text' && sec.textValue) {
+        sec.textValue.split('\n').forEach((raw) => {
+          const cleaned = stripMarkdownFormatting(
+            raw.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+          ).trim();
+          if (!cleaned) return;
+          const match = cleaned.match(/^([^:：|｜]+?)\s*[:：|｜]\s*(.+)$/);
+          if (match) pushReference(match[1], match[2]);
+        });
+      } else {
+        sec.items.forEach((item) => {
+          pushReference(item.org || item.role || '', item.content || '');
         });
       }
     } else if (
@@ -936,6 +1036,12 @@ export function importFromJsonResume(jsonObj: unknown): {
   const languages = Array.isArray(raw.languages)
     ? raw.languages.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['languages']>
     : [];
+  const interests = Array.isArray(raw.interests)
+    ? raw.interests.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['interests']>
+    : [];
+  const references = Array.isArray(raw.references)
+    ? raw.references.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['references']>
+    : [];
   const profiles = Array.isArray(basics.profiles)
     ? basics.profiles.filter(isRecord)
     : [];
@@ -1018,6 +1124,18 @@ export function importFromJsonResume(jsonObj: unknown): {
         item.name,
         item.publisher,
         item.summary,
+      ]),
+      ...languages.flatMap((item) => [
+        item.language,
+        item.fluency,
+      ]),
+      ...interests.flatMap((item) => [
+        item.name,
+        ...stringArray(item.keywords),
+      ]),
+      ...references.flatMap((item) => [
+        item.name,
+        item.reference,
       ]),
     ]
       .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
@@ -1203,6 +1321,51 @@ export function importFromJsonResume(jsonObj: unknown): {
           : `- **${item.language}**：${item.fluency || '—'}\n`;
       }
       md += `\n`;
+    }
+  }
+
+  // Interests
+  if (interests.length > 0) {
+    const validInterests = interests
+      .map((item) => ({
+        name: stringValue(item.name),
+        keywords: stringArray(item.keywords),
+      }))
+      .filter((item) => item.name);
+
+    if (validInterests.length > 0) {
+      md += `## ${isEn ? 'Interests' : '兴趣爱好'}\n\n`;
+      for (const item of validInterests) {
+        if (item.keywords.length > 0) {
+          md += isEn
+            ? `- **${item.name}**: ${item.keywords.join(', ')}\n`
+            : `- **${item.name}**：${item.keywords.join('、')}\n`;
+        } else {
+          md += `- ${item.name}\n`;
+        }
+      }
+      md += `\n`;
+    }
+  }
+
+  // References
+  if (references.length > 0) {
+    const validReferences = references
+      .map((item) => ({
+        name: stringValue(item.name),
+        reference: stringValue(item.reference),
+      }))
+      .filter((item) => item.name && item.reference);
+
+    if (validReferences.length > 0) {
+      md += `## ${isEn ? 'References' : '推荐人'}\n\n`;
+      for (const item of validReferences) {
+        md += `### ${item.name}\n`;
+        for (const line of item.reference.split('\n').map((value) => value.trim()).filter(Boolean)) {
+          md += `- ${line}\n`;
+        }
+        md += `\n`;
+      }
     }
   }
 

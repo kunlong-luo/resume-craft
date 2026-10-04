@@ -318,6 +318,69 @@ language@example.com
       expect(imported.markdown).not.toContain('[object Object]');
     });
 
+    it('round-trips interests and references through standard JSON Resume fields', () => {
+      const markdown = `# Well-Rounded Candidate
+> **Platform Engineer**
+candidate@example.com
+
+## Interests
+
+- **Photography**: Street, Architecture
+- **Open Source**: Developer Tools, AI
+
+## References
+
+### Jane Smith
+- Consistently delivered reliable systems and strong cross-team communication.
+`;
+
+      const json = exportToJsonResume(markdown, baseSettings);
+
+      expect(json.interests).toEqual([
+        { name: 'Photography', keywords: ['Street', 'Architecture'] },
+        { name: 'Open Source', keywords: ['Developer Tools', 'AI'] },
+      ]);
+      expect(json.references).toEqual([
+        {
+          name: 'Jane Smith',
+          reference: 'Consistently delivered reliable systems and strong cross-team communication.',
+        },
+      ]);
+
+      const imported = importFromJsonResume(json);
+      expect(imported.markdown).toContain('## Interests');
+      expect(imported.markdown).toContain('- **Photography**: Street, Architecture');
+      expect(imported.markdown).toContain('## References');
+      expect(imported.markdown).toContain('### Jane Smith');
+      expect(imported.markdown).toContain(
+        '- Consistently delivered reliable systems and strong cross-team communication.',
+      );
+    });
+
+    it('sanitizes malformed external interests and references values', () => {
+      const imported = importFromJsonResume({
+        basics: { name: 'Safe Candidate' },
+        interests: [
+          { name: 'Cinema', keywords: ['Sci-Fi', 42, { unsafe: true }] },
+          { name: { unsafe: true }, keywords: ['Ignored'] },
+        ],
+        references: [
+          { name: 'Jane Smith', reference: 'Strong collaborator.' },
+          { name: 'Invalid', reference: { unsafe: true } },
+          { name: ['bad'], reference: 'Ignored' },
+        ],
+        meta: { lang: 'en' },
+      });
+
+      expect(imported.markdown).toContain('## Interests');
+      expect(imported.markdown).toContain('- **Cinema**: Sci-Fi');
+      expect(imported.markdown).toContain('## References');
+      expect(imported.markdown).toContain('### Jane Smith');
+      expect(imported.markdown).toContain('- Strong collaborator.');
+      expect(imported.markdown).not.toContain('[object Object]');
+      expect(imported.markdown).not.toContain('### Invalid');
+    });
+
     it('keeps volunteer experience out of work and round-trips publications', () => {
       const markdown = `# Community Candidate
 > **Platform Engineer**

@@ -106,6 +106,13 @@ describe('i18n language contract', () => {
     expect(translateSectionTitle('Language Proficiency', 'zh')).toBe('语言能力');
   });
 
+  it('standardizes interests and references headings bidirectionally', () => {
+    expect(translateSectionTitle('兴趣爱好', 'en')).toBe('Interests');
+    expect(translateSectionTitle('推荐人', 'en')).toBe('References');
+    expect(translateSectionTitle('Hobbies', 'zh')).toBe('兴趣爱好');
+    expect(translateSectionTitle('Professional References', 'zh')).toBe('推荐人');
+  });
+
   it('standardizes volunteer and publications headings bidirectionally', () => {
     expect(translateSectionTitle('志愿服务', 'en')).toBe('Volunteer Experience');
     expect(translateSectionTitle('论文发表', 'en')).toBe('Publications');

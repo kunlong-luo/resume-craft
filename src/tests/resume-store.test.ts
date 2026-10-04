@@ -244,6 +244,51 @@ describe('resume store state consistency', () => {
     expect(after.currentTemplateId).toBe(before.currentTemplateId);
   });
 
+  it('sanitizes corrupted persisted settings before they reach preview state', () => {
+    const fallback = useResumeStore.getState().settings;
+    const corrupted = {
+      ...fallback,
+      themeColor: 'not-a-theme',
+      customColor: '#fff; } body { display: none; /*',
+      fontSize: 'gigantic',
+      fontFamily: 'comic',
+      margin: 'zero',
+      layoutMode: 'floating',
+      h2Style: 'unsafe-style',
+      templateLayout: 'triple',
+      topAccentLine: 'yes',
+      showPageBreakLine: 'yes',
+      lang: 'fr',
+      isPrivacyMasked: 'yes',
+      lineHeight: 99,
+      blockGap: -5,
+      letterSpacing: 99,
+    } as unknown as typeof fallback;
+
+    useResumeStore.getState().replaceDocument(
+      'sanitized content',
+      corrupted,
+      'custom',
+    );
+
+    const settings = useResumeStore.getState().settings;
+    expect(settings.themeColor).toBe(fallback.themeColor);
+    expect(settings.customColor).toBe(fallback.customColor);
+    expect(settings.fontSize).toBe(fallback.fontSize);
+    expect(settings.fontFamily).toBe(fallback.fontFamily);
+    expect(settings.margin).toBe(fallback.margin);
+    expect(settings.layoutMode).toBe(fallback.layoutMode);
+    expect(settings.h2Style).toBe(fallback.h2Style);
+    expect(settings.templateLayout).toBe(fallback.templateLayout);
+    expect(settings.topAccentLine).toBe(fallback.topAccentLine);
+    expect(settings.showPageBreakLine).toBe(fallback.showPageBreakLine);
+    expect(settings.lang).toBe(fallback.lang);
+    expect(settings.isPrivacyMasked).toBe(fallback.isPrivacyMasked);
+    expect(settings.lineHeight).toBe(2.5);
+    expect(settings.blockGap).toBe(0);
+    expect(settings.letterSpacing).toBe(2);
+  });
+
   it('replaces an imported or restored document as one consistent state', () => {
     const replacementSettings = {
       ...useResumeStore.getState().settings,

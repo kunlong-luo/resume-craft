@@ -283,7 +283,7 @@ export interface JsonResumeStandard {
   };
 }
 
-function parsePrimarySocialLink(rawSocial: string | undefined): {
+function parseSingleSocialLink(rawSocial: string | undefined): {
   url: string;
   network: string;
   username: string;
@@ -338,6 +338,31 @@ function parsePrimarySocialLink(rawSocial: string | undefined): {
   }
 }
 
+function parseSocialLinks(rawSocial: string | undefined): Array<{
+  url: string;
+  network: string;
+  username: string;
+}> {
+  if (!rawSocial?.trim()) return [];
+
+  const candidates = rawSocial
+    .split(/\s*[·|｜]\s*/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const links: Array<{ url: string; network: string; username: string }> = [];
+  const seenUrls = new Set<string>();
+
+  for (const candidate of candidates) {
+    const parsed = parseSingleSocialLink(candidate);
+    if (!parsed || seenUrls.has(parsed.url)) continue;
+    seenUrls.add(parsed.url);
+    links.push(parsed);
+  }
+
+  return links;
+}
+
 /**
  * Convert Markdown resume into standard JSON Resume format.
  */
@@ -346,7 +371,8 @@ export function exportToJsonResume(
   settings: ResumeSettings
 ): JsonResumeStandard {
   const formModel = parseMarkdownToForm(markdown);
-  const primarySocial = parsePrimarySocialLink(formModel.social);
+  const socialLinks = parseSocialLinks(formModel.social);
+  const primarySocial = socialLinks[0];
   const json: JsonResumeStandard = {
     basics: {
       name: stripMarkdownFormatting(formModel.name) || '',
@@ -373,8 +399,8 @@ export function exportToJsonResume(
     },
   };
 
-  if (primarySocial) {
-    json.basics.profiles?.push(primarySocial);
+  if (socialLinks.length > 0) {
+    json.basics.profiles?.push(...socialLinks);
   }
 
   for (const sec of formModel.sections) {

@@ -99,6 +99,13 @@ describe('i18n language contract', () => {
     expect(formatDateRange('2024.03 - 至今', 'cn-dot', false)).toBe('2024.03 — 至今');
   });
 
+  it('standardizes dedicated natural-language headings bidirectionally', () => {
+    expect(translateSectionTitle('语言能力', 'en')).toBe('Languages');
+    expect(translateSectionTitle('外语能力', 'en')).toBe('Languages');
+    expect(translateSectionTitle('Languages', 'zh')).toBe('语言能力');
+    expect(translateSectionTitle('Language Proficiency', 'zh')).toBe('语言能力');
+  });
+
   it('standardizes volunteer and publications headings bidirectionally', () => {
     expect(translateSectionTitle('志愿服务', 'en')).toBe('Volunteer Experience');
     expect(translateSectionTitle('论文发表', 'en')).toBe('Publications');

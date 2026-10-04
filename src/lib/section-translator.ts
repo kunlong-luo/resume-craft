@@ -61,6 +61,11 @@ export const STANDARD_SECTION_MAPPINGS: TitleMapping[] = [
     defaultZh: '发表与出版'
   },
   {
+    zh: ['语言能力', '语言水平', '外语能力'],
+    en: 'Languages',
+    defaultZh: '语言能力'
+  },
+  {
     zh: ['社交主页', '社交链接', '作品链接'],
     en: 'Links & Portfolio',
     defaultZh: '社交主页'
@@ -94,6 +99,7 @@ export function translateSectionTitle(title: string, targetLang: 'zh' | 'en'): s
     if (['certifications', 'certificates', 'licenses & certifications', 'licences & certifications'].includes(lower)) return 'Certifications';
     if (['volunteer experience', 'volunteering', 'volunteer work', 'community service'].includes(lower)) return 'Volunteer Experience';
     if (['publications', 'published work', 'papers', 'research publications'].includes(lower)) return 'Publications';
+    if (['languages', 'language proficiency', 'language ability'].includes(lower)) return 'Languages';
 
     return trimmed;
   } else {
@@ -108,6 +114,7 @@ export function translateSectionTitle(title: string, targetLang: 'zh' | 'en'): s
     if (lower.includes('skill') || lower.includes('tech stack') || lower.includes('technologies')) return '专业技能';
     if (lower.includes('volunteer') || lower.includes('community service')) return '志愿经历';
     if (lower.includes('publication') || lower.includes('published') || lower === 'papers') return '发表与出版';
+    if (lower === 'languages' || lower.includes('language proficiency') || lower.includes('language ability')) return '语言能力';
     if (lower.includes('work') || lower.includes('experience') || lower.includes('employment') || lower.includes('career')) return '工作经历';
     if (lower.includes('intern')) return '实习经历';
     if (lower.includes('project') || lower.includes('portfolio')) return '代表项目';

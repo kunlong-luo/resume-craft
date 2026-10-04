@@ -266,6 +266,58 @@ edu@example.com
       );
     });
 
+    it('round-trips dedicated natural-language sections without confusing programming languages', () => {
+      const markdown = `# Language Candidate
+> **Platform Engineer**
+language@example.com
+
+## Skills
+
+- **Languages:** Java, Go, TypeScript
+- **Data:** PostgreSQL, Redis
+
+## Languages
+
+- **English**: Professional
+- **中文**：Native
+`;
+
+      const json = exportToJsonResume(markdown, baseSettings);
+
+      expect(json.skills).toEqual(
+        expect.arrayContaining([
+          { name: 'Languages', keywords: ['Java', 'Go', 'TypeScript'] },
+          { name: 'Data', keywords: ['PostgreSQL', 'Redis'] },
+        ]),
+      );
+      expect(json.languages).toEqual([
+        { language: 'English', fluency: 'Professional' },
+        { language: '中文', fluency: 'Native' },
+      ]);
+
+      const imported = importFromJsonResume(json);
+      expect(imported.markdown).toContain('## Languages');
+      expect(imported.markdown).toContain('- **English**: Professional');
+      expect(imported.markdown).toContain('- **中文**: Native');
+    });
+
+    it('ignores malformed natural-language scalar values from external JSON Resume data', () => {
+      const imported = importFromJsonResume({
+        basics: { name: 'Safe Language Candidate' },
+        languages: [
+          { language: 'English', fluency: 'Native' },
+          { language: { unsafe: true }, fluency: ['bad'] },
+          { language: 'Japanese', fluency: 42 },
+        ],
+        meta: { lang: 'en' },
+      });
+
+      expect(imported.markdown).toContain('## Languages');
+      expect(imported.markdown).toContain('- **English**: Native');
+      expect(imported.markdown).toContain('- **Japanese**: —');
+      expect(imported.markdown).not.toContain('[object Object]');
+    });
+
     it('keeps volunteer experience out of work and round-trips publications', () => {
       const markdown = `# Community Candidate
 > **Platform Engineer**

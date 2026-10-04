@@ -289,6 +289,43 @@ portfolio@example.com | portfolio.example.com/case-study
       expect(bareJson.basics.url).toBe('https://portfolio.example.com/case-study');
     });
 
+    it('preserves multiple social links as JSON Resume profiles', () => {
+      const markdown = `# Multi Social Candidate
+> **Engineer**
+multi@example.com | [GitHub](https://github.com/multi-social) | [LinkedIn](https://www.linkedin.com/in/multi-social) | portfolio.example.com/work
+`;
+
+      const json = exportToJsonResume(markdown, baseSettings);
+
+      expect(json.basics.url).toBe('https://github.com/multi-social');
+      expect(json.basics.profiles).toEqual([
+        {
+          network: 'GitHub',
+          username: 'multi-social',
+          url: 'https://github.com/multi-social',
+        },
+        {
+          network: 'LinkedIn',
+          username: 'in/multi-social',
+          url: 'https://www.linkedin.com/in/multi-social',
+        },
+        {
+          network: 'Portfolio / Social',
+          username: 'work',
+          url: 'https://portfolio.example.com/work',
+        },
+      ]);
+
+      const imported = importFromJsonResume(json);
+      expect(imported.markdown.match(/https:\/\/github\.com\/multi-social/g)?.length).toBe(1);
+      expect(imported.markdown).toContain(
+        '[LinkedIn](https://www.linkedin.com/in/multi-social)',
+      );
+      expect(imported.markdown).toContain(
+        '[Portfolio / Social](https://portfolio.example.com/work)',
+      );
+    });
+
     it('does not classify lookalike hosts as trusted social networks', () => {
       const json = exportToJsonResume(
         `# Lookalike Candidate

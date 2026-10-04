@@ -547,8 +547,27 @@ export function importFromJsonResume(jsonObj: unknown): {
 
   const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === 'object' && value !== null && !Array.isArray(value);
+  const stringValue = (value: unknown): string =>
+    typeof value === 'string' ? value.trim() : '';
+  const httpUrlValue = (value: unknown): string => {
+    const rawUrl = stringValue(value);
+    if (!rawUrl) return '';
+    try {
+      const parsed = new URL(rawUrl);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+        ? parsed.toString()
+        : '';
+    } catch {
+      return '';
+    }
+  };
   const stringArray = (value: unknown): string[] =>
-    Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+    Array.isArray(value)
+      ? value
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : [];
 
   const raw = jsonObj as Record<string, unknown>;
   const basics = isRecord(raw.basics)
@@ -644,28 +663,34 @@ export function importFromJsonResume(jsonObj: unknown): {
   }
 
   const isEn = detectedSettings.lang === 'en' || (detectedSettings.marketRegion && detectedSettings.marketRegion !== 'cn');
-  let md = `# ${basics.name || (isEn ? 'Candidate Name' : '求职者姓名')}\n`;
+  const basicsName = stringValue(basics.name);
+  const basicsLabel = stringValue(basics.label);
+  const basicsPhone = stringValue(basics.phone);
+  const basicsEmail = stringValue(basics.email);
+  const basicsUrl = httpUrlValue(basics.url);
+  const basicsSummary = stringValue(basics.summary);
+  const locationCity = stringValue(location?.city);
 
-  if (basics.label) {
-    md += `> **${basics.label}**\n`;
+  let md = `# ${basicsName || (isEn ? 'Candidate Name' : '求职者姓名')}\n`;
+
+  if (basicsLabel) {
+    md += `> **${basicsLabel}**\n`;
   }
 
   const contacts: string[] = [];
-  if (basics.phone) contacts.push(basics.phone);
-  if (basics.email) contacts.push(basics.email);
-  if (typeof location?.city === 'string') contacts.push(location.city);
-  if (basics.url) contacts.push(`[Website](${basics.url})`);
+  if (basicsPhone) contacts.push(basicsPhone);
+  if (basicsEmail) contacts.push(basicsEmail);
+  if (locationCity) contacts.push(locationCity);
+  if (basicsUrl) contacts.push(`[Website](${basicsUrl})`);
 
   if (profiles.length > 0) {
-    const seenProfileUrls = new Set(
-      typeof basics.url === 'string' && basics.url.trim()
-        ? [basics.url.trim()]
-        : [],
-    );
+    const seenProfileUrls = new Set(basicsUrl ? [basicsUrl] : []);
     for (const p of profiles) {
-      if (p.network && p.url && !seenProfileUrls.has(p.url)) {
-        contacts.push(`[${p.network}](${p.url})`);
-        seenProfileUrls.add(p.url);
+      const network = stringValue(p.network);
+      const url = httpUrlValue(p.url);
+      if (network && url && !seenProfileUrls.has(url)) {
+        contacts.push(`[${network}](${url})`);
+        seenProfileUrls.add(url);
       }
     }
   }
@@ -676,20 +701,25 @@ export function importFromJsonResume(jsonObj: unknown): {
     md += `\n`;
   }
 
-  if (typeof basics.summary === 'string' && basics.summary.trim()) {
+  if (basicsSummary) {
     md += `## ${isEn ? 'Summary' : '个人简介'}\n\n`;
-    md += `${basics.summary.trim()}\n\n`;
+    md += `${basicsSummary}\n\n`;
   }
 
   // Work Experience
   if (work.length > 0) {
     md += `## ${isEn ? 'Work Experience' : '工作经历'}\n\n`;
     for (const w of work) {
-      const dates = [w.startDate, w.endDate].filter(Boolean).join(' – ');
-      const sub = [w.position, dates].filter(Boolean).join(' | ');
-      md += `### ${w.name}${sub ? ` | ${sub}` : ''}\n`;
-      if (w.summary) {
-        md += `- ${w.summary}\n`;
+      const name = stringValue(w.name) || (isEn ? 'Company' : '公司');
+      const position = stringValue(w.position);
+      const startDate = stringValue(w.startDate);
+      const endDate = stringValue(w.endDate);
+      const summary = stringValue(w.summary);
+      const dates = [startDate, endDate].filter(Boolean).join(' – ');
+      const sub = [position, dates].filter(Boolean).join(' | ');
+      md += `### ${name}${sub ? ` | ${sub}` : ''}\n`;
+      if (summary) {
+        md += `- ${summary}\n`;
       }
       const highlights = stringArray(w.highlights);
       if (highlights.length > 0) {
@@ -705,9 +735,13 @@ export function importFromJsonResume(jsonObj: unknown): {
   if (projects.length > 0) {
     md += `## ${isEn ? 'Projects' : '项目经历'}\n\n`;
     for (const p of projects) {
-      const dates = [p.startDate, p.endDate].filter(Boolean).join(' – ');
-      const sub = [p.description, dates].filter(Boolean).join(' | ');
-      md += `### ${p.name}${sub ? ` | ${sub}` : ''}\n`;
+      const name = stringValue(p.name) || (isEn ? 'Project' : '项目');
+      const description = stringValue(p.description);
+      const startDate = stringValue(p.startDate);
+      const endDate = stringValue(p.endDate);
+      const dates = [startDate, endDate].filter(Boolean).join(' – ');
+      const sub = [description, dates].filter(Boolean).join(' | ');
+      md += `### ${name}${sub ? ` | ${sub}` : ''}\n`;
       const highlights = stringArray(p.highlights);
       if (highlights.length > 0) {
         for (const h of highlights) {
@@ -722,13 +756,19 @@ export function importFromJsonResume(jsonObj: unknown): {
   if (education.length > 0) {
     md += `## ${isEn ? 'Education' : '教育背景'}\n\n`;
     for (const e of education) {
-      const dates = [e.startDate, e.endDate].filter(Boolean).join(' – ');
-      const sub = [e.studyType, e.area, dates].filter(Boolean).join(' | ');
-      md += `### ${e.institution}${sub ? ` | ${sub}` : ''}\n`;
-      if (typeof e.score === 'string' && e.score.trim()) {
+      const institution = stringValue(e.institution) || (isEn ? 'Institution' : '学校');
+      const studyType = stringValue(e.studyType);
+      const area = stringValue(e.area);
+      const startDate = stringValue(e.startDate);
+      const endDate = stringValue(e.endDate);
+      const score = stringValue(e.score);
+      const dates = [startDate, endDate].filter(Boolean).join(' – ');
+      const sub = [studyType, area, dates].filter(Boolean).join(' | ');
+      md += `### ${institution}${sub ? ` | ${sub}` : ''}\n`;
+      if (score) {
         md += isEn
-          ? `- **GPA / Performance**: ${e.score.trim()}\n`
-          : `- **在校表现**：${e.score.trim()}\n`;
+          ? `- **GPA / Performance**: ${score}\n`
+          : `- **在校表现**：${score}\n`;
       }
       const courses = stringArray(e.courses);
       if (courses.length > 0) {
@@ -744,11 +784,12 @@ export function importFromJsonResume(jsonObj: unknown): {
   if (skills.length > 0) {
     md += `## ${isEn ? 'Skills' : '专业技能'}\n\n`;
     for (const s of skills) {
+      const name = stringValue(s.name) || (isEn ? 'Skills' : '技能');
       const keywords = stringArray(s.keywords);
       if (keywords.length > 0) {
-        md += `- **${s.name}**: ${keywords.join(', ')}\n`;
-      } else if (s.name) {
-        md += `- ${s.name}\n`;
+        md += `- **${name}**: ${keywords.join(', ')}\n`;
+      } else if (stringValue(s.name)) {
+        md += `- ${name}\n`;
       }
     }
     md += `\n`;

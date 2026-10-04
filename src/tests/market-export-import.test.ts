@@ -398,6 +398,65 @@ summary@example.com | https://example.com
       );
     });
 
+    it('ignores non-string scalar fields from malformed external JSON Resume data', () => {
+      const imported = importFromJsonResume({
+        basics: {
+          name: { unsafe: true },
+          label: 42,
+          email: 'safe@example.com',
+          phone: ['not', 'a', 'phone'],
+          summary: { text: 'unsafe summary' },
+          location: { city: { nested: true } },
+          url: 'javascript:alert(1)',
+          profiles: [
+            { network: { unsafe: true }, url: 'https://example.com/bad-network' },
+            { network: 'Unsafe', url: 'data:text/html,unsafe' },
+            { network: 'GitHub', url: 'https://github.com/safe-user' },
+          ],
+        },
+        work: [
+          {
+            name: { unsafe: true },
+            position: 99,
+            startDate: ['2024'],
+            endDate: 'Present',
+            summary: { unsafe: true },
+            highlights: ['Valid highlight', 123, { bad: true }],
+          },
+        ],
+        education: [
+          {
+            institution: { unsafe: true },
+            studyType: 'Bachelor',
+            area: false,
+            score: { value: 4 },
+            courses: ['Databases', 123],
+          },
+        ],
+        skills: [
+          {
+            name: { unsafe: true },
+            keywords: ['TypeScript', 123, 'PostgreSQL'],
+          },
+        ],
+        meta: { lang: 'en' },
+      });
+
+      expect(imported.markdown).not.toContain('[object Object]');
+      expect(imported.markdown).not.toContain('unsafe summary');
+      expect(imported.markdown).not.toContain('bad-network');
+      expect(imported.markdown).not.toContain('javascript:');
+      expect(imported.markdown).not.toContain('data:text/html');
+      expect(imported.markdown).toContain('# Candidate Name');
+      expect(imported.markdown).toContain('safe@example.com');
+      expect(imported.markdown).toContain('[GitHub](https://github.com/safe-user)');
+      expect(imported.markdown).toContain('### Company | Present');
+      expect(imported.markdown).toContain('- Valid highlight');
+      expect(imported.markdown).toContain('### Institution | Bachelor');
+      expect(imported.markdown).toContain('- **Core Courses**: Databases');
+      expect(imported.markdown).toContain('- **Skills**: TypeScript, PostgreSQL');
+    });
+
     it('infers English section titles for standard JSON Resume without custom lang metadata', () => {
       const { markdown, detectedSettings } = importFromJsonResume({
         basics: {

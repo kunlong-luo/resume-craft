@@ -51,6 +51,16 @@ export const STANDARD_SECTION_MAPPINGS: TitleMapping[] = [
     defaultZh: '资质证书'
   },
   {
+    zh: ['志愿经历', '志愿服务', '志愿者经历', '公益经历', '公益服务'],
+    en: 'Volunteer Experience',
+    defaultZh: '志愿经历'
+  },
+  {
+    zh: ['发表与出版', '论文发表', '发表作品', '论文与出版', '出版物'],
+    en: 'Publications',
+    defaultZh: '发表与出版'
+  },
+  {
     zh: ['社交主页', '社交链接', '作品链接'],
     en: 'Links & Portfolio',
     defaultZh: '社交主页'
@@ -82,6 +92,8 @@ export function translateSectionTitle(title: string, targetLang: 'zh' | 'en'): s
     if (['education', 'education & qualifications', 'education and qualifications', 'academic background'].includes(lower)) return 'Education';
     if (['honors & awards', 'honours & awards', 'awards & honors', 'awards & honours'].includes(lower)) return 'Honors & Awards';
     if (['certifications', 'certificates', 'licenses & certifications', 'licences & certifications'].includes(lower)) return 'Certifications';
+    if (['volunteer experience', 'volunteering', 'volunteer work', 'community service'].includes(lower)) return 'Volunteer Experience';
+    if (['publications', 'published work', 'papers', 'research publications'].includes(lower)) return 'Publications';
 
     return trimmed;
   } else {
@@ -94,6 +106,8 @@ export function translateSectionTitle(title: string, targetLang: 'zh' | 'en'): s
     }
     if (lower.includes('summary') || lower.includes('strength') || lower.includes('profile')) return '个人优势';
     if (lower.includes('skill') || lower.includes('tech stack') || lower.includes('technologies')) return '专业技能';
+    if (lower.includes('volunteer') || lower.includes('community service')) return '志愿经历';
+    if (lower.includes('publication') || lower.includes('published') || lower === 'papers') return '发表与出版';
     if (lower.includes('work') || lower.includes('experience') || lower.includes('employment') || lower.includes('career')) return '工作经历';
     if (lower.includes('intern')) return '实习经历';
     if (lower.includes('project') || lower.includes('portfolio')) return '代表项目';

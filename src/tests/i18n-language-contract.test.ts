@@ -3,7 +3,7 @@ import { getDegreeOptions, getJobStatusOptions } from '../lib/form-constants';
 import { getPresetSection, getStarTemplate } from '../lib/form-helpers';
 import { parseExperienceField } from '../lib/markdown-parser';
 import { parseBasicInfoMetadata } from '../lib/preview-utils';
-import { translateMarkdownContent } from '../lib/section-translator';
+import { translateMarkdownContent, translateSectionTitle } from '../lib/section-translator';
 import { formatDateRange } from '../lib/date-parser';
 import { getTranslation } from '../i18n';
 
@@ -97,6 +97,13 @@ describe('i18n language contract', () => {
   it('formats ongoing dates from the resume language rather than the UI language', () => {
     expect(formatDateRange('2024.03 - 至今', 'month-short', true)).toBe('Mar 2024 – Present');
     expect(formatDateRange('2024.03 - 至今', 'cn-dot', false)).toBe('2024.03 — 至今');
+  });
+
+  it('standardizes volunteer and publications headings bidirectionally', () => {
+    expect(translateSectionTitle('志愿服务', 'en')).toBe('Volunteer Experience');
+    expect(translateSectionTitle('论文发表', 'en')).toBe('Publications');
+    expect(translateSectionTitle('Volunteer Work', 'zh')).toBe('志愿经历');
+    expect(translateSectionTitle('Published Work', 'zh')).toBe('发表与出版');
   });
 
   it('uses canonical section titles for English presets', () => {

@@ -338,6 +338,10 @@ export interface JsonResumeStandard {
     url?: string;
     summary?: string;
   }>;
+  languages?: Array<{
+    language: string;
+    fluency?: string;
+  }>;
   meta?: {
     canonical?: string;
     version?: string;
@@ -458,6 +462,7 @@ export function exportToJsonResume(
     certificates: [],
     volunteer: [],
     publications: [],
+    languages: [],
     meta: {
       canonical: 'https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json',
       version: 'v1.0.0',
@@ -597,6 +602,44 @@ export function exportToJsonResume(
         });
       });
     } else if (
+      titleLower === 'languages' ||
+      titleLower.includes('language proficiency') ||
+      titleLower.includes('language ability') ||
+      titleLower.includes('语言能力') ||
+      titleLower.includes('语言水平') ||
+      titleLower.includes('外语能力')
+    ) {
+      const pushLanguage = (raw: string) => {
+        const cleaned = stripMarkdownFormatting(
+          raw.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+        );
+        if (!cleaned) return;
+        const parts = cleaned
+          .split(/\s*[:：|｜]\s*/, 2)
+          .map((value) => value.trim())
+          .filter(Boolean);
+        if (parts.length === 0) return;
+        json.languages?.push({
+          language: parts[0],
+          fluency: parts[1] || undefined,
+        });
+      };
+
+      if (sec.type === 'text' && sec.textValue) {
+        sec.textValue.split('\n').forEach(pushLanguage);
+      } else {
+        sec.items.forEach((item) => {
+          const language = stripMarkdownFormatting(item.org || '');
+          const fluency = stripMarkdownFormatting(item.role || item.content || '');
+          if (language) {
+            json.languages?.push({
+              language,
+              fluency: fluency || undefined,
+            });
+          }
+        });
+      }
+    } else if (
       titleLower.includes('publication') ||
       titleLower.includes('paper') ||
       titleLower.includes('论文') ||
@@ -733,15 +776,45 @@ export function exportToJsonResume(
       titleLower.includes('技能')
     ) {
       if (sec.type === 'text' && sec.textValue) {
-        const keywords = sec.textValue
-          .split(/[,，、|\n]/)
-          .map((k) => k.trim().replace(/^[•⁃－—–·●▪■◆\-\*\+]\s*/, ''))
+        const skillLines = sec.textValue
+          .split('\n')
+          .map((line) => line.trim())
           .filter(Boolean);
 
-        json.skills?.push({
-          name: sec.title || 'Skills',
-          keywords: keywords.length > 0 ? keywords : undefined,
-        });
+        const labeledSkills = skillLines
+          .map((line) => {
+            const cleaned = line.replace(/^[•⁃－—–·●▪■◆\-\*\+]\s*/, '').trim();
+            const labeled = cleaned.match(/^\*\*([^*]+?)[:：]?\*\*\s*[:：]?\s*(.+)$/);
+            if (!labeled) return null;
+
+            const name = stripMarkdownFormatting(labeled[1]).trim();
+            const keywords = labeled[2]
+              .split(/[,，、|]/)
+              .map((value) => stripMarkdownFormatting(value).trim())
+              .filter(Boolean);
+
+            if (!name || keywords.length === 0) return null;
+            return { name, keywords };
+          })
+          .filter((value): value is { name: string; keywords: string[] } => Boolean(value));
+
+        if (labeledSkills.length > 0 && labeledSkills.length === skillLines.length) {
+          json.skills?.push(...labeledSkills);
+        } else {
+          const keywords = sec.textValue
+            .split(/[,，、|\n]/)
+            .map((k) =>
+              stripMarkdownFormatting(
+                k.trim().replace(/^[•⁃－—–·●▪■◆\-\*\+]\s*/, ''),
+              ).trim(),
+            )
+            .filter(Boolean);
+
+          json.skills?.push({
+            name: sec.title || 'Skills',
+            keywords: keywords.length > 0 ? keywords : undefined,
+          });
+        }
       } else {
         sec.items.forEach((item) => {
           const keywords = (item.content || '')
@@ -826,6 +899,9 @@ export function importFromJsonResume(jsonObj: unknown): {
     : [];
   const publications = Array.isArray(raw.publications)
     ? raw.publications.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['publications']>
+    : [];
+  const languages = Array.isArray(raw.languages)
+    ? raw.languages.filter(isRecord) as unknown as NonNullable<JsonResumeStandard['languages']>
     : [];
   const profiles = Array.isArray(basics.profiles)
     ? basics.profiles.filter(isRecord)
@@ -1075,6 +1151,26 @@ export function importFromJsonResume(jsonObj: unknown): {
       }
     }
     md += `\n`;
+  }
+
+  // Languages
+  if (languages.length > 0) {
+    const validLanguageEntries = languages
+      .map((item) => ({
+        language: stringValue(item.language),
+        fluency: stringValue(item.fluency),
+      }))
+      .filter((item) => item.language);
+
+    if (validLanguageEntries.length > 0) {
+      md += `## ${isEn ? 'Languages' : '语言能力'}\n\n`;
+      for (const item of validLanguageEntries) {
+        md += isEn
+          ? `- **${item.language}**: ${item.fluency || '—'}\n`
+          : `- **${item.language}**：${item.fluency || '—'}\n`;
+      }
+      md += `\n`;
+    }
   }
 
   // Publications

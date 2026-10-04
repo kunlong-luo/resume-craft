@@ -19,6 +19,16 @@ interface SharedResumePageProps {
   sharePayload: ParsedSharePayload;
 }
 
+export function getSharedResumePaperName(
+  paperSize: 'a4' | 'letter' | undefined,
+  isEn: boolean,
+): string {
+  if (paperSize === 'letter') {
+    return isEn ? 'US Letter' : 'US Letter';
+  }
+  return 'A4';
+}
+
 export function SharedResumePage({ sharePayload }: SharedResumePageProps) {
   const encryptedPayload =
     sharePayload.kind === 'encrypted' ? sharePayload.payload : null;
@@ -196,6 +206,7 @@ export function SharedResumePage({ sharePayload }: SharedResumePageProps) {
   }
 
   const { markdown, settings } = resolvedState;
+  const paperName = getSharedResumePaperName(settings.paperSize, settings.lang === 'en');
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col selection:bg-indigo-500 selection:text-white">
@@ -250,8 +261,8 @@ export function SharedResumePage({ sharePayload }: SharedResumePageProps) {
         <Check className="w-4 h-4 text-emerald-400 shrink-0" />
         <span>
           {settings.lang === 'en'
-            ? 'Desktop users: Click "Print / Export PDF" to save the A4 layout.'
-            : '提示：招聘官可点击上方按钮或使用 Ctrl+P 保存 A4 PDF。'}
+            ? `Desktop users: Click "Print / Export PDF" to save the ${paperName} layout.`
+            : `提示：招聘官可点击上方按钮或使用 Ctrl+P 保存 ${paperName} PDF。`}
         </span>
       </div>
     </div>

@@ -1,4 +1,9 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+
+const packageVersion = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf-8'),
+).version as string;
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -18,7 +23,7 @@ async function openHelp(page: import('@playwright/test').Page) {
 test('help shows the package version and replay entry', async ({ page }) => {
   await page.goto('/');
   const dialog = await openHelp(page);
-  await expect(dialog).toContainText('v2.3.0');
+  await expect(dialog).toContainText(`v${packageVersion}`);
   await expect(dialog.getByRole('button', { name: 'Replay the interface tour' })).toBeVisible();
 });
 

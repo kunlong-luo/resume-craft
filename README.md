@@ -33,17 +33,16 @@
 
 ---
 
-## 🆕 v2.3.0 更新
+## 🆕 v2.4.0 更新
 
-- 将核心简历数据从同步 `localStorage` 迁移到 Dexie + IndexedDB：包括当前 Markdown、Profiles、Draft / 自动备份和 JD 文本。
-- Zustand 继续负责运行时编辑状态，主题、语言、缩放、布局、Onboarding 等轻量偏好继续保留在 `localStorage`。
-- v2.2 → v2.3 首次启动会先写入 IndexedDB、回读校验，确认成功后才删除旧核心存储键。
-- 编辑持久化改为异步防抖与串行写入，减少大 JSON 同步写入对编辑热路径的影响。
-- 增加多标签页提示、Web Locks 写入串行化，以及 IndexedDB + Resume Craft 自有 localStorage 的安全清空流程。
-- 新增迁移、清空数据、Repository 与跨浏览器 E2E 覆盖，并补齐开发期 IndexedDB v1 → v2 兼容升级。
+- **国际化与多市场体验稳定化**：彻底解耦界面语言与简历语言，补齐中文 UI / 英文简历、英文 UI / 中文简历等组合，并让模板、日期、纸张和市场设置保持一致。
+- **导入 / 恢复链路加固**：增强 Markdown、TXT、PDF、标准 JSON Resume 与 Resume Craft 完整备份导入；补齐非法 JSON 拒绝、文件大小保护、大写扩展名、完整 settings / template 恢复等边界。
+- **JSON Resume 互操作性升级**：补齐日期、Summary、多社交链接、GPA / 课程、奖项、证书、志愿经历、出版物、自然语言、兴趣、推荐人、位置和结构化条目 metadata 的双向保留。
+- **移动端与纸张体验优化**：Height Guard、分享页、预览、下载菜单和 320×568 紧凑屏流程统一支持 A4 / US Letter，并补充跨浏览器 E2E。
+- **导出与分享可靠性提升**：统一 PDF / TXT / JSON / Markdown 文件名规则，修复 Quick PDF 英文进度文案，增强分享与备份的纸张、恢复和安全提示。
+- **安全与数据边界加强**：对持久化 settings、外部 JSON Resume 标量与 URL 做更严格的运行时校验，减少损坏或恶意数据进入预览和导出链路的风险。
 
-完整发布记录见 [v2.3.0 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.3.0)。
-
+完整发布记录见 [v2.4.0 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.4.0)。
 ---
 
 ## 💡 为什么选择 Resume Craft？

@@ -441,6 +441,52 @@ function parseSocialLinks(rawSocial: string | undefined): Array<{
   return links;
 }
 
+function parseJsonResumeEntryMetadata(
+  content: string | undefined,
+  captureSummary: boolean,
+): {
+  summary?: string;
+  url?: string;
+  remainingLines: string[];
+} {
+  let summary: string | undefined;
+  let url: string | undefined;
+  const remainingLines: string[] = [];
+
+  for (const rawLine of (content || '').split('\n')) {
+    const trimmed = rawLine.trim();
+    if (!trimmed) continue;
+    const clean = trimmed.replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, '').trim();
+
+    if (captureSummary && !summary) {
+      const summaryMatch = clean.match(
+        /^\*\*(?:summary|overview|简介|概述|摘要)\*\*\s*[:：]\s*(.+)$/i,
+      );
+      if (summaryMatch) {
+        summary = stripMarkdownFormatting(summaryMatch[1]).trim() || undefined;
+        continue;
+      }
+    }
+
+    if (!url) {
+      const urlMatch = clean.match(
+        /^\*\*(?:website|url|project url|organization url|institution url|官网|链接|项目链接|机构链接|学校链接|单位链接)\*\*\s*[:：]\s*(.+)$/i,
+      );
+      if (urlMatch) {
+        const parsed = parseSingleSocialLink(urlMatch[1]);
+        if (parsed) {
+          url = parsed.url;
+          continue;
+        }
+      }
+    }
+
+    remainingLines.push(rawLine);
+  }
+
+  return { summary, url, remainingLines };
+}
+
 /**
  * Convert Markdown resume into standard JSON Resume format.
  */
@@ -565,8 +611,8 @@ export function exportToJsonResume(
     ) {
       sec.items.forEach((item) => {
         const { startDate, endDate } = splitResumeDateRange(item.time);
-        const highlights = (item.content || '')
-          .split('\n')
+        const metadata = parseJsonResumeEntryMetadata(item.content, true);
+        const highlights = metadata.remainingLines
           .map((line) =>
             stripMarkdownFormatting(
               line.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
@@ -577,8 +623,10 @@ export function exportToJsonResume(
         json.volunteer?.push({
           organization: stripMarkdownFormatting(item.org || ''),
           position: stripMarkdownFormatting(item.role || '') || undefined,
+          url: metadata.url,
           startDate,
           endDate,
+          summary: metadata.summary,
           highlights: highlights.length > 0 ? highlights : undefined,
         });
       });
@@ -590,16 +638,22 @@ export function exportToJsonResume(
     ) {
       sec.items.forEach((item) => {
         const { startDate, endDate } = splitResumeDateRange(item.time);
-        const highlights = (item.content || '')
-          .split('\n')
-          .map((l) => l.trim().replace(/^[•⁃－—–·●▪■◆\-\*\+]\s*/, ''))
+        const metadata = parseJsonResumeEntryMetadata(item.content, true);
+        const highlights = metadata.remainingLines
+          .map((line) =>
+            stripMarkdownFormatting(
+              line.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+            ),
+          )
           .filter(Boolean);
 
         json.work?.push({
           name: item.org || '',
           position: item.role || '',
+          url: metadata.url,
           startDate,
           endDate,
+          summary: metadata.summary,
           highlights: highlights.length > 0 ? highlights : undefined,
         });
       });
@@ -614,9 +668,11 @@ export function exportToJsonResume(
           .split(/[,，、|\n]/)
           .map((value) => value.trim())
           .filter(Boolean);
+        const metadata = parseJsonResumeEntryMetadata(item.content, false);
 
         json.education?.push({
           institution: item.org || '',
+          url: metadata.url,
           studyType: item.degree || undefined,
           area: item.role || undefined,
           startDate,
@@ -631,9 +687,13 @@ export function exportToJsonResume(
     ) {
       sec.items.forEach((item) => {
         const { startDate, endDate } = splitResumeDateRange(item.time);
-        const highlights = (item.content || '')
-          .split('\n')
-          .map((l) => l.trim().replace(/^[•⁃－—–·●▪■◆\-\*\+]\s*/, ''))
+        const metadata = parseJsonResumeEntryMetadata(item.content, false);
+        const highlights = metadata.remainingLines
+          .map((line) =>
+            stripMarkdownFormatting(
+              line.trim().replace(/^[•⁃－—–·●▪■◆\-*+]\s*/, ''),
+            ),
+          )
           .filter(Boolean);
 
         json.projects?.push({
@@ -641,6 +701,7 @@ export function exportToJsonResume(
           description: item.role || undefined,
           startDate,
           endDate,
+          url: metadata.url,
           highlights: highlights.length > 0 ? highlights : undefined,
         });
       });
@@ -1204,11 +1265,19 @@ export function importFromJsonResume(jsonObj: unknown): {
       const startDate = stringValue(w.startDate);
       const endDate = stringValue(w.endDate);
       const summary = stringValue(w.summary);
+      const url = httpUrlValue(w.url);
       const dates = [startDate, endDate].filter(Boolean).join(' – ');
       const sub = [position, dates].filter(Boolean).join(' | ');
       md += `### ${name}${sub ? ` | ${sub}` : ''}\n`;
       if (summary) {
-        md += `- ${summary}\n`;
+        md += isEn
+          ? `- **Summary**: ${summary}\n`
+          : `- **概述**：${summary}\n`;
+      }
+      if (url) {
+        md += isEn
+          ? `- **Website**: ${url}\n`
+          : `- **官网**：${url}\n`;
       }
       const highlights = stringArray(w.highlights);
       if (highlights.length > 0) {
@@ -1230,11 +1299,19 @@ export function importFromJsonResume(jsonObj: unknown): {
       const startDate = stringValue(item.startDate);
       const endDate = stringValue(item.endDate);
       const summary = stringValue(item.summary);
+      const url = httpUrlValue(item.url);
       const dates = [startDate, endDate].filter(Boolean).join(' – ');
       const sub = [position, dates].filter(Boolean).join(' | ');
       md += `### ${organization}${sub ? ` | ${sub}` : ''}\n`;
       if (summary) {
-        md += `- ${summary}\n`;
+        md += isEn
+          ? `- **Summary**: ${summary}\n`
+          : `- **概述**：${summary}\n`;
+      }
+      if (url) {
+        md += isEn
+          ? `- **Website**: ${url}\n`
+          : `- **官网**：${url}\n`;
       }
       for (const highlight of stringArray(item.highlights)) {
         md += `- ${highlight}\n`;
@@ -1251,9 +1328,15 @@ export function importFromJsonResume(jsonObj: unknown): {
       const description = stringValue(p.description);
       const startDate = stringValue(p.startDate);
       const endDate = stringValue(p.endDate);
+      const url = httpUrlValue(p.url);
       const dates = [startDate, endDate].filter(Boolean).join(' – ');
       const sub = [description, dates].filter(Boolean).join(' | ');
       md += `### ${name}${sub ? ` | ${sub}` : ''}\n`;
+      if (url) {
+        md += isEn
+          ? `- **Project URL**: ${url}\n`
+          : `- **项目链接**：${url}\n`;
+      }
       const highlights = stringArray(p.highlights);
       if (highlights.length > 0) {
         for (const h of highlights) {
@@ -1274,6 +1357,7 @@ export function importFromJsonResume(jsonObj: unknown): {
       const startDate = stringValue(e.startDate);
       const endDate = stringValue(e.endDate);
       const score = stringValue(e.score);
+      const url = httpUrlValue(e.url);
       const dates = [startDate, endDate].filter(Boolean).join(' – ');
       const sub = [studyType, area, dates].filter(Boolean).join(' | ');
       md += `### ${institution}${sub ? ` | ${sub}` : ''}\n`;
@@ -1281,6 +1365,11 @@ export function importFromJsonResume(jsonObj: unknown): {
         md += isEn
           ? `- **GPA / Performance**: ${score}\n`
           : `- **在校表现**：${score}\n`;
+      }
+      if (url) {
+        md += isEn
+          ? `- **Institution URL**: ${url}\n`
+          : `- **学校链接**：${url}\n`;
       }
       const courses = stringArray(e.courses);
       if (courses.length > 0) {

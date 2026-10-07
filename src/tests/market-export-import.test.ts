@@ -8,6 +8,7 @@ import {
 } from '../lib/export-utils';
 import { detectResumeMarket } from '../lib/raw-text-importer';
 import { detectResumeLanguage } from '../lib/resume-language';
+import { parseMarkdownToForm } from '../lib/markdown-parser';
 import { ResumeSettings } from '../types';
 
 const baseSettings: ResumeSettings = {
@@ -744,6 +745,27 @@ handle@example.com | GitHub: handle-only
 
       expect(json.basics.url).toBeUndefined();
       expect(json.basics.profiles).toEqual([]);
+    });
+
+    it('preserves location.city across JSON Resume import and re-export', () => {
+      const imported = importFromJsonResume({
+        basics: {
+          name: 'Location Candidate',
+          label: 'Engineer',
+          email: 'location@example.com',
+          location: { city: 'Seattle' },
+        },
+        meta: { lang: 'en', targetMarket: 'us' },
+      });
+
+      expect(imported.markdown).toContain('Location: Seattle');
+
+      const reparsed = parseMarkdownToForm(imported.markdown);
+      expect(reparsed.city).toBe('Seattle');
+      expect(reparsed.social).toBe('');
+
+      const reexported = exportToJsonResume(imported.markdown, baseSettings);
+      expect(reexported.basics.location).toEqual({ city: 'Seattle' });
     });
 
     it('round-trips the standard summary field and avoids duplicate profile links', () => {

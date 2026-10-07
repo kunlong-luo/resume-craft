@@ -33,17 +33,16 @@
 
 ---
 
-## 🆕 What's New in v2.3.0
+## 🆕 What's New in v2.4.0
 
-- Moves durable resume-owned data from synchronous `localStorage` payloads to Dexie + IndexedDB, including active Markdown, profiles, drafts / automatic backups, and JD text.
-- Keeps Zustand as the runtime editor state while small UI/bootstrap preferences such as theme, language, zoom, layout, and onboarding remain in `localStorage`.
-- Adds a verified v2.2 → v2.3 migration that writes to IndexedDB, reads the records back, and removes legacy core keys only after successful verification.
-- Moves editor persistence to asynchronous debounced and serialized writes, reducing large synchronous JSON writes on the editing hot path.
-- Adds multi-tab presence warnings, Web Locks serialization where supported, and scoped clearing across IndexedDB plus Resume Craft-owned localStorage keys.
-- Adds repository, migration, clear-data, and cross-browser E2E coverage, including a development-preview IndexedDB v1 → v2 upgrade path.
+- **Hardened international and multi-market behavior**: fully separates UI language from resume content language and keeps templates, dates, paper size, and target-market settings consistent across mixed-language workflows.
+- **Stronger import and restore flows**: improves Markdown, TXT, PDF, standard JSON Resume, and full Resume Craft backup imports with invalid-JSON rejection, file-size guards, case-insensitive extensions, and exact settings/template restoration.
+- **Much broader JSON Resume interoperability**: preserves dates, Summary, multiple social profiles, GPA / courses, awards, certificates, volunteer work, publications, natural languages, interests, references, location, and structured entry metadata across round trips.
+- **Mobile and paper-size polish**: makes Height Guard, shared resumes, previews, downloads, and compact 320×568 flows consistently aware of A4 / US Letter, backed by cross-browser E2E coverage.
+- **More reliable export and sharing**: normalizes filenames across PDF / TXT / JSON / Markdown, localizes Quick PDF progress, and improves paper-aware share/backup guidance.
+- **Tighter data validation**: validates persisted settings, external JSON Resume scalars, URLs, and imported backup boundaries before they reach preview or export state.
 
-See the full [v2.3.0 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.3.0).
-
+See the full [v2.4.0 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.4.0).
 ---
 
 ## 💡 Why Choose Resume Craft?

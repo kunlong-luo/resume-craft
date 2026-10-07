@@ -186,6 +186,17 @@ function isCityOrLocationValue(value: string): boolean {
 
   if (KNOWN_LOCATION_REGEX.test(clean)) return true;
 
+  const combinedLocations = clean
+    .split(/\s*[/·•、|｜]\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (
+    combinedLocations.length > 1 &&
+    combinedLocations.every((part) => KNOWN_LOCATION_REGEX.test(part))
+  ) {
+    return true;
+  }
+
   return /^[\u4e00-\u9fa5\w\s/、·•\-]+[市省区县]$/.test(clean);
 }
 

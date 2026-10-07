@@ -85,6 +85,29 @@ describe('markdown-parser', () => {
       expect(parsed.wechat).toBe('mywechat');
       expect(parsed.social).toContain('github.com/user');
     });
+
+    it('should keep an inline city separate from social links', () => {
+      const parsed = parseContactString(
+        'alex@example.com | San Francisco, CA | [GitHub](https://github.com/alex)',
+      );
+
+      expect(parsed.email).toBe('alex@example.com');
+      expect(parsed.city).toBe('San Francisco, CA');
+      expect(parsed.social).toBe('[GitHub](https://github.com/alex)');
+    });
+
+    it('should not classify social URLs containing city names as locations', () => {
+      const parsed = parseContactString(
+        'alex@example.com | [GitHub](https://github.com/seattle-dev)',
+      );
+
+      expect(parsed.city).toBe('');
+      expect(parsed.social).toBe('[GitHub](https://github.com/seattle-dev)');
+
+      const labelLike = parseContactString('alex@example.com | Remote, GitHub');
+      expect(labelLike.city).toBe('');
+      expect(labelLike.social).toBe('Remote · GitHub');
+    });
   });
 
   describe('parseExperienceField & serializeExperienceField', () => {
@@ -106,6 +129,36 @@ describe('markdown-parser', () => {
         jobStatus: '随时到岗'
       });
       expect(serialized).toBe('3年经验 ｜ 本科 ｜ 25 ｜ 北京 ｜ 随时到岗');
+    });
+  });
+
+  describe('inline header location parsing', () => {
+    it('preserves city metadata when location shares the contact line', () => {
+      const form = parseMarkdownToForm(`# Alex Morgan
+> **Senior Cloud Architect**
+alex@example.com | San Francisco, CA | [GitHub](https://github.com/alexmorgan)
+
+## Skills
+
+- TypeScript
+`);
+
+      expect(form.city).toBe('San Francisco, CA');
+      expect(form.social).toBe('[GitHub](https://github.com/alexmorgan)');
+    });
+
+    it('preserves a Chinese city when it shares the contact line', () => {
+      const form = parseMarkdownToForm(`# 李明
+高级前端工程师
+liming@example.com | 杭州 | 微信: liming_dev
+
+## 技能
+
+- TypeScript
+`);
+
+      expect(form.city).toBe('杭州');
+      expect(form.wechat).toBe('liming_dev');
     });
   });
 

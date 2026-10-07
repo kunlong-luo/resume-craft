@@ -168,12 +168,34 @@ export function formatPhoneNumber(val: string): string {
   return trimmed;
 }
 
+const LOCATION_PREFIX_REGEX =
+  /^(?:意向城市|期望城市|现居|现居地|所在城市|城市|常驻|期望工作地|工作地点|地点|location|city)[:：\s]*/i;
+
+const KNOWN_LOCATION_REGEX =
+  /^(?:北京|上海|广州|深圳|杭州|成都|武汉|南京|西安|厦门|苏州|天津|重庆|长沙|青岛|大连|宁波|郑州|合肥|无锡|福州|昆明|济南|佛山|东莞|珠海|南昌|贵阳|南宁|海口|三亚|长春|沈阳|哈尔滨|石家庄|太原|兰州|银川|西宁|乌鲁木齐|呼和浩特|拉萨|香港|澳门|台北|远程|全国|海外|硅谷|旧金山|西雅图|纽约|伦敦|东京|新加坡|多伦多|温哥华|悉尼|墨尔本|beijing|shanghai|shenzhen|hangzhou|guangzhou|san francisco|new york|seattle|london|singapore|toronto|vancouver|sydney|melbourne|tokyo|hong kong|macau|taipei|dublin|remote)(?:\s*,\s*(?:[a-z]{2,3}|usa|united states|uk|united kingdom|canada|australia|china|singapore|japan)){0,2}$/i;
+
+function isCityOrLocationValue(value: string): boolean {
+  const clean = value.trim();
+  if (!clean) return false;
+
+  if (LOCATION_PREFIX_REGEX.test(clean)) return true;
+
+  if (/https?:\/\/|\[[^\]]+]\([^)]*\)|@/.test(clean)) {
+    return false;
+  }
+
+  if (KNOWN_LOCATION_REGEX.test(clean)) return true;
+
+  return /^[\u4e00-\u9fa5\w\s/、·•\-]+[市省区县]$/.test(clean);
+}
+
 export function parseContactString(contactStr: string) {
   let remaining = contactStr.trim();
   let phone = '';
   let email = '';
   let wechat = '';
   let social = '';
+  let city = '';
 
   // 1. Extract email first (standard emails with domain)
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
@@ -208,7 +230,23 @@ export function parseContactString(contactStr: string) {
     remaining = remaining.replace(wechatRegex, '').trim();
   }
 
-  // 4. Process remaining parts as social / other information.
+  // 4. Extract recognizable locations before treating the rest as social.
+  // Keep commas intact here so values such as "San Francisco, CA" remain one location.
+  const locationAwareParts = remaining
+    .split(/\s*[·|｜••;；\t]\s*|\s{2,}|\s+\/\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  const nonLocationParts: string[] = [];
+  for (const part of locationAwareParts) {
+    if (!city && isCityOrLocationValue(part)) {
+      city = part.replace(LOCATION_PREFIX_REGEX, '').trim();
+    } else {
+      nonLocationParts.push(part);
+    }
+  }
+  remaining = nonLocationParts.join(' · ');
+
   const separatorRegex = /\s*[·|｜••,，;；\t]\s*|\s{2,}|\s+\/\s+/;
   const parts = remaining
     .split(separatorRegex)
@@ -237,7 +275,7 @@ export function parseContactString(contactStr: string) {
     }
   }
 
-  return { phone, email, wechat, social };
+  return { phone, email, wechat, social, city };
 }
 
 export function classifySubsequentLines(subsequent: string[]): { subtitle: string; phone: string; email: string; wechat: string; social: string; experience: string } {
@@ -247,6 +285,7 @@ export function classifySubsequentLines(subsequent: string[]): { subtitle: strin
   let wechat = '';
   let social = '';
   let experience = '';
+  const contactCities: string[] = [];
 
   const isContactLine = (s: string) => {
     const clean = s.toLowerCase();
@@ -309,6 +348,7 @@ export function classifySubsequentLines(subsequent: string[]): { subtitle: strin
     email = parsed.email;
     wechat = parsed.wechat;
     social = parsed.social;
+    if (parsed.city) contactCities.push(parsed.city);
     
     if (contactLines.length > 1) {
       for (let i = 1; i < contactLines.length; i++) {
@@ -319,6 +359,7 @@ export function classifySubsequentLines(subsequent: string[]): { subtitle: strin
         if (extraParsed.social) {
           social = social ? `${social} · ${extraParsed.social}` : extraParsed.social;
         }
+        if (extraParsed.city) contactCities.push(extraParsed.city);
       }
     }
   }
@@ -357,6 +398,13 @@ export function classifySubsequentLines(subsequent: string[]): { subtitle: strin
     if (expCandidates.length > 0) {
       experience = expCandidates.join(' ｜ ');
     }
+  }
+
+  if (contactCities.length > 0) {
+    const contactLocation = [...new Set(contactCities)].join(' · ');
+    experience = experience
+      ? `${experience} ｜ ${contactLocation}`
+      : contactLocation;
   }
 
   return { subtitle, phone, email, wechat, social, experience };
@@ -738,33 +786,6 @@ export function parseExperienceField(expString: string) {
   // Split by pipeline | or ｜ (preserve dots/slashes in cities like 杭州 / 上海 or 深圳 · 远程)
   const parts = expString.split(/[｜|]/).map(p => p.trim()).filter(Boolean);
 
-  const isRoleOrTechnicalTag = (s: string) => {
-    return /(?:工程师|架构|研发|开发|前端|后端|全栈|算法|测试|运维|设计|产品|运营|技术|大模型|专家|总监|经理|实战|深度学习|系统|应用|智能体|项目|业务|代码|模型|框架|工作流|微服务|分布式|低代码)/i.test(s);
-  };
-
-  const isCityOrLocation = (s: string) => {
-    const clean = s.trim();
-    if (!clean) return false;
-    if (isRoleOrTechnicalTag(clean)) return false;
-
-    // Explicit prefix
-    if (/^(?:意向城市|期望城市|现居|现居地|所在城市|城市|常驻|期望工作地|工作地点|地点|location|city)[:：\s]*/i.test(clean)) {
-      return true;
-    }
-
-    // Known cities, regions, remote, overseas (including combinations like 杭州 / 上海 or 深圳 / 远程)
-    if (/(?:北京|上海|广州|深圳|杭州|成都|武汉|南京|西安|厦门|苏州|天津|重庆|长沙|青岛|大连|宁波|郑州|合肥|无锡|福州|昆明|济南|佛山|东莞|珠海|南昌|贵阳|南宁|海口|三亚|长春|沈阳|哈尔滨|石家庄|太原|兰州|银川|西宁|乌鲁木齐|呼和浩特|拉萨|香港|澳门|台北|远程|全国|海外|硅谷|旧金山|西雅图|纽约|伦敦|东京|新加坡|多伦多|温哥华|悉尼|墨尔本|beijing|shanghai|shenzhen|hangzhou|guangzhou|san francisco|new york|seattle|london|singapore|toronto|vancouver|sydney|melbourne|tokyo|hong kong|macau|taipei|dublin|remote)/i.test(clean)) {
-      return true;
-    }
-
-    // Ends with administrative region suffix
-    if (/^[\u4e00-\u9fa5\w\s/、·•\-]+[市省区县]$/.test(clean)) {
-      return true;
-    }
-
-    return false;
-  };
-  
   parts.forEach(p => {
     const pl = p.toLowerCase();
     if (
@@ -787,9 +808,9 @@ export function parseExperienceField(expString: string) {
     } else if (/岁|生于|出生于|19\d{2}|20\d{2}/.test(pl) || /^(?:1[6-9]|[2-6]\d|70)$/.test(pl.trim())) {
       const numMatch = p.trim().match(/^(\d+)\s*(?:岁|years?\s*old|yrs)?$/i);
       age = numMatch ? numMatch[1] : p.replace(/^(?:年龄|age)[:：\s]*/i, '').trim();
-    } else if (isCityOrLocation(p)) {
-      const rawCity = p.replace(/^(?:意向城市|期望城市|现居|现居地|所在城市|城市|常驻|期望工作地|工作地点|地点|location|city)[:：\s]*/i, '').trim();
-      const parsedCities = rawCity.split(/[\s]*[/·•、,，|｜]+[\s]*/).map(c => c.trim()).filter(Boolean);
+    } else if (isCityOrLocationValue(p)) {
+      const rawCity = p.replace(LOCATION_PREFIX_REGEX, '').trim();
+      const parsedCities = rawCity.split(/[\s]*[/·•、|｜]+[\s]*/).map(c => c.trim()).filter(Boolean);
       const formattedCity = parsedCities.length > 0 ? parsedCities.join(' · ') : rawCity;
       if (!city) {
         city = formattedCity;

@@ -33,16 +33,15 @@
 
 ---
 
-## 🆕 What's New in v2.4.0
+## 🆕 What's New in v2.4.1
 
-- **Hardened international and multi-market behavior**: fully separates UI language from resume content language and keeps templates, dates, paper size, and target-market settings consistent across mixed-language workflows.
-- **Stronger import and restore flows**: improves Markdown, TXT, PDF, standard JSON Resume, and full Resume Craft backup imports with invalid-JSON rejection, file-size guards, case-insensitive extensions, and exact settings/template restoration.
-- **Much broader JSON Resume interoperability**: preserves dates, Summary, multiple social profiles, GPA / courses, awards, certificates, volunteer work, publications, natural languages, interests, references, location, and structured entry metadata across round trips.
-- **Mobile and paper-size polish**: makes Height Guard, shared resumes, previews, downloads, and compact 320×568 flows consistently aware of A4 / US Letter, backed by cross-browser E2E coverage.
-- **More reliable export and sharing**: normalizes filenames across PDF / TXT / JSON / Markdown, localizes Quick PDF progress, and improves paper-aware share/backup guidance.
-- **Tighter data validation**: validates persisted settings, external JSON Resume scalars, URLs, and imported backup boundaries before they reach preview or export state.
+- **Safer built-in demo contacts**: replaces realistic-looking GitHub, LinkedIn, email, WeChat, and phone examples with explicit demo placeholders so templates do not accidentally point at real third-party identities.
+- **Template regression protection**: adds tests that prevent realistic third-party contact identities from reappearing and verifies the US demo contact line parses without orphan punctuation.
+- **Language responsibilities stay unchanged**: the top 中 / EN control still changes interface language only, while Layout → Resume language controls translated resume section headings such as Summary, Skills, and Work Experience.
 
-See the full [v2.4.0 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.4.0).
+v2.4.1 is a patch on top of v2.4.0 and includes all v2.4.0 multi-market, import/restore, JSON Resume, mobile, A4 / US Letter, export, and sharing improvements.
+
+See the full [v2.4.1 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.4.1).
 ---
 
 ## 💡 Why Choose Resume Craft?

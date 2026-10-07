@@ -1,33 +1,22 @@
-# Resume Craft v2.3.0
+# Resume Craft v2.4.1
 
 ## Highlights
 
-- Migrates core resume-owned data from synchronous localStorage blobs to Dexie + IndexedDB.
-- Stores active Markdown, profiles, drafts / automatic backups, and JD text in IndexedDB while keeping lightweight UI/bootstrap preferences in localStorage.
-- Adds a verified, idempotent v2.2 → v2.3 migration that writes first, reads back for verification, then removes only the migrated legacy core keys.
-- Moves editor persistence to asynchronous debounced and serialized writes, with Web Locks serialization where supported.
-- Adds multi-tab presence warnings, repository-backed draft/backup flows, and scoped Clear local data across both Resume Craft storage layers.
-- Adds migration, repository, clear-data, Chromium, Firefox, and WebKit validation coverage.
-- Includes an IndexedDB v1 → v2 upgrade path for development-preview databases.
+- Sanitizes all built-in demo contact identities so template examples use explicit placeholders instead of realistic-looking GitHub, LinkedIn, email, WeChat, or phone identities.
+- Uses `example.com` email addresses and clearly synthetic / reserved-style phone examples in the built-in templates.
+- Avoids angle-bracket placeholders that Markdown could interpret as HTML and hide from rendered output.
+- Adds regression coverage to prevent realistic third-party contact identities from being reintroduced.
+- Verifies the US demo contact line parses cleanly without orphan punctuation or separators.
+- Keeps the existing language contract unchanged: UI language and resume content language remain independent.
 
-## Storage architecture
+## Language behavior
 
-```
-React UI
-  ↓
-Zustand runtime state
-  ↓
-Repository / persistence coordinator
-  ↓
-Dexie
-  ↓
-IndexedDB
-```
-
-Core resume content is stored locally in the browser. Resume Craft still does not require an account or provide an application backend for persisting resume content.
+- The top `中 / EN` control changes the application interface only.
+- `Layout → Resume language` controls standard resume content headings such as `Summary`, `Skills`, `Work Experience`, `Projects`, and `Education`.
+- This allows a Chinese interface to edit an English resume, or an English interface to edit a Chinese resume, without mutating resume content unintentionally.
 
 ## Release status
 
-v2.3.0 was published from main after PR #113 passed the quality, Chromium, and cross-browser CI gates. The release workflow also completed dependency-policy checks, tests, production build, tag creation, packaging, checksums, and GitHub Release publication.
+v2.4.1 is a patch release on top of v2.4.0. It brings the already-deployed template contact sanitization into the packaged GitHub Release artifacts so the live site and downloadable release stay aligned.
 
-Release: https://github.com/kunlong-luo/resume-craft/releases/tag/v2.3.0
+Release: https://github.com/kunlong-luo/resume-craft/releases/tag/v2.4.1

@@ -33,16 +33,15 @@
 
 ---
 
-## 🆕 v2.4.0 更新
+## 🆕 v2.4.1 更新
 
-- **国际化与多市场体验稳定化**：彻底解耦界面语言与简历语言，补齐中文 UI / 英文简历、英文 UI / 中文简历等组合，并让模板、日期、纸张和市场设置保持一致。
-- **导入 / 恢复链路加固**：增强 Markdown、TXT、PDF、标准 JSON Resume 与 Resume Craft 完整备份导入；补齐非法 JSON 拒绝、文件大小保护、大写扩展名、完整 settings / template 恢复等边界。
-- **JSON Resume 互操作性升级**：补齐日期、Summary、多社交链接、GPA / 课程、奖项、证书、志愿经历、出版物、自然语言、兴趣、推荐人、位置和结构化条目 metadata 的双向保留。
-- **移动端与纸张体验优化**：Height Guard、分享页、预览、下载菜单和 320×568 紧凑屏流程统一支持 A4 / US Letter，并补充跨浏览器 E2E。
-- **导出与分享可靠性提升**：统一 PDF / TXT / JSON / Markdown 文件名规则，修复 Quick PDF 英文进度文案，增强分享与备份的纸张、恢复和安全提示。
-- **安全与数据边界加强**：对持久化 settings、外部 JSON Resume 标量与 URL 做更严格的运行时校验，减少损坏或恶意数据进入预览和导出链路的风险。
+- **模板 Demo 联系方式安全化**：将内置模板中可能像真实账号的 GitHub、LinkedIn、邮箱、微信与电话号码替换为明确的示例占位数据，避免误指向第三方真实身份。
+- **模板回归保护**：新增测试，禁止内置模板重新引入真实感过强的第三方联系方式，并验证美国模板联系方式解析不会留下孤立括号或分隔符。
+- **语言职责保持不变**：顶部「中 / EN」仍只控制界面语言；「排版 → 简历语言」继续负责 Summary / Skills / Work Experience 等简历内容标题的中英文转换。
 
-完整发布记录见 [v2.4.0 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.4.0)。
+v2.4.1 是基于 v2.4.0 的补丁版本，继续包含多市场、导入恢复、JSON Resume、移动端、A4 / US Letter 与导出分享等 v2.4.0 改进。
+
+完整发布记录见 [v2.4.1 Release](https://github.com/kunlong-luo/resume-craft/releases/tag/v2.4.1)。
 ---
 
 ## 💡 为什么选择 Resume Craft？

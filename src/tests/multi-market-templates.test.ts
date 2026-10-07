@@ -155,15 +155,8 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
           /(?:@163\.com|@gmail\.com|@fake-email\.com|alex-chen-ai|alexchen-dev|mayapatel-dev|marcus-cloud|marcusroy-ca|xiaomeng-zhao|linzy-ai-frontend|chenjie-ai-backend)/i,
         );
 
-        const githubRefs = [...template.content.matchAll(/github\.com\/([^\s·]+)/gi)];
-        for (const match of githubRefs) {
-          expect(match[1], template.id).toBe('<your-username>');
-        }
-
-        const linkedinRefs = [...template.content.matchAll(/linkedin\.com\/in\/([^\s·]+)/gi)];
-        for (const match of linkedinRefs) {
-          expect(match[1], template.id).toBe('<your-profile>');
-        }
+        expect(template.content, template.id).not.toMatch(/github\.com\//i);
+        expect(template.content, template.id).not.toMatch(/linkedin\.com\/in\//i);
       }
     });
 
@@ -174,8 +167,8 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
 
       expect(parsed.email).toBe('alex.chen@example.com');
       expect(parsed.city).toBe('San Francisco, CA');
-      expect(parsed.social).toContain('github.com/<your-username>');
-      expect(parsed.social).toContain('linkedin.com/in/<your-profile>');
+      expect(parsed.social).toContain('GitHub: your-username');
+      expect(parsed.social).toContain('LinkedIn: your-profile');
       expect(parsed.social).not.toMatch(/^\s*[()·]/);
     });
   });

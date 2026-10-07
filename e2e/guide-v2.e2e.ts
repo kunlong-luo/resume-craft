@@ -1,4 +1,9 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+
+const packageVersion = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf-8'),
+).version as string;
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -30,7 +35,7 @@ test.describe('task-oriented user guide', () => {
     ]) {
       await expect(guide.getByText(step, { exact: true })).toBeVisible();
     }
-    await expect(guide).toContainText('v2.3.0');
+    await expect(guide).toContainText(`v${packageVersion}`);
   });
 
   test('keeps a permanent replay entry for onboarding', async ({ page }) => {

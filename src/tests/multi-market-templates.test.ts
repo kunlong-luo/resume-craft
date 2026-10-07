@@ -3,6 +3,7 @@ import { TEMPLATES } from '../data';
 import { getTemplatePresentation, getTemplatePreview } from '../lib/template-presentation';
 import { translateMarkdownContent, translateSectionTitle } from '../lib/section-translator';
 import { getMarketProfile } from '../lib/market-profile';
+import { parseContactString } from '../lib/markdown-parser';
 
 describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
   it('contains comprehensive authentic templates for US, UK, Canada, China and Global markets', () => {
@@ -139,6 +140,36 @@ describe('Phase 6: Multi-Market Template Center & Starter Data', () => {
     it('does not emphasize coursework in the experienced UK template', () => {
       const ukTemplate = TEMPLATES.find(t => t.id === 'uk_cv')!;
       expect(ukTemplate.content).not.toContain('Key Modules');
+    });
+  });
+
+  describe('Template demo contact safety', () => {
+    it('uses explicit placeholders instead of realistic third-party identities', () => {
+      for (const template of TEMPLATES) {
+        const emails = [...template.content.matchAll(/[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g)];
+        for (const match of emails) {
+          expect(match[1], template.id).toBe('example.com');
+        }
+
+        expect(template.content, template.id).not.toMatch(
+          /(?:@163\.com|@gmail\.com|@fake-email\.com|alex-chen-ai|alexchen-dev|mayapatel-dev|marcus-cloud|marcusroy-ca|xiaomeng-zhao|linzy-ai-frontend|chenjie-ai-backend)/i,
+        );
+
+        expect(template.content, template.id).not.toMatch(/github\.com\//i);
+        expect(template.content, template.id).not.toMatch(/linkedin\.com\/in\//i);
+      }
+    });
+
+    it('parses the US demo contact line without orphan phone punctuation', () => {
+      const template = TEMPLATES.find(t => t.id === 'us_swe')!;
+      const contactLine = template.content.split('\n')[1];
+      const parsed = parseContactString(contactLine);
+
+      expect(parsed.email).toBe('alex.chen@example.com');
+      expect(parsed.city).toBe('San Francisco, CA');
+      expect(parsed.social).toContain('GitHub: your-username');
+      expect(parsed.social).toContain('LinkedIn: your-profile');
+      expect(parsed.social).not.toMatch(/^\s*[()·]/);
     });
   });
 

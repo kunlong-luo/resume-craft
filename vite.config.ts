@@ -23,7 +23,7 @@ export default defineConfig(() => {
         manifest: {
           name: 'Resume Craft - Markdown Resume Builder',
           short_name: 'Resume Craft',
-          description: 'A local-first Markdown resume builder with live A4 preview, ATS checks, and PDF export.',
+          description: 'A local-first Markdown resume builder with A4 / US Letter preview, multi-market workflows, ATS checks, and PDF export.',
           theme_color: '#4F46E5',
           background_color: '#070a13',
           display: 'standalone',

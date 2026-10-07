@@ -272,6 +272,7 @@ export function classifySubsequentLines(subsequent: string[]): { subtitle: strin
     if (/\d+年(?:工作经验|从业经验)/i.test(clean)) return true;
     if (/应届毕业生|在校生|应届生/.test(clean)) return true;
     if (/本科|硕士|博士|大专|学历/.test(clean)) return true;
+    if (/^(?:意向城市|期望城市|现居|现居地|所在城市|城市|常驻|期望工作地|工作地点|地点|location|city)[:：\s]/i.test(clean)) return true;
     if (/在职|随时到岗|离职|月内到岗/.test(clean)) return true;
     if (/^(?:\d+年(?:工作经验|经验)?\s*[｜|·•]\s*)+/i.test(clean)) return true;
     return false;

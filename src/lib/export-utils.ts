@@ -1166,7 +1166,6 @@ export function importFromJsonResume(jsonObj: unknown): {
   const contacts: string[] = [];
   if (basicsPhone) contacts.push(basicsPhone);
   if (basicsEmail) contacts.push(basicsEmail);
-  if (locationCity) contacts.push(locationCity);
   if (basicsUrl) contacts.push(`[Website](${basicsUrl})`);
 
   if (profiles.length > 0) {
@@ -1182,10 +1181,14 @@ export function importFromJsonResume(jsonObj: unknown): {
   }
 
   if (contacts.length > 0) {
-    md += `${contacts.join(' | ')}\n\n`;
-  } else {
-    md += `\n`;
+    md += `${contacts.join(' | ')}\n`;
   }
+
+  if (locationCity) {
+    md += `${isEn ? 'Location' : '城市'}: ${locationCity}\n`;
+  }
+
+  md += `\n`;
 
   if (basicsSummary) {
     md += `## ${isEn ? 'Summary' : '个人简介'}\n\n`;

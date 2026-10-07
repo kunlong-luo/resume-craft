@@ -239,6 +239,93 @@ date@example.com
       });
     });
 
+    it('round-trips structured entry summaries and URLs without leaking labels into highlights', () => {
+      const imported = importFromJsonResume({
+        basics: {
+          name: 'Metadata Candidate',
+          label: 'Engineer',
+          email: 'metadata@example.com',
+        },
+        work: [
+          {
+            name: 'Example Co',
+            position: 'Engineer',
+            url: 'https://example.com/company',
+            startDate: '2023-01',
+            endDate: 'Present',
+            summary: 'Platform engineering role.',
+            highlights: ['Reduced latency by 40%.'],
+          },
+        ],
+        volunteer: [
+          {
+            organization: 'Open Source Org',
+            position: 'Maintainer',
+            url: 'https://example.com/volunteer',
+            summary: 'Maintains community tooling.',
+            highlights: ['Reviewed 100+ contributions.'],
+          },
+        ],
+        projects: [
+          {
+            name: 'Project Atlas',
+            description: 'Lead Developer',
+            url: 'https://example.com/atlas',
+            highlights: ['Built the public API.'],
+          },
+        ],
+        education: [
+          {
+            institution: 'Example University',
+            url: 'https://example.edu',
+            studyType: 'Bachelor',
+            area: 'Computer Science',
+          },
+        ],
+        meta: { lang: 'en', targetMarket: 'us' },
+      });
+
+      expect(imported.markdown).toContain(
+        '- **Summary**: Platform engineering role.',
+      );
+      expect(imported.markdown).toContain(
+        '- **Website**: https://example.com/company',
+      );
+      expect(imported.markdown).toContain(
+        '- **Project URL**: https://example.com/atlas',
+      );
+      expect(imported.markdown).toContain(
+        '- **Institution URL**: https://example.edu',
+      );
+
+      const reexported = exportToJsonResume(imported.markdown, baseSettings);
+
+      expect(reexported.work?.[0]).toMatchObject({
+        summary: 'Platform engineering role.',
+        url: 'https://example.com/company',
+        highlights: ['Reduced latency by 40%.'],
+      });
+      expect(reexported.volunteer?.[0]).toMatchObject({
+        summary: 'Maintains community tooling.',
+        url: 'https://example.com/volunteer',
+        highlights: ['Reviewed 100+ contributions.'],
+      });
+      expect(reexported.projects?.[0]).toMatchObject({
+        url: 'https://example.com/atlas',
+        highlights: ['Built the public API.'],
+      });
+      expect(reexported.education?.[0]).toMatchObject({
+        url: 'https://example.edu/',
+      });
+
+      expect(reexported.work?.[0].highlights).not.toEqual(
+        expect.arrayContaining([expect.stringContaining('Website')]),
+      );
+      expect(reexported.projects?.[0].highlights).not.toEqual(
+        expect.arrayContaining([expect.stringContaining('Project URL')]),
+      );
+    });
+
     it('round-trips education GPA and core courses through standard JSON Resume fields', () => {
       const markdown = `# Education Candidate
 > **Engineer**

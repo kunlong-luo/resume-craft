@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useResumeStore } from '../../store/useResumeStore';
 
 export interface SelectOption {
   value: string;
@@ -43,6 +44,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   id,
   compact = false,
 }) => {
+  const uiLanguage = useResumeStore((state) => state.uiLanguage);
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -230,7 +232,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 `}
               >
                 {options.length === 0 ? (
-                  <div className="px-3 py-2 text-xs text-slate-400 text-center">无可选选项</div>
+                  <div className="px-3 py-2 text-xs text-slate-400 text-center">{uiLanguage === 'en' ? 'No options available' : '无可选选项'}</div>
                 ) : (
                   options.map((option, idx) => {
                     const isSelected = option.value === value;

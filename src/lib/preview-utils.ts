@@ -118,6 +118,32 @@ export const FONT_FAMILY_CLASSES = {
   mono: 'font-mono text-[12px]',
 };
 
+function stripOuterMarkdownEmphasis(value: string): string {
+  let result = value.trim();
+
+  while (result.length >= 2) {
+    if (
+      (result.startsWith('**') && result.endsWith('**')) ||
+      (result.startsWith('__') && result.endsWith('__'))
+    ) {
+      result = result.slice(2, -2).trim();
+      continue;
+    }
+
+    if (
+      (result.startsWith('*') && result.endsWith('*')) ||
+      (result.startsWith('_') && result.endsWith('_'))
+    ) {
+      result = result.slice(1, -1).trim();
+      continue;
+    }
+
+    break;
+  }
+
+  return result;
+}
+
 // Helper parser to intelligently layout the resume header
 export function parseResumeHeader(markdown: string) {
   const lines = markdown.split('\n');
@@ -132,7 +158,7 @@ export function parseResumeHeader(markdown: string) {
   for (let i = 0; i < Math.min(lines.length, 12); i++) {
     const line = lines[i].trim();
     if (/^#\s+[^\#]/.test(line) || /^#[^\#\s]+/.test(line)) {
-      name = line.replace(/^#+\s*/, '').replace(/[\*\_]+/g, '').trim();
+      name = stripOuterMarkdownEmphasis(line.replace(/^#+\s*/, '')).trim();
       foundH1 = true;
       h1Index = i;
       break;
@@ -193,7 +219,7 @@ export function parseResumeHeader(markdown: string) {
         /(?:\d+\s*(?:years?|yrs?)\s*(?:of\s+)?experience|student\s*\/\s*new graduate|new grad(?:uate)?|\b(?:associate|bachelor|master|phd)\b|\b(?:employed|unemployed)\b|open to offers|not looking|looking for internship)/i.test(stripped);
 
       if (isTargetJob) {
-        const cleaned = stripped.replace(/[\*\_]+/g, '').replace(/^(?:求职方向|求职意向|求职目标|目标岗位|应聘职位|应聘岗位|意向岗位)[:：\s]*/, '').trim();
+        const cleaned = stripOuterMarkdownEmphasis(stripped).replace(/^(?:求职方向|求职意向|求职目标|目标岗位|应聘职位|应聘岗位|意向岗位)[:：\s]*/, '').trim();
         const parts = cleaned.split(/[\/|｜·•,，]|\s{2,}/).map(t => t.trim()).filter(Boolean);
         if (parts.length > 0) {
           titles.push(...parts);
@@ -201,16 +227,16 @@ export function parseResumeHeader(markdown: string) {
         bodyStartIndex = i + 1;
       } else if (isContact) {
         const contactSeparatorRegex = /[·•●▪■◆・|｜;；\t]|\s{2,}|\s+[\/／]\s+/;
-        const subContacts = stripped.split(contactSeparatorRegex).map(c => c.replace(/[\*\_]+/g, '').trim()).filter(Boolean);
+        const subContacts = stripped.split(contactSeparatorRegex).map(c => stripOuterMarkdownEmphasis(c)).filter(Boolean);
         contacts.push(...subContacts);
         bodyStartIndex = i + 1;
       } else if (isExpOrSkill) {
-        const cleanExp = stripped.replace(/[\*\_]+/g, '').trim();
+        const cleanExp = stripOuterMarkdownEmphasis(stripped);
         expParts.push(cleanExp);
         bodyStartIndex = i + 1;
       } else {
         if (titles.length === 0 && stripped.length < 60) {
-          const cleaned = stripped.replace(/[\*\_]+/g, '').trim();
+          const cleaned = stripOuterMarkdownEmphasis(stripped);
           titles = cleaned.split(/[\/|｜·•,，]|\s{2,}/).map(t => t.trim()).filter(Boolean);
           bodyStartIndex = i + 1;
         } else {

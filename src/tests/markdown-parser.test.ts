@@ -9,7 +9,7 @@ import {
   parseMarkdownToForm,
   parseFormToMarkdown
 } from '../lib/markdown-parser';
-import { parseBasicInfoMetadata } from '../lib/preview-utils';
+import { parseBasicInfoMetadata, parseResumeHeader } from '../lib/preview-utils';
 import { TEMPLATES } from '../data';
 
 describe('markdown-parser', () => {
@@ -74,6 +74,37 @@ describe('markdown-parser', () => {
       expect(res.org).toBe('FlexAgent - 开源大模型多Agent低代码编排系统');
       expect(res.role).toBe('');
       expect(res.time).toContain('2025.01 — 至今');
+    });
+  });
+
+  describe('parseResumeHeader contact preservation', () => {
+    it('preserves underscores in email addresses and social handles', () => {
+      const parsed = parseResumeHeader([
+        '# 罗昆龙',
+        '高级后端工程师',
+        'kunlong_luo@163.com · GitHub: kunlong_luo · LinkedIn: kunlong_luo',
+        '',
+        '## 工作经历',
+        '- 示例内容',
+      ].join('\n'));
+
+      expect(parsed.contacts).toContain('kunlong_luo@163.com');
+      expect(parsed.contacts).toContain('GitHub: kunlong_luo');
+      expect(parsed.contacts).toContain('LinkedIn: kunlong_luo');
+    });
+
+    it('removes only outer markdown emphasis around a contact token', () => {
+      const parsed = parseResumeHeader([
+        '# Candidate',
+        'Software Engineer',
+        '**dev_user@example.com** · _GitHub: dev_user_',
+        '',
+        '## Experience',
+        '- Built a service',
+      ].join('\n'));
+
+      expect(parsed.contacts).toContain('dev_user@example.com');
+      expect(parsed.contacts).toContain('GitHub: dev_user');
     });
   });
 

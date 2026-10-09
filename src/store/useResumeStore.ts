@@ -6,7 +6,7 @@ import { translateMarkdownContent } from '../lib/section-translator';
 import { migrateStoredMarkdown } from '../lib/markdown-migrations';
 import { getMarketProfile, isMarketRegion, resolveDefaultPaperSize } from '../lib/market-profile';
 import { isPaperSize } from '../lib/paper';
-import { getResumeBootstrapSnapshot, reconcileActiveBootstrapProfile } from '../lib/resume-bootstrap-state';
+import { getResumeBootstrapSnapshot } from '../lib/resume-bootstrap-state';
 
 interface ResumeState {
   // States
@@ -342,21 +342,7 @@ const getInitialProfiles = (
     void shouldPersistMigration;
 
     const activeId = migratedProfiles.some(p => p.id === savedActiveId) ? savedActiveId : migratedProfiles[0].id;
-
-    // The active document and UI settings are saved independently from the
-    // profile archive. When a page closes during a debounced archive write,
-    // the document or lightweight settings may be newer than the profile
-    // snapshot. Reconcile only the active profile; never replace other drafts.
-    const persistedDocument = getResumeBootstrapSnapshot()?.markdown;
-    const hasStoredSettings = storage.get<Partial<ResumeSettings> | null>(STORAGE_KEYS.SETTINGS, null) !== null;
-    const reconciledProfiles = reconcileActiveBootstrapProfile(
-      migratedProfiles,
-      activeId,
-      persistedDocument !== null && persistedDocument !== undefined ? defaultMd : null,
-      hasStoredSettings ? defaultSettings : null,
-    );
-
-    return { profiles: reconciledProfiles, activeId };
+    return { profiles: migratedProfiles, activeId };
   }
 
   // First time initialization: seed default profiles

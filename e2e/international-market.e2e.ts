@@ -108,7 +108,7 @@ test.describe('international market flows', () => {
     await page.getByRole('button', { name: /Form editor|表单编辑/ }).click();
 
     await expect(page.getByRole('group', { name: 'Interface language' })).toBeVisible();
-    await expect(page.locator('input[value="工作经历"]')).toBeVisible();
+    await expect(page.getByTestId('resume-section-title').first()).toHaveValue('Work Experience');
     await expect(page.locator('#resume-print-content h2').filter({ hasText: /^工作经历$/ })).toBeVisible();
 
     await expect(page.getByRole('button', { name: /Work Experience/ }).first()).toBeVisible();
@@ -138,11 +138,67 @@ test.describe('international market flows', () => {
     await page.getByRole('button', { name: /Form editor|表单编辑/ }).click();
 
     await expect(page.getByRole('group', { name: '界面语言' })).toBeVisible();
-    await expect(page.locator('input[value="Work Experience"]')).toBeVisible();
+    await expect(page.getByTestId('resume-section-title').first()).toHaveValue('工作经历');
     await expect(page.locator('#resume-print-content h2').filter({ hasText: /^Work Experience$/ })).toBeVisible();
     await expect(page.getByRole('button').filter({ hasText: '工作经历' }).first()).toBeVisible();
     await expect(page.getByRole('button').filter({ hasText: '个人优势' }).first()).toBeVisible();
     await expect(page.getByRole('button').filter({ hasText: '专业技能' }).first()).toBeVisible();
+  });
+
+  test('top UI switch localizes every form section without changing resume headings', async ({ page }) => {
+    const markdown = [
+      '# Alex',
+      'Software Engineer',
+      '',
+      '## Summary',
+      '- Built products',
+      '',
+      '## Work Experience',
+      '### Acme | Engineer | Jan 2024 – Present',
+      '- Built services',
+      '',
+      '## Education',
+      '### Example University | BSc | 2019 - 2023',
+      '- Computer Science',
+    ].join('\\n');
+
+    await page.addInitScript((content) => {
+      window.localStorage.setItem('resume_ui_language', 'en');
+      window.localStorage.setItem('resume-markdown', content);
+    }, markdown);
+    await page.goto('/');
+    await page.getByRole('button', { name: /Form editor|表单编辑/ }).click();
+
+    const headingInputs = page.getByTestId('resume-section-title');
+    await expect(headingInputs).toHaveCount(3);
+    for (const [index, heading] of ['Summary', 'Work Experience', 'Education'].entries()) {
+      await expect(headingInputs.nth(index)).toHaveValue(heading);
+    }
+
+    await page
+      .getByRole('group', { name: 'Interface language' })
+      .getByRole('button', { name: 'Switch interface language to Chinese' })
+      .click();
+
+    for (const [index, heading] of ['个人优势', '工作经历', '教育背景'].entries()) {
+      await expect(headingInputs.nth(index)).toHaveValue(heading);
+    }
+
+    // Editing a localized label must expose the real Markdown heading,
+    // rather than silently converting English resume content to Chinese.
+    await headingInputs.nth(1).focus();
+    await expect(headingInputs.nth(1)).toHaveValue('Work Experience');
+    await headingInputs.nth(1).press('Tab');
+    await expect(headingInputs.nth(1)).toHaveValue('工作经历');
+    await expect.poll(() => readActiveMarkdown(page)).toBe(markdown);
+    await expect(page.locator('#resume-print-content h2').filter({ hasText: /^Work Experience$/ })).toBeVisible();
+
+    await page
+      .getByRole('group', { name: '界面语言' })
+      .getByRole('button', { name: '将界面语言切换为英文' })
+      .click();
+    await expect(headingInputs.nth(1)).toHaveValue('Work Experience');
+    await expect.poll(() => readActiveMarkdown(page)).toBe(markdown);
   });
 
   test('Chinese UI writes English resume values in form mode', async ({ page }) => {

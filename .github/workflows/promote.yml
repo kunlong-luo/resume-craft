@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Preview cross-posts
-        uses: tgagor/action-crosspost@e77c2d8265863cfebb60bcdc325779df0daeaac4 # v1
+        uses: tgagor/action-crosspost@4fca5f19e42f652d76dd3b12b334f29494bef30b # v1
         with:
           dry-run: true
           feed-url: https://kunlong-luo.github.io/resume-craft/sitemap.xml

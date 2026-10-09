@@ -33,8 +33,7 @@ export function SectionHeader({
   onApplySpacing,
   onMove,
   onDelete,
-  lang = 'zh',
-  contentLang: _contentLang = 'zh'
+  lang = 'zh'
 }: SectionHeaderProps) {
   const activeUiLang = (lang === 'en' ? 'en' : 'zh') as 'zh' | 'en';
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);

@@ -34,19 +34,22 @@ export function SectionHeader({
   onMove,
   onDelete,
   lang = 'zh',
-  contentLang = 'zh'
+  contentLang: _contentLang = 'zh'
 }: SectionHeaderProps) {
   const activeUiLang = (lang === 'en' ? 'en' : 'zh') as 'zh' | 'en';
-  const activeContentLang = (contentLang === 'en' ? 'en' : 'zh') as 'zh' | 'en';
+  const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const translations = getTranslation(activeUiLang);
   const t = translations.form.section;
   
-  const theme = getSectionTheme(title, activeContentLang);
+  const theme = getSectionTheme(title, activeUiLang);
   const Icon = theme.icon;
   const displaySubtitle = subtitle || theme.subtitle;
   const isEn = activeUiLang === 'en';
 
-  const localizedTitle = translateSectionTitle(title, activeContentLang);
+  // Localize form chrome without rewriting the actual Markdown section name.
+  // When the user focuses the input, expose the original title for editing.
+  const localizedTitle = translateSectionTitle(title, activeUiLang);
+  const visibleTitle = isEditingTitle ? title : localizedTitle;
 
   return (
     <div 
@@ -65,9 +68,14 @@ export function SectionHeader({
           <div className="flex items-center gap-2 min-w-0 flex-wrap sm:flex-nowrap">
             <input 
               type="text"
-              value={localizedTitle}
+              data-testid="resume-section-title"
+              value={visibleTitle}
+              onFocus={() => setIsEditingTitle(true)}
+              onBlur={() => setIsEditingTitle(false)}
               onClick={(e) => e.stopPropagation()} 
               onChange={(e) => onTitleChange(e.target.value)}
+              aria-label={isEn ? 'Edit resume section heading' : '编辑简历模块标题'}
+              title={isEn ? 'Editing changes the heading in the resume' : '编辑会修改简历中的实际标题'}
               placeholder={isEn ? 'Section Title' : '模块标题'}
               className="font-bold text-sm text-slate-800 dark:text-slate-100 bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-100/50 dark:focus:ring-indigo-900/50 px-1 py-0.5 rounded transition-all w-36 sm:w-48 md:w-56"
             />

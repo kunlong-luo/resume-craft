@@ -26,21 +26,21 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-react": "^6.1.2",
     "dexie": "^4.2.1",
     "fflate": "^0.8.3",
-    "html2canvas-pro": "^2.4.5",
+    "html2canvas-pro": "^2.5.1",
     "jspdf": "^4.2.1",
     "libphonenumber-js": "^1.13.14",
-    "lucide-react": "^1.48.0",
+    "lucide-react": "^1.52.0",
     "motion": "^14.0.0",
-    "pdfjs-dist": "^6.3.289",
+    "pdfjs-dist": "^6.4.299",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-markdown": "^10.1.0",
     "react-to-print": "^3.3.0",
     "remark-gfm": "^4.0.1",
-    "vite": "^8.3.1",
+    "vite": "^8.3.3",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
@@ -56,7 +56,7 @@
     "tsx": "^4.23.15",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.71.1",
-    "vite": "^8.3.0",
+    "vite": "^8.3.3",
     "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.0.3"
   }

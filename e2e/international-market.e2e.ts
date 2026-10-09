@@ -160,7 +160,7 @@ test.describe('international market flows', () => {
       '## Education',
       '### Example University | BSc | 2019 - 2023',
       '- Computer Science',
-    ].join('\\n');
+    ].join('\n');
 
     await page.addInitScript((content) => {
       window.localStorage.setItem('resume_ui_language', 'en');

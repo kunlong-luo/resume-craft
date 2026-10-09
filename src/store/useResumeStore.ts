@@ -342,7 +342,26 @@ const getInitialProfiles = (
     void shouldPersistMigration;
 
     const activeId = migratedProfiles.some(p => p.id === savedActiveId) ? savedActiveId : migratedProfiles[0].id;
-    return { profiles: migratedProfiles, activeId };
+
+    // The active document and UI settings are saved independently from the
+    // profile archive. When a page closes during a debounced archive write,
+    // the document or lightweight settings may be newer than the profile
+    // snapshot. Reconcile only the active profile; never replace other drafts.
+    const persistedDocument = getResumeBootstrapSnapshot()?.markdown;
+    const hasStoredSettings = storage.get<Partial<ResumeSettings> | null>(STORAGE_KEYS.SETTINGS, null) !== null;
+    const reconciledProfiles = migratedProfiles.map(profile =>
+      profile.id === activeId
+        ? {
+            ...profile,
+            markdown: persistedDocument !== null && persistedDocument !== undefined
+              ? defaultMd
+              : profile.markdown,
+            settings: hasStoredSettings ? defaultSettings : profile.settings,
+          }
+        : profile
+    );
+
+    return { profiles: reconciledProfiles, activeId };
   }
 
   // First time initialization: seed default profiles

@@ -20,29 +20,3 @@ export function setResumeBootstrapSnapshot(snapshot: ResumeBootstrapSnapshot | n
 export function getResumeBootstrapSnapshot(): ResumeBootstrapSnapshot | null {
   return bootstrapSnapshot;
 }
-
-/**
- * Recover the authoritative active document and separately persisted settings
- * when a page closes while the profile archive is still being written.
- * Preserve all other profiles verbatim.
- */
-export function reconcileActiveBootstrapProfile<T extends {
-  id: string;
-  markdown: string;
-  settings: object;
-}>(
-  profiles: T[],
-  activeId: string,
-  savedDocument: string | null | undefined,
-  activeSettings: T['settings'] | null | undefined,
-): T[] {
-  return profiles.map((profile) =>
-    profile.id === activeId
-      ? {
-          ...profile,
-          markdown: savedDocument ?? profile.markdown,
-          settings: activeSettings ?? profile.settings,
-        }
-      : profile,
-  );
-}

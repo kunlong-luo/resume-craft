@@ -29,12 +29,15 @@ export function analyzeResume(
   onUpdateMarkdown: (newMarkdown: string, immediate?: boolean) => void,
   lang?: string,
   marketRegion?: MarketRegion,
-  measuredPageCount?: number | null
+  measuredPageCount?: number | null,
+  resumeLang?: 'zh' | 'en'
 ): AnalysisResult {
   const issues: IssueItem[] = [];
   let score = 100;
+  // UI copy follows lang; content analysis and automatic edits follow resumeLang.
   const isEn = lang === 'en';
-  const effectiveMarket = marketRegion || (isEn ? 'us' : 'cn');
+  const isResumeEn = (resumeLang ?? lang) === 'en';
+  const effectiveMarket = marketRegion || (isResumeEn ? 'us' : 'cn');
   const marketProfile = getMarketProfile(effectiveMarket);
 
   // 1. Check Name (H1)
@@ -59,7 +62,7 @@ export function analyzeResume(
         : '简历最顶部应该使用「# 您的姓名」作为标题。',
       fixable: true,
       onFix: () => {
-        onUpdateMarkdown(isEn ? '# John Doe\n' : '# 张三\n' + markdown, true);
+        onUpdateMarkdown((isResumeEn ? '# Your Name\n' : '# 你的姓名\n') + markdown, true);
       }
     });
   }
@@ -92,10 +95,10 @@ export function analyzeResume(
         const lines = markdown.split('\n');
         const h1Idx = lines.findIndex(l => l.startsWith('# '));
         if (h1Idx !== -1) {
-          lines.splice(h1Idx + 1, 0, isEn ? '13812345678 | your.email@email.com | github.com/yourgithub' : '13812345678 ｜ your.email@email.com ｜ github.com/yourgithub');
+          lines.splice(h1Idx + 1, 0, 'name@example.com');
           onUpdateMarkdown(lines.join('\n'), true);
         } else {
-          onUpdateMarkdown('your.email@email.com\n' + markdown, true);
+          onUpdateMarkdown('name@example.com\n' + markdown, true);
         }
       }
     });
@@ -168,7 +171,7 @@ export function analyzeResume(
   }
 
   // 4. Market Date Style Consistency Check
-  const dateCheckResult = normalizeAllDatesInMarkdown(markdown, marketProfile.dateStyle, isEn);
+  const dateCheckResult = normalizeAllDatesInMarkdown(markdown, marketProfile.dateStyle, isResumeEn);
   if (dateCheckResult.convertedCount > 0) {
     score -= 5;
     issues.push({
@@ -385,12 +388,12 @@ export function analyzeResume(
   // 9. Subjective Pronoun Audit
   // Keep English matching case-aware so the country abbreviation "US" is not
   // mistaken for the first-person object pronoun "us".
-  const pronounRegex = isEn
+  const pronounRegex = isResumeEn
     ? /\b(?:I|[Mm]e|[Mm]y|[Mm]ine|[Mm]yself|[Ww]e|[Uu]s|[Oo]ur|[Oo]urs|[Oo]urselves)\b/g
     : /(?:我们|我|自己)/g;
   const pronounMatches = markdown.match(pronounRegex) || [];
   const pronounCount = pronounMatches.length;
-  const canAutoFixPronouns = isEn
+  const canAutoFixPronouns = isResumeEn
     ? /^\s*[-*+]\s+(?:I|[Ww]e)\b/m.test(markdown)
     : /^\s*[-*+]\s*(?:我们|我|自己)/m.test(markdown);
 
@@ -399,14 +402,18 @@ export function analyzeResume(
     issues.push({
       type: 'warning',
       category: 'content',
-      title: isEn ? `Subjective Pronouns: Detected ${pronounCount} first-person reference(s)` : `主观人称：检测到 ${pronounCount} 处主观代词 (我/自己)`,
-      desc: isEn 
-        ? 'Resume bullets usually read more directly when they start with action verbs instead of first-person wording such as "I", "we", "my", or "our".'
-        : '简历应采用客观、直接的动作描述。请尽量避免使用“我”、“自己”、“我们”等主观代词，直接以“负责...”、“主导...”等动词开头。',
+      title: isEn ? `Subjective Pronouns: Detected ${pronounCount} first-person reference(s)` : `主观人称：检测到 ${pronounCount} 处第一人称表述`,
+      desc: isEn
+        ? isResumeEn
+          ? 'Use action verbs instead of first-person wording such as I, we, my or our.'
+          : 'Avoid Chinese first-person phrases such as 我, 我们, or 自己 in your resume bullets.'
+        : isResumeEn
+          ? '英文简历建议使用动作动词开头，避免 I、we、my 等第一人称表达。'
+          : '简历应采用客观、直接的动作描述，避免“我”、“自己”、“我们”等主观代词。',
       fixable: canAutoFixPronouns,
       onFix: canAutoFixPronouns ? () => {
         let fixed = markdown;
-        if (isEn) {
+        if (isResumeEn) {
           fixed = fixed.replace(
             /^(\s*[-*+]\s+)(?:I|[Ww]e)\s+([A-Za-z])/gm,
             (_match, prefix: string, firstLetter: string) => `${prefix}${firstLetter.toUpperCase()}`,
@@ -432,9 +439,9 @@ export function analyzeResume(
       type: 'success',
       category: 'content',
       title: isEn ? 'Subjective Pronouns: Direct action-oriented wording' : '主观人称：符合客观书写规范',
-      desc: isEn 
-        ? 'No first-person wording was found; the resume uses direct, action-oriented phrasing.'
-        : '未包含主观的人称代词（我/自己/我们），通篇采用客观、直接的动作描述。'
+      desc: isEn
+        ? 'No first-person wording was found for this resume language.'
+        : '未发现与当前简历语言对应的第一人称表述。'
     });
   }
 

@@ -208,7 +208,7 @@ export function HelpLegalModal({ isOpen, onClose }: HelpLegalModalProps) {
                 <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/40">
                   <h4 className="flex items-center gap-2 text-xs font-bold"><Lock className="h-4 w-4 text-indigo-500" />{isEn ? 'Local data and sharing' : '本地数据与分享'}</h4>
                   <p className="mt-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-                    {isEn ? 'Browser storage contains resume drafts, versions, and preferences. Password-protected share links are encrypted locally before creation; public links should be treated as readable by anyone who receives the full link.' : '浏览器本地存储包含简历草稿、版本与偏好设置。密码保护分享会在浏览器本地加密后生成；公开分享链接应视为拿到完整链接即可读取。'}
+                    {isEn ? 'Resume documents, profiles, drafts/backups, and job description text are saved in this browser’s IndexedDB. Lightweight preferences, including interface language and theme, remain in localStorage. Browser storage is not an encrypted vault. Password-protected share links are encrypted locally; public links are readable by anyone with the full link.' : '简历正文、档案、草稿/备份和职位描述保存在当前浏览器的 IndexedDB 中；界面语言、主题等轻量偏好保存在 localStorage。浏览器本地存储并非加密保险箱。密码保护分享链接会在本地加密；任何持有完整公开链接的人都可以读取内容。'}
                   </p>
                 </div>
 

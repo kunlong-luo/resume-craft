@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useResumeStore } from '../../store/useResumeStore';
 
 export type ToastType = 'success' | 'info' | 'warning' | 'error';
 
@@ -21,6 +22,7 @@ const ToastContext = createContext<ToastContextType | null>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const uiLanguage = useResumeStore((state) => state.uiLanguage);
 
   const hideToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(t => t.id !== id));
@@ -90,7 +92,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 <button
                   onClick={() => hideToast(toast.id)}
                   className="shrink-0 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  aria-label="Close notification"
+                  aria-label={uiLanguage === 'en' ? 'Close notification' : '关闭通知'}
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>

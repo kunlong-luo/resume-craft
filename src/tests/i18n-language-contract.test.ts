@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { getDegreeOptions, getJobStatusOptions } from '../lib/form-constants';
 import { getPresetSection, getStarTemplate } from '../lib/form-helpers';
 import { parseExperienceField } from '../lib/markdown-parser';
@@ -6,6 +6,7 @@ import { parseBasicInfoMetadata } from '../lib/preview-utils';
 import { translateMarkdownContent, translateSectionTitle } from '../lib/section-translator';
 import { formatDateRange } from '../lib/date-parser';
 import { getTranslation } from '../i18n';
+import { analyzeResume } from '../lib/resume-checker-utils';
 
 describe('i18n language contract', () => {
   it.each([
@@ -125,4 +126,54 @@ describe('i18n language contract', () => {
     expect(getPresetSection('project', 'en').title).toBe('Projects');
     expect(getPresetSection('work', 'en').title).toBe('Work Experience');
   });
+  describe('checker fixes follow resume language, not interface language', () => {
+    it.each([
+      { ui: 'en', resume: 'zh', expectedName: '# 你的姓名' },
+      { ui: 'zh', resume: 'en', expectedName: '# Your Name' },
+      { ui: 'en', resume: 'en', expectedName: '# Your Name' },
+      { ui: 'zh', resume: 'zh', expectedName: '# 你的姓名' },
+    ] as const)(
+      'preserves the source while adding a $resume name heading in $ui UI',
+      ({ ui, resume, expectedName }) => {
+        const source = 'name@example.com\n\n## Custom Section\n- Keep **all** original data';
+        const onChange = vi.fn();
+        const analysis = analyzeResume(source, onChange, ui, resume === 'en' ? 'us' : 'cn', null, resume);
+        const fix = analysis.issues.find((issue) => issue.category === 'content' && issue.title.includes(ui === 'en' ? 'Missing name' : '缺失姓名'));
+        expect(fix?.fixable).toBe(true);
+        fix?.onFix?.();
+        expect(onChange).toHaveBeenCalledTimes(1);
+        const fixed = onChange.mock.calls[0][0] as string;
+        expect(fixed).toContain(expectedName);
+        expect(fixed).toContain(source);
+      },
+    );
+
+    it.each([
+      { ui: 'zh', resume: 'en', bullet: '- I built the service.', fixed: '- Built the service.' },
+      { ui: 'en', resume: 'zh', bullet: '- 我主导了平台设计。', fixed: '- 主导平台设计。' },
+    ] as const)(
+      'detects and fixes $resume pronouns with $ui UI',
+      ({ ui, resume, bullet, fixed }) => {
+        const source = ['# Candidate', '', '## Work Experience', bullet].join('\n');
+        const onChange = vi.fn();
+        const analysis = analyzeResume(source, onChange, ui, resume === 'en' ? 'us' : 'cn', null, resume);
+        const issue = analysis.issues.find((entry) => entry.title.includes(ui === 'en' ? 'Subjective Pronouns' : '主观人称'));
+        expect(issue?.type).toBe('warning');
+        expect(issue?.fixable).toBe(true);
+        issue?.onFix?.();
+        expect(onChange.mock.calls[0][0]).toContain(fixed);
+      },
+    );
+
+    it('uses English resume vocabulary when the UI is Chinese for date normalization', () => {
+      const source = '# Candidate\n\n## Experience\n### Acme | Engineer | 2024.03 - 至今\n- Built tools.';
+      const onChange = vi.fn();
+      const analysis = analyzeResume(source, onChange, 'zh', 'us', null, 'en');
+      const issue = analysis.issues.find((entry) => entry.category === 'market' && entry.fixable);
+      expect(issue).toBeDefined();
+      issue?.onFix?.();
+      expect(onChange.mock.calls[0][0]).toContain('Mar 2024 – Present');
+    });
+  });
+
 });

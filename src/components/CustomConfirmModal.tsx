@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { X, AlertTriangle, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useDialogFocus } from '../hooks/useDialogFocus';
+import { useResumeStore } from '../store/useResumeStore';
 
 interface CustomConfirmModalProps {
   isOpen: boolean;
@@ -20,10 +21,13 @@ export function CustomConfirmModal({
   onConfirm,
   title,
   message,
-  confirmText = '确定',
-  cancelText = '取消',
+  confirmText,
+  cancelText,
   type = 'warning'
 }: CustomConfirmModalProps) {
+  const uiLanguage = useResumeStore((state) => state.uiLanguage);
+  const localizedConfirmText = confirmText ?? (uiLanguage === 'en' ? 'Confirm' : '确定');
+  const localizedCancelText = cancelText ?? (uiLanguage === 'en' ? 'Cancel' : '取消');
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocus({ isOpen, dialogRef, onClose });
 
@@ -91,7 +95,7 @@ export function CustomConfirmModal({
               </div>
               <button
                 onClick={onClose}
-                aria-label={cancelText}
+                aria-label={localizedCancelText}
                 className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
@@ -111,13 +115,13 @@ export function CustomConfirmModal({
                 onClick={onClose}
                 className="px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg transition-all cursor-pointer"
               >
-                {cancelText}
+                {localizedCancelText}
               </button>
               <button
                 onClick={onConfirm}
                 className={`px-5 py-2 text-white text-xs font-bold rounded-lg transition-all shadow-md active:scale-95 flex items-center justify-center cursor-pointer ${theme.btnConfirm}`}
               >
-                {confirmText}
+                {localizedConfirmText}
               </button>
             </div>
           </motion.div>

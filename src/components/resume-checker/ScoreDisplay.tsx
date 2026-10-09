@@ -113,7 +113,7 @@ export function ScoreDisplay({ analysis, scoreBadge, lang, compact }: ScoreDispl
                 {analysis.score}
               </span>
               <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
-                {isEn ? 'Score' : 'Score分'}
+                {isEn ? 'Score' : '得分'}
               </span>
             </div>
           </div>

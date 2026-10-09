@@ -3,6 +3,7 @@ import { FileText, ListOrdered, Check } from 'lucide-react';
 import { getPresetTheme } from '../../lib/section-themes';
 import { getTranslation } from '../../i18n';
 import { FormSection } from '../../lib/form-types';
+import { translateSectionTitle } from '../../lib/section-translator';
 
 interface SectionPresetsProps {
   onAddPreset: (type: 'summary' | 'skills' | 'work' | 'project' | 'edu' | 'custom_text' | 'custom_items') => void;
@@ -36,15 +37,16 @@ export function SectionPresets({ onAddPreset, sections = [], lang = 'zh' }: Sect
             const theme = getPresetTheme(item.type, activeUiLang);
             const Icon = theme.icon;
 
-            const isAdded = sections.some(sec => {
-              const titleLower = sec.title.trim().toLowerCase();
-              if (item.type === 'summary') return titleLower.includes('优势') || titleLower.includes('总结') || titleLower.includes('评价') || titleLower.includes('summary') || titleLower.includes('strength');
-              if (item.type === 'skills') return titleLower.includes('技能') || titleLower.includes('skill');
-              if (item.type === 'work') return titleLower.includes('工作') || titleLower.includes('职业') || titleLower.includes('work') || titleLower.includes('experience');
-              if (item.type === 'project') return titleLower.includes('项目') || titleLower.includes('作品') || titleLower.includes('project') || titleLower.includes('portfolio');
-              if (item.type === 'edu') return titleLower.includes('教育') || titleLower.includes('学历') || titleLower.includes('education') || titleLower.includes('edu');
-              return false;
-            });
+            const canonicalTitles: Record<typeof item.type, string> = {
+              summary: 'Summary',
+              skills: 'Skills',
+              work: 'Work Experience',
+              project: 'Projects',
+              edu: 'Education',
+            };
+            const isAdded = sections.some(
+              (sec) => translateSectionTitle(sec.title, 'en') === canonicalTitles[item.type]
+            );
 
             return (
               <button

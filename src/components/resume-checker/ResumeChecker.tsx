@@ -26,6 +26,7 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
     storeIsCheckerOpen,
     setIsCheckerOpen,
     uiLanguage,
+    resumeLanguage,
     marketRegion,
     dateStyle,
     measuredPageCount,
@@ -36,6 +37,7 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
       storeIsCheckerOpen: state.isCheckerOpen,
       setIsCheckerOpen: state.setIsCheckerOpen,
       uiLanguage: state.uiLanguage,
+      resumeLanguage: state.settings.lang,
       marketRegion: state.settings.marketRegion,
       dateStyle: state.settings.dateStyle,
       measuredPageCount: state.measuredPageCount,
@@ -62,13 +64,14 @@ export function ResumeChecker(props: ResumeCheckerProps = {}) {
       lang,
       marketRegion,
       measuredPageCount,
+      resumeLanguage === 'en' ? 'en' : 'zh',
     );
-  }, [markdown, onUpdateMarkdown, lang, marketRegion, measuredPageCount]);
+  }, [markdown, onUpdateMarkdown, lang, marketRegion, measuredPageCount, resumeLanguage]);
 
   const handleFixAll = () => {
     const result = autoFormatAndCleanResume(markdown, {
       marketRegion,
-      lang,
+      lang: resumeLanguage,
       dateStyle: dateStyle,
       sanitizeMarketFields: true,
     });

@@ -1,8 +1,5 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ConfirmProvider } from './context/ConfirmContext.tsx';
-import { ToastProvider } from './components/ui/Toast.tsx';
-import { ErrorBoundary } from './components/ui/ErrorBoundary.tsx';
 import './index.css';
 import { initAnalyticsPageview } from './lib/analytics';
 import { migrateLegacyStorageToIndexedDb } from './lib/storage-migration';
@@ -40,9 +37,22 @@ async function bootstrap() {
     console.error('[bootstrap] IndexedDB migration failed; continuing with legacy storage:', error);
   }
 
-  const [{ default: App }, { useResumeStore }] = await Promise.all([
+  // Import Store consumers only AFTER the IndexedDB snapshot is available.
+  // In particular, ToastProvider and ConfirmProvider now depend on the Store.
+  // Static imports here would initialize Zustand before bootstrap and discard
+  // the persisted resume on every reload.
+  const [
+    { default: App },
+    { useResumeStore },
+    { ConfirmProvider },
+    { ToastProvider },
+    { ErrorBoundary },
+  ] = await Promise.all([
     import('./App.tsx'),
     import('./store/useResumeStore.ts'),
+    import('./context/ConfirmContext.tsx'),
+    import('./components/ui/Toast.tsx'),
+    import('./components/ui/ErrorBoundary.tsx'),
   ]);
 
   const persistence = createResumePersistenceCoordinator();

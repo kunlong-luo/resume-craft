@@ -6,7 +6,7 @@ import { translateMarkdownContent } from '../lib/section-translator';
 import { migrateStoredMarkdown } from '../lib/markdown-migrations';
 import { getMarketProfile, isMarketRegion, resolveDefaultPaperSize } from '../lib/market-profile';
 import { isPaperSize } from '../lib/paper';
-import { getResumeBootstrapSnapshot } from '../lib/resume-bootstrap-state';
+import { getResumeBootstrapSnapshot, reconcileActiveBootstrapProfile } from '../lib/resume-bootstrap-state';
 
 interface ResumeState {
   // States
@@ -349,16 +349,11 @@ const getInitialProfiles = (
     // snapshot. Reconcile only the active profile; never replace other drafts.
     const persistedDocument = getResumeBootstrapSnapshot()?.markdown;
     const hasStoredSettings = storage.get<Partial<ResumeSettings> | null>(STORAGE_KEYS.SETTINGS, null) !== null;
-    const reconciledProfiles = migratedProfiles.map(profile =>
-      profile.id === activeId
-        ? {
-            ...profile,
-            markdown: persistedDocument !== null && persistedDocument !== undefined
-              ? defaultMd
-              : profile.markdown,
-            settings: hasStoredSettings ? defaultSettings : profile.settings,
-          }
-        : profile
+    const reconciledProfiles = reconcileActiveBootstrapProfile(
+      migratedProfiles,
+      activeId,
+      persistedDocument !== null && persistedDocument !== undefined ? defaultMd : null,
+      hasStoredSettings ? defaultSettings : null,
     );
 
     return { profiles: reconciledProfiles, activeId };

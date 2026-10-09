@@ -135,7 +135,7 @@ describe('i18n language contract', () => {
     ] as const)(
       'preserves the source while adding a $resume name heading in $ui UI',
       ({ ui, resume, expectedName }) => {
-        const source = 'name@example.com\\n\\n## Custom Section\\n- Keep **all** original data';
+        const source = 'name@example.com\n\n## Custom Section\n- Keep **all** original data';
         const onChange = vi.fn();
         const analysis = analyzeResume(source, onChange, ui, resume === 'en' ? 'us' : 'cn', null, resume);
         const fix = analysis.issues.find((issue) => issue.category === 'content' && issue.title.includes(ui === 'en' ? 'Missing name' : '缺失姓名'));
@@ -154,7 +154,7 @@ describe('i18n language contract', () => {
     ] as const)(
       'detects and fixes $resume pronouns with $ui UI',
       ({ ui, resume, bullet, fixed }) => {
-        const source = ['# Candidate', '', '## Work Experience', bullet].join('\\n');
+        const source = ['# Candidate', '', '## Work Experience', bullet].join('\n');
         const onChange = vi.fn();
         const analysis = analyzeResume(source, onChange, ui, resume === 'en' ? 'us' : 'cn', null, resume);
         const issue = analysis.issues.find((entry) => entry.title.includes(ui === 'en' ? 'Subjective Pronouns' : '主观人称'));
@@ -166,7 +166,7 @@ describe('i18n language contract', () => {
     );
 
     it('uses English resume vocabulary when the UI is Chinese for date normalization', () => {
-      const source = '# Candidate\\n\\n## Experience\\n### Acme | Engineer | 2024.03 - 至今\\n- Built tools.';
+      const source = '# Candidate\n\n## Experience\n### Acme | Engineer | 2024.03 - 至今\n- Built tools.';
       const onChange = vi.fn();
       const analysis = analyzeResume(source, onChange, 'zh', 'us', null, 'en');
       const issue = analysis.issues.find((entry) => entry.category === 'market' && entry.fixable);

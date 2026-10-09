@@ -84,12 +84,11 @@ test.describe('v2.3 local data migration', () => {
     });
   });
 
-  test.each([
+  for (const { locale, menu, help, dialog: dialogTitle, privacy, core } of [
     { locale: 'en', menu: 'More actions', help: 'Help', dialog: 'Help & Privacy', privacy: 'Privacy', core: 'Resume documents, profiles' },
     { locale: 'zh', menu: '更多操作', help: '帮助', dialog: '帮助与隐私', privacy: '隐私与数据', core: '简历正文、档案' },
-  ] as const)('privacy explanation uses $locale and distinguishes local storage layers', async ({
-    page,
-  }, { locale, menu, help, dialog: dialogTitle, privacy, core }) => {
+  ] as const) {
+    test(`privacy explanation uses ${locale} and distinguishes local storage layers`, async ({ page }) => {
     await page.addInitScript((value) => {
       window.localStorage.setItem('resume_ui_language', value);
     }, locale);
@@ -102,7 +101,8 @@ test.describe('v2.3 local data migration', () => {
     await expect(copy).toContainText('IndexedDB');
     await expect(copy).toContainText('localStorage');
     await expect(copy).toContainText(locale === 'en' ? 'encrypted vault' : '加密保险箱');
-  });
+    });
+  }
 
   test('migrates verified v2.2 core data to IndexedDB and removes legacy core keys', async ({ page }) => {
     await page.addInitScript((profile) => {

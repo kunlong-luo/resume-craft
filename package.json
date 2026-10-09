@@ -33,7 +33,7 @@
     "jspdf": "^4.2.1",
     "libphonenumber-js": "^1.13.14",
     "lucide-react": "^1.48.0",
-    "motion": "^13.4.4",
+    "motion": "^14.0.0",
     "pdfjs-dist": "^6.3.289",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

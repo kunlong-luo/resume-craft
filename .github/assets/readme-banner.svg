@@ -1,112 +1,106 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
-  <title id="title">Resume Craft — Local-first Markdown Resume Builder</title>
-  <desc id="desc">Resume Craft project banner with Markdown editing, live A4 preview, ATS checks, Auto Fit and PDF export.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" preserveAspectRatio="xMidYMid slice" role="img" aria-labelledby="coverTitle coverDescription">
+  <title id="coverTitle">Resume Craft — Build a better resume, faster</title>
+  <desc id="coverDescription">An illustrated Markdown-to-live-preview resume workflow. Free, open source, local-first, and no account required. This illustration is not a product screenshot.</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#111b72"/>
-      <stop offset="0.52" stop-color="#263bd6"/>
-      <stop offset="1" stop-color="#754cff"/>
-    </linearGradient>
-    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="coverBackground" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#eef2ff"/>
+      <stop offset=".64" stop-color="#f5f7ff"/>
+      <stop offset="1" stop-color="#e9e8ff"/>
     </linearGradient>
-    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#08103e" flood-opacity=".34"/>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#9364ff"/>
+    </linearGradient>
+    <linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fcfdff"/>
+      <stop offset="1" stop-color="#f2f5fb"/>
+    </linearGradient>
+    <filter id="softShadow" x="-30%" y="-40%" width="170%" height="190%">
+      <feDropShadow dx="0" dy="25" stdDeviation="25" flood-color="#202c77" flood-opacity=".17"/>
     </filter>
   </defs>
 
-  <rect width="1280" height="640" rx="28" fill="url(#bg)"/>
-  <path d="M0 108C215 4 422 27 615 121S981 197 1280 36V0H0Z" fill="#fff" opacity=".07"/>
-  <path d="M0 530C245 638 441 567 646 503S1036 430 1280 532V640H0Z" fill="#081052" opacity=".28"/>
-  <circle cx="1110" cy="92" r="150" fill="#8e76ff" opacity=".10"/>
-
-  <!-- Left: branding safely contained inside x=58..585 -->
-  <g transform="translate(62 92)">
-    <rect width="72" height="88" rx="16" fill="#eef2ff"/>
-    <path d="M48 0l24 24H58a10 10 0 0 1-10-10Z" fill="#8797ff"/>
-    <rect x="15" y="38" width="39" height="7" rx="3.5" fill="#4f46e5"/>
-    <rect x="15" y="55" width="45" height="7" rx="3.5" fill="#4f46e5"/>
-    <rect x="15" y="72" width="31" height="7" rx="3.5" fill="#4f46e5"/>
+  <rect width="1280" height="640" rx="28" fill="url(#coverBackground)"/>
+  <circle cx="1180" cy="75" r="255" fill="#8b80ff" opacity=".10"/>
+  <circle cx="596" cy="575" r="220" fill="#6e82ff" opacity=".06"/>
+  <path d="M0 550C270 497 405 604 608 550S994 462 1280 566" fill="none" stroke="#dbe2ff" stroke-width="2" opacity=".8"/>
+  <g stroke="#ccd3f6" stroke-width="2" opacity=".55">
+    <path d="M72 129h25M84 117v25M1210 540h24M1222 528v24"/>
   </g>
 
-  <text x="62" y="250" font-family="Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif" font-size="68" font-weight="800" fill="#fff">Resume Craft</text>
-  <text x="62" y="304" font-family="Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif" font-size="30" font-weight="750" fill="#dfe5ff">Local-first Markdown</text>
-  <text x="62" y="340" font-family="Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif" font-size="30" font-weight="750" fill="#dfe5ff">Resume Builder</text>
-
-  <g font-family="Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif" font-size="17" font-weight="700" fill="#fff">
-    <rect x="62" y="383" width="212" height="44" rx="22" fill="#ffffff" opacity=".12"/>
-    <text x="85" y="411">◉  Live A4 Preview</text>
-    <rect x="288" y="383" width="177" height="44" rx="22" fill="#ffffff" opacity=".12"/>
-    <text x="311" y="411">✓  ATS Checks</text>
-    <rect x="62" y="441" width="164" height="44" rx="22" fill="#ffffff" opacity=".12"/>
-    <text x="85" y="469">↔  Auto Fit</text>
-    <rect x="240" y="441" width="180" height="44" rx="22" fill="#ffffff" opacity=".12"/>
-    <text x="263" y="469">⇩  PDF Export</text>
+  <g transform="translate(71 47)">
+    <rect width="46" height="52" rx="13" fill="url(#glow)"/>
+    <path d="M12 10h17l7 7v24H12Z" fill="#fff" opacity=".98"/>
+    <path d="M29 10v8h8" fill="#b7b7ff"/>
+    <rect x="17" y="24" width="14" height="2.7" rx="1.3" fill="#6659e8"/>
+    <rect x="17" y="31" width="14" height="2.7" rx="1.3" fill="#6659e8"/>
+    <text x="60" y="34" font-family="Inter,Arial,ui-sans-serif,sans-serif" font-size="29" font-weight="800" fill="#142047">Resume Craft</text>
+  </g>
+  <g font-family="Inter,Arial,ui-sans-serif,sans-serif">
+    <text x="72" y="211" font-size="54" letter-spacing="-2" font-weight="800" fill="#142047">Build a better</text>
+    <text x="72" y="273" font-size="57" letter-spacing="-2.4" font-weight="850" fill="#5144dc">resume. Faster.</text>
+    <text x="74" y="320" font-size="21" font-weight="500" fill="#475575">Markdown or form editing.</text>
+    <text x="74" y="351" font-size="21" font-weight="500" fill="#475575">Live preview. ATS checks. PDF export.</text>
+    <g font-size="15" font-weight="700" fill="#35446c">
+      <rect x="72" y="393" width="96" height="36" rx="18" fill="#e8edff"/>
+      <text x="95" y="416">Free</text>
+      <rect x="180" y="393" width="143" height="36" rx="18" fill="#e8edff"/>
+      <text x="200" y="416">Open source</text>
+      <rect x="335" y="393" width="121" height="36" rx="18" fill="#e8edff"/>
+      <text x="353" y="416">Local-first</text>
+    </g>
+    <rect x="72" y="460" width="255" height="54" rx="14" fill="#5144dc"/>
+    <text x="94" y="494" font-size="18" font-weight="750" fill="#ffffff">Try the live editor</text>
+    <path d="M289 487h14m-6-6 6 6-6 6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="73" y="566" font-size="16" font-weight="650" fill="#5b6685">No sign-up required · A4 / US Letter</text>
   </g>
 
-  <line x1="62" y1="522" x2="500" y2="522" stroke="#aebaff" stroke-width="2" opacity=".65"/>
-  <text x="62" y="558" font-family="Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif" font-size="19" fill="#dfe5ff">Open Source · Local-first · React + TypeScript</text>
+  <g transform="translate(625 78)" filter="url(#softShadow)">
+    <rect width="592" height="490" rx="22" fill="#fff" stroke="#e0e4f2" stroke-width="2"/>
+    <rect width="592" height="49" rx="22" fill="url(#chrome)"/>
+    <path d="M0 24h592v24H0Z" fill="url(#chrome)"/>
+    <line x1="0" y1="49" x2="592" y2="49" stroke="#dce2f0"/>
+    <circle cx="24" cy="25" r="6" fill="#ff8687"/>
+    <circle cx="45" cy="25" r="6" fill="#f2be69"/>
+    <circle cx="66" cy="25" r="6" fill="#56c8ac"/>
+    <text x="105" y="32" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="750" fill="#475575">Markdown</text>
+    <text x="394" y="32" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="750" fill="#475575">Live preview</text>
 
-  <!-- Right: complete app mockup, isolated from branding -->
-  <g transform="translate(628 74)" filter="url(#shadow)">
-    <rect width="590" height="492" rx="24" fill="url(#card)" stroke="#d9e1ff" stroke-width="3"/>
-    <rect width="590" height="44" rx="24" fill="#eef2ff"/>
-    <circle cx="23" cy="22" r="6" fill="#ff625f"/>
-    <circle cx="43" cy="22" r="6" fill="#ffbd44"/>
-    <circle cx="63" cy="22" r="6" fill="#23c552"/>
-
-    <rect x="18" y="62" width="84" height="404" rx="14" fill="#e9edff"/>
-    <g font-family="Inter,ui-sans-serif,system-ui" font-size="12" font-weight="700" fill="#2638bd">
-      <text x="34" y="101">Editor</text>
-      <text x="34" y="145">Preview</text>
-      <text x="34" y="189">ATS Check</text>
-      <text x="34" y="233">Export</text>
+    <rect x="17" y="66" width="266" height="402" rx="13" fill="#131f3e"/>
+    <g font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13">
+      <text x="36" y="104" fill="#9daeff"># Alex Morgan</text>
+      <text x="36" y="132" fill="#e6eeff">Software Engineer</text>
+      <text x="36" y="175" fill="#a6d9ff">## Work Experience</text>
+      <text x="36" y="199" fill="#e6eeff">### Acme | Engineer</text>
+      <text x="36" y="225" fill="#91a4cb">2024 – Present</text>
+      <text x="36" y="263" fill="#c4d2f1">- Built reliable APIs</text>
+      <text x="36" y="287" fill="#c4d2f1">- Shipped new features</text>
+      <text x="36" y="333" fill="#a6d9ff">## Skills</text>
+      <text x="36" y="358" fill="#c4d2f1">TypeScript · React</text>
     </g>
+    <rect x="36" y="420" width="118" height="26" rx="8" fill="#273c74"/>
+    <text x="50" y="438" font-family="Inter,Arial,sans-serif" font-size="11" fill="#d8e4ff">Form / Markdown</text>
 
-    <rect x="114" y="62" width="216" height="404" rx="14" fill="#fff"/>
-    <text x="132" y="93" font-family="Inter,ui-sans-serif,system-ui" font-size="13" font-weight="800" fill="#17216d">Markdown</text>
-    <line x1="132" y1="106" x2="202" y2="106" stroke="#4f46e5" stroke-width="3"/>
-    <g font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="10.5" fill="#243078">
-      <text x="132" y="137"># Alex Chen</text>
-      <text x="132" y="159">Software Engineer</text>
-      <text x="132" y="199">## Summary</text>
-      <text x="132" y="220">Building delightful products</text>
-      <text x="132" y="239">with design and technology.</text>
-      <text x="132" y="283">## Experience</text>
-      <text x="132" y="305">### Senior Software Engineer</text>
-      <text x="132" y="326">Acme Corp · 2022 – Present</text>
-      <text x="132" y="350">- Built scalable web apps</text>
-      <text x="132" y="371">- Led a team of 4 engineers</text>
-      <text x="132" y="410">## Skills</text>
-      <text x="132" y="431">TypeScript · React · Vite</text>
-    </g>
+    <path d="M289 263h21m-8-8 8 8-8 8" fill="none" stroke="#7e75ef" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 
-    <path d="M301 209c20-24 40-24 60 0" fill="none" stroke="#7182ff" stroke-width="7" stroke-linecap="round"/>
-    <path d="M356 201l9 16-18 2" fill="#7182ff"/>
-
-    <rect x="342" y="62" width="230" height="404" rx="14" fill="#fff"/>
-    <text x="365" y="111" font-family="Inter,ui-sans-serif,system-ui" font-size="27" font-weight="800" fill="#12184d">Alex Chen</text>
-    <text x="366" y="132" font-family="Inter,ui-sans-serif,system-ui" font-size="11.5" fill="#47507a">Software Engineer</text>
-    <line x1="365" y1="152" x2="550" y2="152" stroke="#dce2f8"/>
-    <text x="365" y="182" font-family="Inter,ui-sans-serif,system-ui" font-size="11.5" font-weight="800" fill="#12184d">SUMMARY</text>
-    <text x="365" y="203" font-family="Inter,ui-sans-serif,system-ui" font-size="10.5" fill="#47507a">Building delightful products with</text>
-    <text x="365" y="219" font-family="Inter,ui-sans-serif,system-ui" font-size="10.5" fill="#47507a">design and technology.</text>
-    <text x="365" y="261" font-family="Inter,ui-sans-serif,system-ui" font-size="11.5" font-weight="800" fill="#12184d">EXPERIENCE</text>
-    <circle cx="372" cy="289" r="4" fill="#2638bd"/>
-    <line x1="372" y1="289" x2="372" y2="357" stroke="#8b97d6"/>
-    <text x="387" y="291" font-family="Inter,ui-sans-serif,system-ui" font-size="10.5" font-weight="700" fill="#12184d">Senior Software Engineer</text>
-    <text x="387" y="311" font-family="Inter,ui-sans-serif,system-ui" font-size="9.5" fill="#586083">Acme Corp · 2022 – Present</text>
-    <text x="387" y="339" font-family="Inter,ui-sans-serif,system-ui" font-size="9.5" fill="#586083">• Built scalable applications</text>
-    <text x="387" y="356" font-family="Inter,ui-sans-serif,system-ui" font-size="9.5" fill="#586083">• Improved performance</text>
-    <text x="365" y="400" font-family="Inter,ui-sans-serif,system-ui" font-size="11.5" font-weight="800" fill="#12184d">SKILLS</text>
-    <g font-family="Inter,ui-sans-serif,system-ui" font-size="9" fill="#29336d">
-      <rect x="365" y="414" width="53" height="20" rx="10" fill="#eef1ff"/>
-      <text x="378" y="428">React</text>
-      <rect x="425" y="414" width="70" height="20" rx="10" fill="#eef1ff"/>
-      <text x="436" y="428">TypeScript</text>
-      <rect x="502" y="414" width="50" height="20" rx="10" fill="#eef1ff"/>
-      <text x="515" y="428">Vite</text>
-    </g>
+    <rect x="318" y="66" width="254" height="402" rx="13" fill="#edf0fa"/>
+    <rect x="342" y="83" width="207" height="366" rx="4" fill="#fff"/>
+    <text x="361" y="132" font-family="Inter,Arial,sans-serif" font-size="23" font-weight="800" fill="#1a2647">Alex Morgan</text>
+    <text x="361" y="150" font-family="Inter,Arial,sans-serif" font-size="11" fill="#63708c">Software Engineer</text>
+    <line x1="361" y1="167" x2="529" y2="167" stroke="#d8deed"/>
+    <text x="361" y="196" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="800" fill="#2d3d65">EXPERIENCE</text>
+    <text x="361" y="220" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="700" fill="#1a2647">Software Engineer</text>
+    <text x="361" y="237" font-family="Inter,Arial,sans-serif" font-size="9.5" fill="#63708c">Acme · 2024 – Present</text>
+    <rect x="361" y="252" width="158" height="4" rx="2" fill="#d9dfeb"/>
+    <rect x="361" y="266" width="144" height="4" rx="2" fill="#d9dfeb"/>
+    <rect x="361" y="280" width="159" height="4" rx="2" fill="#d9dfeb"/>
+    <text x="361" y="319" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="800" fill="#2d3d65">SKILLS</text>
+    <rect x="361" y="336" width="62" height="22" rx="11" fill="#edf0ff"/>
+    <rect x="428" y="336" width="68" height="22" rx="11" fill="#edf0ff"/>
+    <text x="374" y="351" font-family="Inter,Arial,sans-serif" font-size="10" fill="#5144dc">React</text>
+    <text x="437" y="351" font-family="Inter,Arial,sans-serif" font-size="10" fill="#5144dc">TypeScript</text>
+    <text x="361" y="390" font-family="Inter,Arial,sans-serif" font-size="12" font-weight="800" fill="#2d3d65">EDUCATION</text>
+    <rect x="361" y="407" width="150" height="4" rx="2" fill="#d9dfeb"/>
+    <rect x="361" y="420" width="125" height="4" rx="2" fill="#d9dfeb"/>
   </g>
 </svg>

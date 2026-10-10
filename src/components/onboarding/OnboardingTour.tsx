@@ -277,6 +277,17 @@ export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
             </div>
           </div>
 
+          {step === 0 && (
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                {isEn ? 'No sign-up' : '无需注册'}
+              </span>
+              <span className="rounded-full bg-slate-100 px-2.5 py-1 dark:bg-slate-800">
+                {isEn ? 'Saved in your browser' : '保存在当前浏览器'}
+              </span>
+            </div>
+          )}
+
           {step < 2 ? (
             <div className="mt-5 flex items-center justify-between gap-3">
               {step > 0 ? (
@@ -310,6 +321,17 @@ export function OnboardingTour({ isOpen, onClose }: OnboardingTourProps) {
                 {isEn ? 'Next' : '下一步'}
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
+              {step === 0 && (
+                <button
+                  type="button"
+                  data-testid="onboarding-quick-start"
+                  onClick={() => setStep(2)}
+                  className="mt-3 inline-flex w-full min-h-11 items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50/70 px-4 py-2.5 text-xs font-bold text-indigo-700 transition-colors hover:bg-indigo-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+                >
+                  {isEn ? 'Choose how to start instead' : '直接选择开始方式'}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              )}
             </div>
           ) : pendingReplacement ? (
             <div className="mt-5 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/30 p-4">

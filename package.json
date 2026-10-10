@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@napi-rs/canvas": "^1.0.10",
     "@playwright/test": "1.63.0",
     "@types/node": "^26.6.4",
     "@types/react": "^19.3.0",

@@ -3,7 +3,7 @@ name: Capture Real Promotion Media
 on:
   push:
     branches:
-      - feat/promotion-media-capture
+      - feat/promotion-media-v2
   workflow_dispatch:
 
 permissions:
@@ -52,18 +52,35 @@ jobs:
           done
           node scripts/capture-promotion-media.mjs
 
+      - name: Build branded gallery, launch thumbnail, and video outro
+        run: node scripts/render-promotion-assets.mjs
+
       - name: Install MP4 encoder
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg
 
-      - name: Convert actual screen recording to MP4
-        run: >-
-          ffmpeg -y -loglevel warning -i artifacts/promotion/resume-craft-demo.webm
-          -vf "scale=1280:-2:flags=lanczos"
-          -c:v libx264 -crf 23 -preset fast -pix_fmt yuv420p
-          -movflags +faststart -an
-          artifacts/promotion/resume-craft-demo.mp4
+      - name: Assemble 16:9 intro, real browser video, and CTA outro
+        run: |
+          ffmpeg -y -loglevel warning \
+            -loop 1 -framerate 30 -t 1.8 \
+            -i artifacts/promotion/resume-craft-reddit-cover-1280x720.png \
+            -i artifacts/promotion/resume-craft-demo.webm \
+            -loop 1 -framerate 30 -t 3.0 \
+            -i artifacts/promotion/resume-craft-video-outro-1280x720.png \
+            -filter_complex "[0:v]scale=1280:720,setsar=1,format=yuv420p,settb=AVTB,setpts=PTS-STARTPTS[intro];[1:v]trim=start=1,scale=1280:720:flags=lanczos,setsar=1,fps=30,format=yuv420p,settb=AVTB,setpts=PTS-STARTPTS[demo];[2:v]scale=1280:720,setsar=1,format=yuv420p,settb=AVTB,setpts=PTS-STARTPTS[outro];[intro][demo][outro]concat=n=3:v=1:a=0[v]" \
+            -map "[v]" -c:v libx264 -crf 22 -preset fast -pix_fmt yuv420p \
+            -movflags +faststart -an \
+            artifacts/promotion/resume-craft-demo.mp4
+
+      - name: Verify final media dimensions and minimum file sizes
+        run: |
+          test -s artifacts/promotion/resume-craft-demo.mp4
+          test -s artifacts/promotion/resume-craft-reddit-cover-1280x720.png
+          test -s artifacts/promotion/resume-craft-product-gallery-1200x900.png
+          ffprobe -v error -select_streams v:0 \
+            -show_entries stream=width,height -of csv=s=x:p=0 \
+            artifacts/promotion/resume-craft-demo.mp4 | grep -qx '1280x720'
 
       - name: Upload downloadable promo package
         if: always()

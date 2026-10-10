@@ -89,8 +89,8 @@ async function save({ c }, name) {
   brand(a.x, 64, 62);
   roundRect(a.x, 65, 152, 130, 31, 16, '#DEF9EE');
   text(a.x, 'OPEN SOURCE', 80, 173, 12, '#047857', 800);
-  text(a.x, 'Resumes without', 65, 264, 49, dark, 800);
-  text(a.x, 'the layout hassle.', 65, 325, 47, dark, 800);
+  text(a.x, 'Build a better', 65, 264, 47, dark, 800);
+  text(a.x, 'resume. Faster.', 65, 325, 47, dark, 800);
   text(a.x, 'Write in Markdown. See a live preview.', 68, 383, 18, '#475569', 500);
   text(a.x, 'Choose an export option when ready.', 68, 410, 18, '#475569', 500);
   pill(a.x, 'FREE', 66, 446, 79);

@@ -1,4 +1,6 @@
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 const indexHtml = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
@@ -18,10 +20,14 @@ describe('privacy-first static assets', () => {
   });
 
   it('uses a dedicated 1200x630 PNG social preview card', () => {
-    const encoded = ogCardGenerator.match(/const data = '([^']+)'/)?.[1];
-    expect(encoded).toBeTruthy();
-
-    const png = Buffer.from(encoded || '', 'base64');
+    // Exercise the real SVG-to-PNG pipeline rather than asserting the previous
+    // hard-coded, stale base64 snapshot. This also catches missing native
+    // renderers and SVG decoding failures in CI.
+    expect(ogCardGenerator).toContain("readFileSync(source)");
+    execFileSync(process.execPath, [
+      fileURLToPath(new URL('../../scripts/generate-og-card.mjs', import.meta.url)),
+    ]);
+    const png = readFileSync(new URL('../../public/og-card.png', import.meta.url));
     expect(png.subarray(1, 4).toString('ascii')).toBe('PNG');
     expect(png.readUInt32BE(16)).toBe(1200);
     expect(png.readUInt32BE(20)).toBe(630);

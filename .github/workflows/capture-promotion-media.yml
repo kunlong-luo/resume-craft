@@ -52,6 +52,11 @@ jobs:
           done
           node scripts/capture-promotion-media.mjs
 
+      - name: Install MP4 encoder
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+
       - name: Convert actual screen recording to MP4
         run: >-
           ffmpeg -y -loglevel warning -i artifacts/promotion/resume-craft-demo.webm

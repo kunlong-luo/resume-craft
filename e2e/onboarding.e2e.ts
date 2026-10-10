@@ -61,6 +61,32 @@ test.describe('first-run onboarding', () => {
     ).toHaveCount(0);
   });
 
+  test('offers quick-start choices immediately without forcing the tour', async ({ page }) => {
+    await page.goto('/');
+
+    const tour = page.getByRole('dialog', {
+      name: /Getting started tour|新手引导/,
+    });
+    await expect(tour).toBeVisible();
+    await expect(tour.getByText(/No sign-up|无需注册/)).toBeVisible();
+    await expect(tour.getByText(/Saved in your browser|保存在当前浏览器/)).toBeVisible();
+
+    await tour.getByTestId('onboarding-quick-start').click();
+    await expect(tour.getByRole('heading', {
+      name: /Step 3.*How would you like to start|第三步.*你想从哪里开始/,
+    })).toBeVisible();
+
+    await tour.getByRole('button', {
+      name: /Start completely blank|从完全空白简历开始/,
+    }).click();
+
+    await expect(tour).toBeHidden();
+    await expect.poll(() => readActiveMarkdown(page)).toBe('');
+    await page.reload();
+    await expect.poll(() => readActiveMarkdown(page)).toBe('');
+    await expect(tour).toHaveCount(0);
+  });
+
   test('can replay the onboarding from the help center', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem('resume-onboarding-v1-complete', '1');

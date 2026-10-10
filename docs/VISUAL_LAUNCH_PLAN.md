@@ -5,18 +5,18 @@
 ## Stage 1 — reusable launch assets (this PR)
 
 - [x] Audit existing `public/og-card.svg`, `.github/assets/readme-banner.svg`, `index.html` and the build-time PNG generator.
-- [ ] Refresh the README banner and SVG design source with one honest product story: **Markdown / form → live preview → ATS checks → PDF**.
-- [ ] Ensure the actual 1200×630 social preview PNG used by Open Graph/Twitter is generated from the same visual design. **Do not claim SVG edits changed PNG unless verified.**
+- [x] Refresh the README banner and SVG design source with one honest product story: **Markdown / form → live preview → ATS checks → PDF**.
+- [ ] Rebuild the actual 1200×630 Open Graph/Twitter PNG from the new vector source. **Not completed:** `scripts/generate-og-card.mjs` still emits its previous static PNG, so a social share currently shows the previous thumbnail.
 - [ ] Add one genuine redacted editor screenshot from the running product when browser capture is available; never use a fictional AI UI screenshot as product proof.
 - [ ] Confirm text contrast, image safe areas, mobile cropping, OG metadata, cache behavior and final build size.
 
 ## Stage 2 — lower-friction welcome (this PR)
 
-- [ ] Preserve the existing three-step accessible `OnboardingTour`; no new blocking splash page.
-- [ ] Add a direct, clearly labelled route from the first step to the existing starting choices (sample / guided / blank / import).
-- [ ] Clarify that the workspace is local-first and sign-up-free. Match the UI language, not the content language.
-- [ ] Keep the existing resume-overwrite confirmation when reopening onboarding and avoid changing IndexedDB data until an action is explicitly chosen.
-- [ ] Add E2E coverage for first-visit shortcut, skip behavior, and replay protection. Preserve keyboard focus and mobile flow.
+- [x] Preserve the existing three-step accessible `OnboardingTour`; no new blocking splash page.
+- [x] Add a direct, clearly labelled route from the first step to the existing starting choices (sample / guided / blank / import).
+- [x] Clarify that the workspace is local-first and sign-up-free. Match the UI language, not the content language.
+- [x] Keep the existing resume-overwrite confirmation when reopening onboarding and avoid changing IndexedDB data until an action is explicitly chosen.
+- [x] Add E2E coverage for first-visit shortcut; existing E2E covers skip, focus, mobile layout, and replay protection.
 
 ## Stage 3 — conditional marketing landing (NOT IN THIS PR)
 

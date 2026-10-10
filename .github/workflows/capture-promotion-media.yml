@@ -1,0 +1,75 @@
+name: Capture Real Promotion Media
+
+on:
+  push:
+    branches:
+      - feat/promotion-media-capture
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .node-version
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 12.6.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build branded social cover
+        run: pnpm run build
+
+      - name: Capture actual editor screenshots and video
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec vite --host 127.0.0.1 --port 3000 --strictPort > /tmp/resume-craft-demo-vite.log 2>&1 &
+          vite_pid=$!
+          trap 'kill "$vite_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 45); do
+            if curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          node scripts/capture-promotion-media.mjs
+
+      - name: Install MP4 encoder
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+
+      - name: Convert actual screen recording to MP4
+        run: >-
+          ffmpeg -y -loglevel warning -i artifacts/promotion/resume-craft-demo.webm
+          -vf "scale=1280:-2:flags=lanczos"
+          -c:v libx264 -crf 23 -preset fast -pix_fmt yuv420p
+          -movflags +faststart -an
+          artifacts/promotion/resume-craft-demo.mp4
+
+      - name: Upload downloadable promo package
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: resume-craft-promotion-media
+          path: artifacts/promotion/
+          if-no-files-found: warn
+          retention-days: 30
